@@ -834,6 +834,8 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 <script>
 
+
+
 // ═══════════════════════════════════════════════════════
 // FIREBASE ENTEGRASYONU
 // ═══════════════════════════════════════════════════════
@@ -1113,7 +1115,7 @@ function oyunKartHTML(o){
   const deaktifIlerleme=sonDeaktif?Math.min(100,Math.round(daysDiff(sonDeaktif.tarih,now)/ALTI_AY_GUN*100)):100;
 
   function slotRow(tip,kira,idx,kopyaIdx){
-    if(!kira) return `<div class="slot-row slot-empty"><div class="slot-icon ${tip==='primary'?'si-primary':'si-secondary'}">${tip==='primary'?'🔵':'🟣'}</div><div class="slot-info"><div class="slot-type">${tip==='primary'?'Primary'+(o.ciftPrimary&&idx===1?' #2':''):'Secondary'}</div><div class="slot-free">● Müsait</div></div></div>`;
+    if(!kira) return `<div class="slot-row slot-empty" onclick="event.stopPropagation();hizliKiralaKopya(${o.id},${typeof kopyaIdx!=='undefined'?kopyaIdx:0},'${tip==='primary'?'primary':'secondary'}')" style="cursor:pointer" title="Kirala"><div class="slot-icon ${tip==='primary'?'si-primary':'si-secondary'}">${tip==='primary'?'🔵':'🟣'}</div><div class="slot-info"><div class="slot-type">${tip==='primary'?'Primary'+(o.ciftPrimary&&idx===1?' #2':''):'Secondary'}</div><div class="slot-free">● Müsait — Kirala</div></div></div>`;
     const m=D.musteriler.find(x=>x.id===kira.musteriId);
     const isG=kira.bit<now;
     return `<div class="slot-row slot-occupied ${isG?'overdue':''}"><div class="slot-icon ${tip==='primary'?'si-primary':'si-secondary'}">${tip==='primary'?'🔵':'🟣'}</div><div class="slot-info"><div class="slot-type">${tip==='primary'?'Primary'+(o.ciftPrimary&&primKiralar.length>1&&idx>0?' #2':''):'Secondary'}</div><div class="slot-musteri">${m?.ad||''} ${m?.soyad||''}</div><div class="slot-dates ${isG?'late':''}">${isG?'⚠️ ':' 📅 '}${fmtDate(kira.bit)}</div></div><div class="slot-phone">${m?.tel||''}</div></div>`;
@@ -1162,30 +1164,31 @@ function oyunKartHTML(o){
       ${secKiralar.map(k=>slotRow('secondary',k)).join('')}
       ${!secKiralar.length?slotRow('secondary',null):''}
     </div>
-    ${(o.kopyalar||[]).map((kp,ki)=>kp.satildi?`
-    <div style="background:rgba(255,71,87,.05);border-top:1px solid var(--border);padding:6px 14px;font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:between;gap:8px">
-      <span>📀 ${kp.not||('Kopya '+(ki+2))} <span style="color:#ff4757;background:rgba(255,71,87,.15);padding:1px 6px;border-radius:4px;margin-left:4px">SATILDI</span></span>
-      <button class="btn btn-outline btn-sm" style="margin-left:auto;font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal(${o.id},${ki})">✏️</button>
-    </div>`:`
-    <div style="border-top:1px solid var(--border)">
-      <div style="padding:4px 14px;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px">
-        <span style="color:var(--success)">📀 ${kp.not||('Kopya '+(ki+2))}</span>
-        ${kp.ciftPrimary?'<span style="font-size:10px;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);padding:1px 5px;border-radius:3px">2P</span>':''}
-        <button class="btn btn-outline btn-sm" style="margin-left:auto;font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal(${o.id},${ki})">✏️</button>
-        <button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();deleteKopya(${o.id},${ki})">🗑</button>
-      </div>
-      <div class="slot-panel" style="border-top:none">
-        ${(()=>{
-          const kpId='kp_'+o.id+'_'+ki;
-          const kpPrimKiralar=D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='primary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
-          const kpSecKiralar=D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='secondary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
-          return slotRow('primary',kpPrimKiralar[0]||null,0,ki+1)+
-                 (kp.ciftPrimary?slotRow('primary',kpPrimKiralar[1]||null,1,ki+1):'')+
-                 (kpSecKiralar.map(k=>slotRow('secondary',k,0,ki+1)).join(''))+
-                 (!kpSecKiralar.length?slotRow('secondary',null,0,ki+1):'');
-        })()}
-      </div>
-    </div>`).join('')}
+    ${(o.kopyalar||[]).map((kp,ki)=>{
+      const kpAd = kp.not||('Kopya '+(ki+2));
+      const kpPrimKiralar = D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='primary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
+      const kpSecKiralar  = D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='secondary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
+      if(kp.satildi) return '<div style="background:rgba(255,71,87,.05);border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px">'+
+        '<span style="color:var(--text3)">📀 '+kpAd+'</span>'+
+        '<span style="color:#ff4757;background:rgba(255,71,87,.15);padding:1px 8px;border-radius:4px;font-size:11px">SATILDI</span>'+
+        '<button class="btn btn-outline btn-sm" style="margin-left:auto;font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+ki+')">✏️ Düzenle</button>'+
+        '</div>';
+      return '<div style="border-top:2px solid rgba(0,229,160,.2)">'+
+        '<div style="padding:6px 14px;background:rgba(0,229,160,.04);display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+          '<span style="color:var(--success);font-size:12px;font-weight:600">📀 '+kpAd+'</span>'+
+          (kp.ciftPrimary?'<span style="font-size:10px;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);padding:1px 6px;border-radius:4px">2P</span>':'')+
+          '<div style="margin-left:auto;display:flex;gap:4px">'+
+            '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 8px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+ki+')">✏️ Düzenle</button>'+
+            '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 8px" onclick="event.stopPropagation();deleteKopya('+o.id+','+ki+')">🗑</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="slot-panel" style="border-top:none">'+
+          slotRow('primary',kpPrimKiralar[0]||null,0,ki+1)+
+          (kp.ciftPrimary?slotRow('primary',kpPrimKiralar[1]||null,1,ki+1):'')+
+          (kpSecKiralar.length?kpSecKiralar.map(k=>slotRow('secondary',k,0,ki+1)).join(''):slotRow('secondary',null,0,ki+1))+
+        '</div>'+
+      '</div>';
+    }).join('')}
     <div class="game-body">
       ${!henuzCikmadi?`
       <div class="game-row"><span class="game-row-lbl">🔵 Primary Günlük</span><span class="game-row-val">${fmt(o.gunlukPri||o.gunluk)}</span></div>
@@ -1203,6 +1206,23 @@ function oyunKartHTML(o){
       </div>
     </div>
   </div>`;
+}
+
+
+function hizliKiralaKopya(oyunId, kopyaIdx, tip) {
+  openKiralamaModal();
+  setTimeout(() => {
+    const oSel = document.getElementById('kira-oyun');
+    oSel.value = oyunId;
+    onKiraOyunChange();
+    // Kopya seç
+    const kSel = document.getElementById('kira-kopya');
+    if (kSel) kSel.value = kopyaIdx || 0;
+    // Tip seç
+    const tSel = document.getElementById('kira-tip');
+    if (tSel) tSel.value = tip || 'primary';
+    calcKira();
+  }, 150);
 }
 
 function hizliKirala(oyunId){
@@ -1526,6 +1546,7 @@ function calcIndirimTL(){
 }
 
 function saveKiralama(){
+  try {
   const eid=parseInt(document.getElementById('kira-eid').value);
   const musteriId=parseInt(document.getElementById('kira-musteri').value);
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
@@ -1540,54 +1561,55 @@ function saveKiralama(){
   if(!musteriId||!oyunId||!bas||!bit){toast('Zorunlu alanları doldurun','error');return;}
   if(daysDiff(bas,bit)<=0){toast('Bitiş tarihi başlangıçtan sonra olmalı','error');return;}
   const oyun=D.oyunlar.find(o=>o.id===oyunId);if(!oyun)return;
-
-  // Hediye gün — radio seçiminden al
   const seciliHediye=parseInt(document.querySelector('input[name="hediye"]:checked')?.value||'0');
-
+  const kopyaIdx=parseInt(document.getElementById('kira-kopya')?.value||'0');
   if(eid){
-    // DÜZENLEME MODU
-    const idx=D.kiralamalar.findIndex(x=>x.id===eid);
-    if(idx<0)return;
-    const eski=D.kiralamalar[idx];
-    // Eski geliri geri al
+    const ki=D.kiralamalar.findIndex(x=>x.id===eid);
+    if(ki<0)return;
+    const eski=D.kiralamalar[ki];
     const eskiOyun=D.oyunlar.find(o=>o.id===eski.oyunId);
     if(eskiOyun){eskiOyun.toplamGelir=Math.max(0,eskiOyun.toplamGelir-eski.net);eskiOyun.kiralamaSayisi=Math.max(0,eskiOyun.kiralamaSayisi-1);}
-    // Yeni değerleri yaz
-    D.kiralamalar[idx]={...eski,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun:seciliHediye,notlar};
-    // Yeni geliri ekle
+    D.kiralamalar[ki]={...eski,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun:seciliHediye,notlar};
     oyun.toplamGelir+=net;oyun.kiralamaSayisi++;
     if(eski.durum==='aktif'){oyun.durum='kirada';}
     save();closeModal('modal-kiralama');renderKiralamalar();renderDashboard();updateStats();
     toast('Kiralama güncellendi ✅','success');
   } else {
-    // OLUŞTURMA MODU — önce kara liste kontrolü
     const klkayit=D.karaListe.find(k=>k.musteriId===musteriId);
     if(klkayit){
       const m=D.musteriler.find(x=>x.id===musteriId);
-      document.getElementById('kl-uyari-text').innerHTML=`<strong style="color:var(--text)">${m?.ad} ${m?.soyad}</strong> kara listede bulunmaktadır.<br><br><span style="color:var(--warning)">Sebep:</span> ${klkayit.sebep}<br><span style="color:var(--text2)">Eklenme: ${fmtDate(klkayit.tarih)}</span>`;
-      document.getElementById('kl-devam-btn').onclick=()=>{closeModal('modal-kl-uyari');const kopyaIdx=parseInt(document.getElementById('kira-kopya')?.value||'0');
-    _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);};
+      document.getElementById('kl-uyari-text').innerHTML=`<strong style="color:var(--text)">${m?.ad} ${m?.soyad}</strong> kara listede.<br><span style="color:var(--warning)">Sebep:</span> ${klkayit.sebep}`;
+      document.getElementById('kl-devam-btn').onclick=()=>{closeModal('modal-kl-uyari');_kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);};
       openModal('modal-kl-uyari');
       return;
     }
-    const kopyaIdx=parseInt(document.getElementById('kira-kopya')?.value||'0');
     _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);
   }
+  } catch(e) { toast("🔴 saveKiralama Hata: "+e.message,"error",8000); console.error("saveKiralama",e); }
 }
-
 function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,hediyeGun,notlar,oyun,kopyaIdx){
+  try {
+    const ki = kopyaIdx || 0;
     if(tip==='primary'){
-      const aktifPrimler=D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='primary'&&k.durum==='aktif').length;
-      const maxP=oyun.ciftPrimary?2:1;
-      if(aktifPrimler>=maxP){toast(`Bu oyun max ${maxP} Primary kiralamaya izin veriyor!`,'error');return;}
+      // Her kopya kendi slotunu sayar - sadece aynı kopyaIdx'e ait primary'leri say
+      const aktifPrimler = D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='primary'&&k.durum==='aktif'&&(k.kopyaIdx||0)===ki).length;
+      // Hangi kopyanın ciftPrimary değerini kullan
+      let maxP = 1;
+      if(ki===0) maxP = oyun.ciftPrimary ? 2 : 1;
+      else {
+        const kopya = (oyun.kopyalar||[])[ki-1];
+        maxP = kopya?.ciftPrimary ? 2 : 1;
+      }
+      if(aktifPrimler>=maxP){toast(`Bu kopya max ${maxP} Primary kiralamaya izin veriyor!`,'error');return;}
     }
-    D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:kopyaIdx||0});
+    D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:ki});
     oyun.durum='kirada';oyun.kiralamaSayisi++;oyun.toplamGelir+=net;
     save();closeModal('modal-kiralama');renderKiralamalar();renderDashboard();updateStats();
     const hediyeMesaj=hediyeGun>0?` 🎁 +${hediyeGun} gün hediye!`:'';
-    toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'}${hediyeMesaj}`,'success');
+    const kopyaAd = ki===0?'Ana Hesap':((oyun.kopyalar||[])[ki-1]?.not||('Kopya '+(ki+1)));
+    toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'} · 📀 ${kopyaAd}${hediyeMesaj}`,'success');
+  } catch(e) { toast("🔴 _kiralamaOlustur Hata: "+e.message,"error",8000); console.error("_kiralamaOlustur",e); }
 }
-
 function editKiralama(id){
   const k=D.kiralamalar.find(x=>x.id===id); if(!k)return;
   // Modal'ı aç ve tüm oyunları listele (düzenlemede kısıtlama yok)
@@ -2001,12 +2023,13 @@ function renderPeriodChart(kiralar,s,e){
 
 // =================== UZAKTAN DEAKTİF ===================
 function hizliDeaktif(oyunId){
+  try {
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.map(o=>`<option value="${o.id}" ${o.id===oyunId?'selected':''}>${o.ad}</option>`).join('');
   document.getElementById('deaktif-tarih').value=today();
   document.getElementById('deaktif-not').value='';
   openModal('modal-deaktif');
+  } catch(e) { toast("🔴 hizliDeaktif Hata: "+e.message,"error",8000); console.error("hizliDeaktif",e); }
 }
-
 function openDeaktifModal(){
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.filter(o=>{
     if(!o.deaktifGecmisi)o.deaktifGecmisi=[];
@@ -2283,6 +2306,7 @@ function setSyncStatus(status) {
 // ═══════════════════════════════════════════════════
 
 function openKopyaModal(oyunId, kopyaIdx) {
+  try {
   document.getElementById('kopya-oyun-id').value = oyunId;
   document.getElementById('kopya-idx').value = kopyaIdx !== undefined ? kopyaIdx : '';
   const oyun = D.oyunlar.find(o => o.id === oyunId);
@@ -2308,9 +2332,10 @@ function openKopyaModal(oyunId, kopyaIdx) {
     document.getElementById('kopya-satildi-wrap').style.display = 'none';
   }
   openModal('modal-kopya');
+  } catch(e) { toast("🔴 openKopyaModal Hata: "+e.message,"error",8000); console.error("openKopyaModal",e); }
 }
-
 function saveKopya() {
+  try {
   const oyunId = parseInt(document.getElementById('kopya-oyun-id').value);
   const kopyaIdxStr = document.getElementById('kopya-idx').value;
   const not = document.getElementById('kopya-not').value.trim();
@@ -2341,8 +2366,8 @@ function saveKopya() {
   save();
   renderOyunlar();
   renderDashboard();
+  } catch(e) { toast("🔴 saveKopya Hata: "+e.message,"error",8000); console.error("saveKopya",e); }
 }
-
 function deleteKopya(oyunId, kopyaIdx) {
   if (!confirm('Bu kopyayı silmek istediğinize emin misiniz?')) return;
   const oyun = D.oyunlar.find(o => o.id === oyunId);
@@ -2763,6 +2788,8 @@ function renderRezervasyonlar() {
     </div>`;
   }).join('');
 }
+
+
 
 </script>
 

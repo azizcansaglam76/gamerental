@@ -836,6 +836,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 
 
+
 // ═══════════════════════════════════════════════════════
 // FIREBASE ENTEGRASYONU
 // ═══════════════════════════════════════════════════════
@@ -1546,7 +1547,6 @@ function calcIndirimTL(){
 }
 
 function saveKiralama(){
-  try {
   const eid=parseInt(document.getElementById('kira-eid').value);
   const musteriId=parseInt(document.getElementById('kira-musteri').value);
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
@@ -1585,10 +1585,8 @@ function saveKiralama(){
     }
     _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);
   }
-  } catch(e) { toast("🔴 saveKiralama Hata: "+e.message,"error",8000); console.error("saveKiralama",e); }
 }
 function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,hediyeGun,notlar,oyun,kopyaIdx){
-  try {
     const ki = kopyaIdx || 0;
     if(tip==='primary'){
       // Her kopya kendi slotunu sayar - sadece aynı kopyaIdx'e ait primary'leri say
@@ -1608,7 +1606,6 @@ function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme
     const hediyeMesaj=hediyeGun>0?` 🎁 +${hediyeGun} gün hediye!`:'';
     const kopyaAd = ki===0?'Ana Hesap':((oyun.kopyalar||[])[ki-1]?.not||('Kopya '+(ki+1)));
     toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'} · 📀 ${kopyaAd}${hediyeMesaj}`,'success');
-  } catch(e) { toast("🔴 _kiralamaOlustur Hata: "+e.message,"error",8000); console.error("_kiralamaOlustur",e); }
 }
 function editKiralama(id){
   const k=D.kiralamalar.find(x=>x.id===id); if(!k)return;
@@ -2023,12 +2020,10 @@ function renderPeriodChart(kiralar,s,e){
 
 // =================== UZAKTAN DEAKTİF ===================
 function hizliDeaktif(oyunId){
-  try {
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.map(o=>`<option value="${o.id}" ${o.id===oyunId?'selected':''}>${o.ad}</option>`).join('');
   document.getElementById('deaktif-tarih').value=today();
   document.getElementById('deaktif-not').value='';
   openModal('modal-deaktif');
-  } catch(e) { toast("🔴 hizliDeaktif Hata: "+e.message,"error",8000); console.error("hizliDeaktif",e); }
 }
 function openDeaktifModal(){
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.filter(o=>{
@@ -2306,7 +2301,6 @@ function setSyncStatus(status) {
 // ═══════════════════════════════════════════════════
 
 function openKopyaModal(oyunId, kopyaIdx) {
-  try {
   document.getElementById('kopya-oyun-id').value = oyunId;
   document.getElementById('kopya-idx').value = kopyaIdx !== undefined ? kopyaIdx : '';
   const oyun = D.oyunlar.find(o => o.id === oyunId);
@@ -2332,10 +2326,8 @@ function openKopyaModal(oyunId, kopyaIdx) {
     document.getElementById('kopya-satildi-wrap').style.display = 'none';
   }
   openModal('modal-kopya');
-  } catch(e) { toast("🔴 openKopyaModal Hata: "+e.message,"error",8000); console.error("openKopyaModal",e); }
 }
 function saveKopya() {
-  try {
   const oyunId = parseInt(document.getElementById('kopya-oyun-id').value);
   const kopyaIdxStr = document.getElementById('kopya-idx').value;
   const not = document.getElementById('kopya-not').value.trim();
@@ -2366,7 +2358,6 @@ function saveKopya() {
   save();
   renderOyunlar();
   renderDashboard();
-  } catch(e) { toast("🔴 saveKopya Hata: "+e.message,"error",8000); console.error("saveKopya",e); }
 }
 function deleteKopya(oyunId, kopyaIdx) {
   if (!confirm('Bu kopyayı silmek istediğinize emin misiniz?')) return;
@@ -2788,6 +2779,7 @@ function renderRezervasyonlar() {
     </div>`;
   }).join('');
 }
+
 
 
 

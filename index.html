@@ -357,7 +357,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     <div class="section">
       <div class="section-head"><div class="section-title">⏰ Gecikmiş İadeler</div></div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
-        <thead><tr><th>Oyun</th><th>Müşteri</th><th>Teslim</th><th>Gecikme</th></tr></thead>
+        <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Teslim</th><th>Gecikme</th><th>Ekstra Ücret</th><th>İşlem</th></tr></thead>
         <tbody id="d-gecikme-tbl"></tbody>
       </table></div></div>
     </div>
@@ -408,6 +408,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 <!-- KİRALAMALAR -->
 <div class="page" id="page-kiralamalar">
+  <div id="kira-gecikme-banner" style="display:none;margin-bottom:10px;background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.35);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--danger)"></div>
   <div class="search-bar">
     <input type="text" class="search-input" placeholder="🔍 Ara..." id="kiralama-search" oninput="renderKiralamalar()">
     <div class="filter-bar">
@@ -858,6 +859,11 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 
 
+
+
+
+
+
 // ═══════════════════════════════════════════════════════
 // FIREBASE ENTEGRASYONU
 // ═══════════════════════════════════════════════════════
@@ -1072,8 +1078,28 @@ function renderDashboard(){
   const gtbl=document.getElementById('d-gecikme-tbl');
   gtbl.innerHTML=gecikme.length?gecikme.map(k=>{
     const o=D.oyunlar.find(x=>x.id===k.oyunId),m=D.musteriler.find(x=>x.id===k.musteriId);
-    return `<tr class="overdue"><td><strong>${o?.ad||'-'}</strong></td><td>${m?.ad||''} ${m?.soyad||''}</td><td style="color:var(--danger)">${fmtDate(k.bit)}</td><td><span class="status s-gecikme">${daysDiff(k.bit,now)} gün</span></td></tr>`;
-  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Gecikmiş iade yok ✅</td></tr>';
+    const gecGun=daysDiff(k.bit,now);
+    const gunluk=k.tip==='primary'?(o?.gunluk||0):(o?.gunluk?Math.round(o.gunluk*0.7):0);
+    const ekstra=gunluk*gecGun;
+    const whatsappMsg=encodeURIComponent('Merhaba '+(m?.ad||m?.soyad||'')+'! 👋\n'+
+      (o?.ad||'Oyun')+' kiralama süreniz '+(gecGun)+' gün önce doldu.\n'+
+      'Ekstra ücret: ₺'+ekstra+'\n'+
+      'Oyunu iade etmenizi rica ederiz. Teşekkürler!');
+    const tel=(m?.tel||'').replace(/[^0-9]/g,'');
+    const waLink=tel?'https://wa.me/90'+tel.replace(/^0/,'')+'?text='+whatsappMsg:'#';
+    return '<tr class="overdue">'+
+      '<td><strong>'+(o?.ad||'-')+'</strong><br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
+      '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
+      '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
+      '<td style="color:var(--danger);font-weight:600">'+fmtDate(k.bit)+'</td>'+
+      '<td><span class="status s-gecikme">'+gecGun+' gün</span></td>'+
+      '<td style="color:var(--danger);font-weight:600">'+fmt(ekstra)+'</td>'+
+      '<td><div class="action-btns">'+
+        '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
+        '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
+        (tel?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+'</div></td>'+
+    '</tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Gecikmiş iade yok ✅</td></tr>';
 
   const atbl=document.getElementById('d-aktif-tbl');
   atbl.innerHTML=aktifler.length?aktifler.map(k=>{
@@ -1357,7 +1383,8 @@ function renderMusteriler(){
       <td style="text-align:center">${kiralar.length}</td>
       <td style="text-align:center">${aktif.length?`<span class="badge">${aktif.length}</span>`:'-'}</td>
       <td class="profit">${fmt(toplam)}</td>
-      <td><div class="action-btns"><button class="btn btn-outline btn-sm" onclick="editMusteri(${m.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteMusteri(${m.id})">🗑</button></div></td>
+      <td><div class="action-btns"><button class="btn btn-outline btn-sm" onclick="editMusteri(${m.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteMusteri(${m.id})">🗑</button>${m.tel?`<a href="https://wa.me/90${m.tel.replace(/[^0-9]/g,'').replace(/^0/,'')}" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none;padding:4px 8px;border-radius:6px">💬</a>`:''}
+    </div></td>
     </tr>`;
   }).join('');
 }
@@ -1663,6 +1690,19 @@ function renderKiralamalar(){
   }).sort((a,b)=>b.bas.localeCompare(a.bas));
 
   const tbl=document.getElementById('kiralama-tbl');
+  const gecBanner=document.getElementById('kira-gecikme-banner');
+  const now2=today();
+  const gecList=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit<now2);
+  if(gecBanner){
+    if(gecList.length&&(filters.kira==='hepsi'||filters.kira==='aktif'||filters.kira==='gecikme')){
+      gecBanner.style.display='';
+      gecBanner.innerHTML='🚨 <strong>'+gecList.length+' gecikmiş iade var!</strong> · Toplam ekstra: <strong style="color:var(--danger)">'+
+        fmt(gecList.reduce((s,k)=>{const o=D.oyunlar.find(x=>x.id===k.oyunId);return s+((o?.gunluk||0)*(k.tip==='secondary'?0.7:1)*daysDiff(k.bit,now2));},0))+
+        '</strong>';
+    } else {
+      gecBanner.style.display='none';
+    }
+  }
   if(!list.length){tbl.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:30px">Kayıt bulunamadı</td></tr>';return;}
   tbl.innerHTML=list.map(k=>{
     const o=D.oyunlar.find(x=>x.id===k.oyunId),m=D.musteriler.find(x=>x.id===k.musteriId);
@@ -1674,13 +1714,23 @@ function renderKiralamalar(){
       <td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${k.musteriId})">${m?.ad||''} ${m?.soyad||''}</span><br><span style="font-size:10px;color:var(--text2)">${m?.tel||''}</span></td>
       <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
       <td>${fmtDate(k.bas)}</td>
-      <td ${isG?'style="color:var(--danger);font-weight:600"':''}>${fmtDate(k.bit)}${isG?`<br><span style="font-size:10px">+${daysDiff(k.bit,now)}g</span>`:''}</td>
+      <td ${isG?'style="color:var(--danger);font-weight:600"':''}>${fmtDate(k.bit)}${isG?`<br><span style="font-size:11px;color:var(--danger)">+${daysDiff(k.bit,now)}g · ${fmt((o?.gunluk||0)*(k.tip==='secondary'?0.7:1)*daysDiff(k.bit,now))}</span>`:''}</td>
       <td>${gun}${k.hediyeGun>0?` <span style="color:var(--success);font-size:10px">+${k.hediyeGun}🎁</span>`:''}g</td>
       <td>${fmt(k.ucret)}</td>
       <td class="${k.indirim>0?'loss':'neutral'}">${k.indirim>0?'-'+fmt(k.indirim):'—'}</td>
       <td class="profit"><strong>${fmt(k.net)}</strong></td>
       <td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td>
-      <td><div class="action-btns">${k.durum==='aktif'?`<button class="btn btn-success btn-sm" onclick="teslimAl(${k.id})">✅ İade</button><button class="btn btn-warning btn-sm" onclick="openUzatmaModal(${k.id})">🔄 Uzat</button>`:''}<button class="btn btn-outline btn-sm" onclick="editKiralama(${k.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteKira(${k.id})">🗑</button></div></td>
+      <td><div class="action-btns">${k.durum==='aktif'?(()=>{
+        const _tel=(m?.tel||'').replace(/[^0-9]/g,'');
+        const _gec=isG?daysDiff(k.bit,now):0;
+        const _gun=o?.gunluk||0;
+        const _extra=Math.round(_gun*(k.tip==='secondary'?0.7:1)*_gec);
+        const _msg=encodeURIComponent('Merhaba '+(m?.ad||m?.soyad||'')+'! 👋\n'+(o?.ad||'Oyun')+' kiralama süreniz '+_gec+' gün önce doldu.\nEkstra ücret: ₺'+_extra+'\nOyunu iade etmenizi rica ederiz. Teşekkürler!');
+        const _wa=_tel?'https://wa.me/90'+_tel.replace(/^0/,'')+'?text='+_msg:'';
+        return '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
+               '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
+               (isG&&_wa?'<a href="'+_wa+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'');
+      })():''}<button class="btn btn-outline btn-sm" onclick="editKiralama(${k.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteKira(${k.id})">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -2623,6 +2673,44 @@ function saveUzatma(){
   updateStats();
   toast('Kiralama '+gun+' gün uzatıldı! +'+fmt(ucret),'success');
 }
+
+
+
+
+
+function openWhatsApp(musteriId, kiraId){
+  const m=D.musteriler.find(x=>x.id===musteriId);
+  const k=kiraId?D.kiralamalar.find(x=>x.id===kiraId):null;
+  const o=k?D.oyunlar.find(x=>x.id===k.oyunId):null;
+  const tel=(m?.tel||'').replace(/[^0-9]/g,'');
+  if(!tel){ toast('Müşterinin telefon numarası yok','error'); return; }
+
+  const now=today();
+  const isGec=k&&k.durum==='aktif'&&k.bit<now;
+  const gecGun=isGec?daysDiff(k.bit,now):0;
+  const gunluk=k&&o?(o.gunluk||0)*(k.tip==='secondary'?0.7:1):0;
+  const ekstra=Math.round(gunluk*gecGun);
+
+  let msg='';
+  if(isGec){
+    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
+        (o?.ad||'Oyun')+' kiralama süreniz '+gecGun+' gün önce doldu.\n'+
+        'Ekstra ücret: ₺'+ekstra+'\n'+
+        'Oyunu iade etmenizi rica ederiz. Teşekkürler! 🙏';
+  } else if(k){
+    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
+        (o?.ad||'Oyun')+' kiralama süreniz '+fmtDate(k.bit)+' tarihinde doluyor.\n'+
+        'Uzatmak ister misiniz? 📞';
+  } else {
+    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
+        'PlayStation oyun kiralama hakkında görüşmek istiyoruz.';
+  }
+
+  const waNum='90'+tel.replace(/^0/,'');
+  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+
 
 </script>
 

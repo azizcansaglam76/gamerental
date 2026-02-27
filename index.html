@@ -138,7 +138,7 @@ textarea{resize:vertical;min-height:70px;}
 .game-card.rezerv-card{border-color:rgba(123,47,255,.4);}
 .game-card.rezerv-card:hover{border-color:var(--accent2);}
 .game-card-header{padding:12px 14px;background:linear-gradient(135deg,var(--surface3),var(--surface2));border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.game-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;}
+
 .game-body{padding:12px 14px;}
 .game-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:13px;}
 .game-row:last-child{margin-bottom:0;}
@@ -239,6 +239,33 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 /* EK GELİR */
 .s-ekgelir{background:rgba(0,229,160,.15);color:var(--success);border:1px solid rgba(0,229,160,.3);}
 .s-ekgelir::before{background:var(--success);}
+
+.game-card-header{padding:12px 14px;background:linear-gradient(135deg,var(--surface3),var(--surface2));border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.game-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:0.3px;line-height:1.2;}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.tag-ps5{background:rgba(0,198,255,.15);color:var(--accent);}
+.tag-ps4{background:rgba(255,107,53,.15);color:var(--accent3);}
+.tag-genre{background:rgba(123,47,255,.15);color:var(--accent2);}
+.status{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.s-mevcut{background:rgba(0,229,160,.15);color:var(--success);border:1px solid rgba(0,229,160,.3);}
+.s-kirada{background:rgba(255,193,7,.15);color:var(--warning);border:1px solid rgba(255,193,7,.3);}
+.s-cikmayor{background:rgba(255,107,53,.15);color:var(--accent3);border:1px solid rgba(255,107,53,.3);}
+.double-primary-badge{font-size:10px;background:rgba(0,198,255,.2);color:var(--accent);border:1px solid rgba(0,198,255,.4);padding:2px 7px;border-radius:4px;font-weight:700;}
+
+
+.bekleyen-grup{background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.bekleyen-grup-head{padding:12px 16px;background:linear-gradient(135deg,var(--surface3),var(--surface2));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.bekleyen-grup-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;}
+.bekleyen-badge{background:rgba(255,193,7,.2);color:var(--warning);border:1px solid rgba(255,193,7,.4);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bekleyen-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);}
+.bekleyen-row:last-child{border-bottom:none;}
+.bekleyen-sira{width:24px;height:24px;background:var(--surface3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);flex-shrink:0;}
+.bekleyen-sira.first{background:rgba(255,193,7,.2);color:var(--warning);border:1px solid rgba(255,193,7,.4);}
+.bekleyen-info{flex:1;min-width:0;}
+.bekleyen-musteri{font-weight:600;font-size:13px;}
+.bekleyen-meta{font-size:11px;color:var(--text3);margin-top:1px;}
+.bekleyen-actions{display:flex;gap:5px;flex-shrink:0;}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -399,39 +426,45 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 <!-- REZERVASYONLAR -->
 <div class="page" id="page-rezervasyonlar">
-
-  <!-- Özet kartlar -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
-    <div class="card"><div class="card-icon">⏳</div><div class="card-val" id="bekl-toplam">0</div><div class="card-lbl">Toplam Bekleyen</div></div>
-    <div class="card"><div class="card-icon">🔜</div><div class="card-val" id="bekl-yeni-oyun">0</div><div class="card-lbl">Yeni Oyun Beklentisi</div></div>
-    <div class="card"><div class="card-icon">🎮</div><div class="card-val" id="bekl-aktif-oyun">0</div><div class="card-lbl">Kiradaki Oyun İçin</div></div>
-    <div class="card"><div class="card-icon">👥</div><div class="card-val" id="bekl-musteri">0</div><div class="card-lbl">Farklı Müşteri</div></div>
+  <div class="search-bar" style="flex-wrap:wrap;gap:8px">
+    <input type="text" class="search-input" placeholder="🔍 Oyun veya müşteri ara..." id="rezerv-search" oninput="renderRezervasyonlar()" style="flex:1;min-width:200px">
+    <button class="btn btn-purple" onclick="openRezervModal()">+ Beklemeye Al</button>
   </div>
 
-  <!-- Bu hafta çıkacak oyunlar -->
-  <div id="bekl-haftabox" style="display:none;background:rgba(123,47,255,.08);border:1px solid rgba(123,47,255,.3);border-radius:12px;padding:12px 16px;margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:8px">🔜 Bu Hafta Çıkacak Oyunlar</div>
-    <div id="bekl-hafta-list"></div>
+  <!-- Bekleyen uyarısı banner -->
+  <div id="bekleyen-uyari" style="display:none;margin:0 0 12px;background:linear-gradient(135deg,rgba(255,193,7,.15),rgba(255,107,53,.1));border:1px solid rgba(255,193,7,.4);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--warning)"></div>
+
+  <!-- Oyuna göre gruplu bekleme listesi -->
+  <div id="bekleyen-gruplar"></div>
+</div>
+
+
+<!-- UZATMA -->
+<div class="modal-overlay" id="modal-uzatma">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">🔄 Kiralama Uzat</div>
+      <button class="modal-close" onclick="closeModal('modal-uzatma')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uzatma-kira-id">
+      <!-- Mevcut kiralama bilgisi -->
+      <div id="uzatma-bilgi" style="background:var(--surface3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;line-height:1.7"></div>
+      <!-- Bekleyen uyarısı -->
+      <div id="uzatma-uyari" style="display:none;background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.4);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--warning)"></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Uzatma Süresi (gün) *</label><input type="number" id="uzatma-gun" min="1" max="365" placeholder="Kaç gün?" oninput="calcUzatma()"></div>
+        <div class="form-group"><label>Yeni Bitiş Tarihi</label><div id="uzatma-yeni-bit" style="padding:8px 12px;background:var(--surface3);border-radius:8px;font-weight:600;color:var(--success);font-size:14px">—</div></div>
+        <div class="form-group"><label>Uzatma Ücreti (₺)</label><input type="number" id="uzatma-ucret" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Not (opsiyonel)</label><input type="text" id="uzatma-not" placeholder="Uzatma notu..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-uzatma')">İptal</button>
+      <button class="btn btn-primary" onclick="saveUzatma()">🔄 Uzat</button>
+    </div>
   </div>
-
-  <!-- Filtre + Ekle -->
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-    <input type="text" class="search-input" style="flex:1;min-width:160px" placeholder="🔍 Oyun veya müşteri ara..." id="rezerv-search" oninput="renderRezervasyonlar()">
-    <select id="bekl-filtre-oyun" onchange="renderRezervasyonlar()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
-      <option value="">🎮 Tüm Oyunlar</option>
-    </select>
-    <select id="bekl-filtre-tip" onchange="renderRezervasyonlar()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
-      <option value="">Tüm Tipler</option>
-      <option value="yeni">🔜 Yeni Oyun</option>
-      <option value="kirada">🎮 Kiradaki Oyun</option>
-    </select>
-    <button class="btn btn-purple" onclick="openRezervModal()">+ Bekleme Listesine Ekle</button>
-  </div>
-
-  <!-- Oyun bazlı gruplu liste -->
-  <div id="bekl-gruplar"></div>
-
-
+</div>
 
 <!-- KARA LİSTE -->
 <div class="page" id="page-karaliste">
@@ -565,8 +598,6 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   </div>
 </div>
 
-</div><!-- end content -->
-
 <!-- ======= MODALS ======= -->
 
 <!-- OYUN -->
@@ -633,7 +664,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
       <div class="form-grid">
         <div class="form-group"><label>Müşteri *</label><select id="kira-musteri"></select></div>
         <div class="form-group"><label>Oyun *</label><select id="kira-oyun" onchange="onKiraOyunChange()"></select></div>
-        <div class="form-group" id="kira-kopya-wrap" style="display:none"><label>Kopya</label><select id="kira-kopya" onchange="calcKira()"><option value="0">📀 Ana Hesap</option></select></div>
+        <div class="form-group" id="kopya-secim-grup" style="display:none"><label>📀 Hesap Seçimi</label><select id="kira-kopya-idx" onchange="calcKira()"><option value="0">🎮 Ana Hesap</option></select></div>
         <div class="form-group"><label>Kiralama Tipi *</label><select id="kira-tip" onchange="calcKira()"><option value="primary">🔵 Primary</option><option value="secondary">🟣 Secondary</option></select></div>
         <div class="form-group"><label>Süre Tipi</label><select id="kira-sure-tip" onchange="calcKira()"><option value="gunluk">Günlük</option><option value="haftalik">Haftalık</option><option value="manuel">Manuel</option></select></div>
         <div class="form-group"><label>Başlangıç *</label><input type="date" id="kira-bas" onchange="calcKira()"></div>
@@ -646,7 +677,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="form-group full"><label>Notlar</label><textarea id="kira-notlar" placeholder="..."></textarea></div>
       </div>
       <div class="hediye-info" id="hediye-info" style="display:none">
-        <div style="font-weight:700;margin-bottom:8px">🎁 Bu oyun 1 aydan fazla önce çıktı — Hediye gün seçin:</div>
+        <div style="font-weight:700;margin-bottom:8px">🎁 Hediye Gün Seçin (opsiyonel):</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid rgba(0,229,160,.3);background:rgba(0,229,160,.07);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0">
             <input type="radio" name="hediye" value="0" id="h0" style="background:none;border:none;padding:0;width:auto"> Hediye Verme
@@ -677,43 +708,26 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 <!-- REZERVASYON -->
 <div class="modal-overlay" id="modal-rezerv">
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:500px">
     <div class="modal-head">
       <div class="modal-title">⏳ Bekleme Listesine Ekle</div>
       <button class="modal-close" onclick="closeModal('modal-rezerv')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-group full"><label>Oyun *</label><select id="rezerv-oyun" onchange="onRezervOyunChange()"></select></div>
-        <div class="form-group full" id="rezerv-cikis-bilgi" style="display:none">
-          <div style="background:rgba(123,47,255,.1);border:1px solid rgba(123,47,255,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent2)" id="rezerv-cikis-text"></div>
-        </div>
         <div class="form-group full"><label>Müşteri *</label><select id="rezerv-musteri"></select></div>
-        <div class="form-group"><label>Kiralama Tipi</label>
-          <select id="rezerv-tip">
-            <option value="primary">🔵 Primary</option>
-            <option value="secondary">🟣 Secondary</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Öncelik</label>
-          <select id="rezerv-oncelik">
-            <option value="normal">Normal</option>
-            <option value="yuksek">⭐ Yüksek</option>
-            <option value="vip">👑 VIP</option>
-          </select>
-        </div>
-        <div class="form-group full"><label>Not</label>
-          <textarea id="rezerv-not" rows="2" placeholder="Müşteri isteği, özel not..." style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;font-size:13px;resize:vertical"></textarea>
-        </div>
+        <div class="form-group full"><label>Oyun *</label><select id="rezerv-oyun"></select></div>
+        <div class="form-group"><label>Kiralama Tipi</label><select id="rezerv-tip"><option value="primary">🔵 Primary</option><option value="secondary">🟣 Secondary</option></select></div>
+        <div class="form-group"><label>Tahmini Uygunluk Tarihi</label><input type="date" id="rezerv-tarih"></div>
+        <div class="form-group full"><label>Not (opsiyonel)</label><textarea id="rezerv-not" placeholder="Müşterinin notu..."></textarea></div>
       </div>
-      <div id="bekl-sira-bilgi" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:8px;font-size:12px;color:var(--accent)"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-rezerv')">İptal</button>
-      <button class="btn btn-purple" onclick="saveRezervason()">⏳ Listeye Ekle</button>
+      <button class="btn btn-purple" onclick="saveRezervason()">⏳ Beklemeye Al</button>
     </div>
   </div>
-
+</div>
 
 <!-- EK MALİYET -->
 <div class="modal-overlay" id="modal-maliyet">
@@ -836,6 +850,14 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 
 
+
+
+
+
+
+
+
+
 // ═══════════════════════════════════════════════════════
 // FIREBASE ENTEGRASYONU
 // ═══════════════════════════════════════════════════════
@@ -865,13 +887,13 @@ function isoToday(){ return today(); }
 function daysDiff(d1,d2){ return Math.round((new Date(d2)-new Date(d1))/(86400000)); }
 function addDays(d,n){ const dt=new Date(d+'T00:00:00'); dt.setDate(dt.getDate()+n); return dt.toISOString().split('T')[0]; }
 
-function toast(msg,type='info',duration=3200){
+function toast(msg,type='info'){
   const c=document.getElementById('toast-container');
   const t=document.createElement('div');
   t.className=`toast ${type}`;
   t.innerHTML=`<span>${{success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'}[type]||'ℹ️'}</span><span>${msg}</span>`;
   c.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},duration);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3200);
 }
 
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -1097,16 +1119,16 @@ function renderOyunlar(){
 function oyunKartHTML(o){
   const now=today();
   if(!o.deaktifGecmisi) o.deaktifGecmisi=[];
+  if(!o.kopyalar) o.kopyalar=[];
   const henuzCikmadi=o.cikis&&o.cikis>now;
   const yeniCikti=o.cikis&&!henuzCikmadi&&daysDiff(o.cikis,now)>=0&&daysDiff(o.cikis,now)<=30;
-  const aktifKira=D.kiralamalar.filter(k=>k.oyunId===o.id&&k.durum==='aktif');
+  const aktifKira=D.kiralamalar.filter(k=>k.oyunId===o.id&&k.durum==='aktif'&&(k.kopyaIdx===undefined||k.kopyaIdx===null||k.kopyaIdx===0||!k.kopyaIdx));
   const primKiralar=aktifKira.filter(k=>k.tip==='primary');
   const secKiralar=aktifKira.filter(k=>k.tip==='secondary');
   const net=(o.toplamGelir||0)-(o.alis||0)-(D.ekMaliyetler.filter(m=>m.oyunId===o.id).reduce((s,m)=>s+m.tutar,0));
   const netClass=net>0?'profit':net<0?'loss':'neutral';
   const rezervler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum!=='iptal');
 
-  // Deaktif durumu hesapla
   const sonDeaktif=o.deaktifGecmisi.length>0?o.deaktifGecmisi[o.deaktifGecmisi.length-1]:null;
   const ALTI_AY_GUN=182;
   const deaktifKalanGun=sonDeaktif?Math.max(0,ALTI_AY_GUN-daysDiff(sonDeaktif.tarih,now)):0;
@@ -1114,117 +1136,97 @@ function oyunKartHTML(o){
   const deaktifDolabilir=!sonDeaktif||(daysDiff(sonDeaktif.tarih,now)>=ALTI_AY_GUN);
   const deaktifIlerleme=sonDeaktif?Math.min(100,Math.round(daysDiff(sonDeaktif.tarih,now)/ALTI_AY_GUN*100)):100;
 
+  // Ana kopya slot render fonksiyonu
   function slotRow(tip,kira,idx,kopyaIdx){
-    if(!kira) return `<div class="slot-row slot-empty" onclick="event.stopPropagation();hizliKiralaKopya(${o.id},${typeof kopyaIdx!=='undefined'?kopyaIdx:0},'${tip==='primary'?'primary':'secondary'}')" style="cursor:pointer" title="Kirala"><div class="slot-icon ${tip==='primary'?'si-primary':'si-secondary'}">${tip==='primary'?'🔵':'🟣'}</div><div class="slot-info"><div class="slot-type">${tip==='primary'?'Primary'+(o.ciftPrimary&&idx===1?' #2':''):'Secondary'}</div><div class="slot-free">● Müsait — Kirala</div></div></div>`;
+    const kiIdx = kopyaIdx===undefined ? 0 : kopyaIdx;
+    if(!kira) return '<div class="slot-row slot-empty" style="cursor:pointer" onclick="event.stopPropagation();hizliKiralaSlot('+o.id+','+kiIdx+',\''+tip+'\')">'
+      +'<div class="slot-icon '+(tip==='primary'?'si-primary':'si-secondary')+'">'+(tip==='primary'?'🔵':'🟣')+'</div>'
+      +'<div class="slot-info"><div class="slot-type">'+(tip==='primary'?'Primary'+(o.ciftPrimary&&idx===1?' #2':''):'Secondary')+'</div>'
+      +'<div class="slot-free">● Müsait — Kirala</div></div></div>';
     const m=D.musteriler.find(x=>x.id===kira.musteriId);
     const isG=kira.bit<now;
-    return `<div class="slot-row slot-occupied ${isG?'overdue':''}"><div class="slot-icon ${tip==='primary'?'si-primary':'si-secondary'}">${tip==='primary'?'🔵':'🟣'}</div><div class="slot-info"><div class="slot-type">${tip==='primary'?'Primary'+(o.ciftPrimary&&primKiralar.length>1&&idx>0?' #2':''):'Secondary'}</div><div class="slot-musteri">${m?.ad||''} ${m?.soyad||''}</div><div class="slot-dates ${isG?'late':''}">${isG?'⚠️ ':' 📅 '}${fmtDate(kira.bit)}</div></div><div class="slot-phone">${m?.tel||''}</div></div>`;
+    return '<div class="slot-row slot-occupied '+(isG?'overdue':'')+'">'
+      +'<div class="slot-icon '+(tip==='primary'?'si-primary':'si-secondary')+'">'+(tip==='primary'?'🔵':'🟣')+'</div>'
+      +'<div class="slot-info"><div class="slot-type">'+(tip==='primary'?'Primary':'Secondary')+'</div>'
+      +'<div class="slot-musteri">'+(m?.ad||'')+' '+(m?.soyad||'')+'</div>'
+      +'<div class="slot-dates '+(isG?'late':'')+'">'+(isG?'⚠️ ':'📅 ')+fmtDate(kira.bit)+'</div></div>'
+      +'<div class="slot-phone">'+(m?.tel||'')+'</div></div>';
   }
 
-  const statusBadge=henuzCikmadi?`<span class="status s-cikmayor">🗓 ${fmtDate(o.cikis)}</span>`
-    : yeniCikti?`<span class="status s-kirada">🆕 Yeni</span>`
-    : o.durum==='kirada'?`<span class="status s-kirada">Kirada</span>`:`<span class="status s-mevcut">Müsait</span>`;
+  // Ana hesap slot paneli
+  // Bekleyen müşteriler
+  const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
+  let slotPanelHTML = '<div class="slot-panel">'
+    + slotRow('primary',primKiralar[0]||null,0,0)
+    + (o.ciftPrimary ? slotRow('primary',primKiralar[1]||null,1,0) : '')
+    + (secKiralar.length ? secKiralar.map(k=>slotRow('secondary',k,0,0)).join('') : slotRow('secondary',null,0,0))
+    + '</div>';
 
-  const ciftBadge=o.ciftPrimary?`<span class="double-primary-badge">2P</span>`:'';
-  const deaktifBadge=deaktifAktif?`<span style="font-size:10px;background:rgba(255,71,87,.2);color:var(--danger);border:1px solid rgba(255,71,87,.4);padding:2px 7px;border-radius:4px;font-weight:700;">📡 DEAKTİF</span>`:'';
+  // Kopyalar için slot panelleri
+  let kopyalarHTML = '';
+  (o.kopyalar||[]).forEach(function(kopya, ki) {
+    if(kopya.satildi) return;
+    const kIdx = ki+1;
+    const kKiralar = D.kiralamalar.filter(function(k){ return k.oyunId===o.id && k.durum==='aktif' && k.kopyaIdx===kIdx; });
+    const kPrimler = kKiralar.filter(function(k){ return k.tip==='primary'; });
+    const kSecler = kKiralar.filter(function(k){ return k.tip==='secondary'; });
+    kopyalarHTML += '<div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+      + '<span style="font-size:11px;color:var(--text3)">📀 '+(kopya.not||('Kopya '+(ki+1)))+' '+(kopya.ciftPrimary?'<span style=\"color:var(--accent);font-size:10px\">[2P]</span>':'')+' <span style=\"color:var(--text3);font-size:10px\">('+fmt(kopya.alis||0)+')</span></span>'
+      + '<div style="display:flex;gap:4px">'
+      + '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+(ki)+')">✏️</button>'
+      + '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();deleteKopya('+o.id+','+(ki)+')">🗑</button>'
+      + '</div></div>'
+      + '<div class="slot-panel">'
+      + slotRow('primary',kPrimler[0]||null,0,kIdx)
+      + (kopya.ciftPrimary ? slotRow('primary',kPrimler[1]||null,1,kIdx) : '')
+      + (kSecler.length ? kSecler.map(function(k){ return slotRow('secondary',k,0,kIdx); }).join('') : slotRow('secondary',null,0,kIdx))
+      + '</div></div>';
+  });
 
-  // Deaktif banner
-  const deaktifBannerHTML=deaktifAktif?`
-    <div class="deaktif-banner">
-      <div class="deaktif-banner-icon">📡</div>
-      <div class="deaktif-banner-text">
-        <div class="deaktif-banner-title">⚠️ Primary Uzaktan Deaktif Edildi — KİRALARKEN DİKKATLİ OL!</div>
-        <div class="deaktif-banner-sub">Son deaktif: ${fmtDate(sonDeaktif.tarih)} · Tekrar deaktif için: <strong style="color:var(--warning)">${deaktifKalanGun} gün kaldı</strong></div>
-        <div class="deaktif-progress"><div class="deaktif-progress-fill" style="width:${deaktifIlerleme}%"></div></div>
-      </div>
-    </div>`:'';
+  // Status badge - sağ üst köşe
+  const statusBadge = henuzCikmadi
+    ? `<span class="status s-cikmayor">🗓 ${fmtDate(o.cikis)}</span>`
+    : aktifKira.length > 0
+      ? `<span class="status s-kirada">Kirada</span>`
+      : `<span class="status s-mevcut">✓ Müsait</span>`;
 
-  return `<div class="game-card ${henuzCikmadi?'rezerv-card':''} ${deaktifAktif?'deaktif':''}" onclick="showOyunDetay(${o.id})">
+  const ciftBadge = o.ciftPrimary ? `<span class="double-primary-badge">2P</span>` : '';
+  const deaktifBadge = deaktifAktif ? `<span style="font-size:10px;background:rgba(255,71,87,.2);color:var(--danger);border:1px solid rgba(255,71,87,.4);padding:2px 7px;border-radius:4px;font-weight:700;">📡 DEAKTİF</span>` : '';
+
+  return `<div class="game-card ${henuzCikmadi?'rezerv-card':''} ${deaktifAktif?'deaktif':''}" onclick="showOyunDetay(${o.id})" style="cursor:pointer">
     <div class="game-card-header">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div class="game-title">${o.ad}</div>${ciftBadge}${deaktifBadge}
         </div>
-        <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
-          <span class="tag ${o.platform==='PS5'?'tag-ps5':'tag-ps4'}">${o.platform}</span>
-          <span class="tag tag-genre">${o.tur}</span>
-          ${henuzCikmadi?''
-            :yeniCikti
-              ?`<span class="tag" style="background:rgba(0,229,160,.15);color:var(--success);font-weight:700">🆕 Yeni Çıktı</span>`
-              :`<span class="tag" style="background:rgba(255,193,7,.12);color:var(--warning)">🎁 +10→5 / +20→10 gün</span>`}
+        <div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+          <span class="tag ${o.platform==='PS5'?'tag-ps5':'tag-ps4'}">${o.platform||'PS5'}</span>
+          ${o.tur?`<span class="tag tag-genre">${o.tur}</span>`:''}
+          ${yeniCikti?`<span class="tag" style="background:linear-gradient(135deg,rgba(0,229,160,.25),rgba(0,198,255,.2));color:var(--success);font-weight:800;border:1px solid rgba(0,229,160,.4);letter-spacing:0.5px">✦ YENİ</span>`:''}
         </div>
       </div>
-      <div style="flex-shrink:0">${statusBadge}</div>
+      <div style="flex-shrink:0;margin-top:2px">${statusBadge}</div>
     </div>
-    ${deaktifBannerHTML ? `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">${deaktifBannerHTML}</div>` : ''}
-    ${henuzCikmadi?`<div style="padding:10px 14px;background:rgba(123,47,255,.08);border-bottom:1px solid var(--border);font-size:12px;color:var(--accent2)">🗓 Çıkış: ${fmtDate(o.cikis)} · ${rezervler.length} rezervasyon${rezervler.length>0?` (${rezervler.map(r=>{const m=D.musteriler.find(x=>x.id===r.musteriId);return m?.ad||'?';}).join(', ')})`:''}</div>`:''}
-    <div class="slot-panel">
-      ${slotRow('primary',primKiralar[0]||null,0)}
-      ${o.ciftPrimary?slotRow('primary',primKiralar[1]||null,1):''}
-      ${secKiralar.map(k=>slotRow('secondary',k)).join('')}
-      ${!secKiralar.length?slotRow('secondary',null):''}
-    </div>
-    ${(o.kopyalar||[]).map((kp,ki)=>{
-      const kpAd = kp.not||('Kopya '+(ki+2));
-      const kpPrimKiralar = D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='primary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
-      const kpSecKiralar  = D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip==='secondary'&&k.durum==='aktif'&&k.kopyaIdx===ki+1);
-      if(kp.satildi) return '<div style="background:rgba(255,71,87,.05);border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px">'+
-        '<span style="color:var(--text3)">📀 '+kpAd+'</span>'+
-        '<span style="color:#ff4757;background:rgba(255,71,87,.15);padding:1px 8px;border-radius:4px;font-size:11px">SATILDI</span>'+
-        '<button class="btn btn-outline btn-sm" style="margin-left:auto;font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+ki+')">✏️ Düzenle</button>'+
-        '</div>';
-      return '<div style="border-top:2px solid rgba(0,229,160,.2)">'+
-        '<div style="padding:6px 14px;background:rgba(0,229,160,.04);display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
-          '<span style="color:var(--success);font-size:12px;font-weight:600">📀 '+kpAd+'</span>'+
-          (kp.ciftPrimary?'<span style="font-size:10px;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);padding:1px 6px;border-radius:4px">2P</span>':'')+
-          '<div style="margin-left:auto;display:flex;gap:4px">'+
-            '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 8px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+ki+')">✏️ Düzenle</button>'+
-            '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 8px" onclick="event.stopPropagation();deleteKopya('+o.id+','+ki+')">🗑</button>'+
-          '</div>'+
-        '</div>'+
-        '<div class="slot-panel" style="border-top:none">'+
-          slotRow('primary',kpPrimKiralar[0]||null,0,ki+1)+
-          (kp.ciftPrimary?slotRow('primary',kpPrimKiralar[1]||null,1,ki+1):'')+
-          (kpSecKiralar.length?kpSecKiralar.map(k=>slotRow('secondary',k,0,ki+1)).join(''):slotRow('secondary',null,0,ki+1))+
-        '</div>'+
-      '</div>';
-    }).join('')}
     <div class="game-body">
-      ${!henuzCikmadi?`
-      <div class="game-row"><span class="game-row-lbl">🔵 Primary Günlük</span><span class="game-row-val">${fmt(o.gunlukPri||o.gunluk)}</span></div>
-      <div class="game-row"><span class="game-row-lbl">🟣 Secondary Günlük</span><span class="game-row-val">${fmt(o.gunlukSec||Math.round((o.gunlukPri||o.gunluk)*0.7))}</span></div>
-      <div class="game-row"><span class="game-row-lbl">Toplam Gelir</span><span class="game-row-val profit">${fmt(o.toplamGelir||0)}</span></div>
-      <div class="game-row"><span class="game-row-lbl">Net K/Z</span><span class="game-row-val ${netClass}">${net>=0?'▲':'▼'} ${fmt(Math.abs(net))}</span></div>
-      <div class="game-row"><span class="game-row-lbl">Kiralama</span><span class="game-row-val">${o.kiralamaSayisi||0}x</span></div>
-      `:`<div class="game-row"><span class="game-row-lbl">Beklenen Fiyat</span><span class="game-row-val">${fmt(o.alis)}</span></div>`}
+      ${slotPanelHTML}
+      ${kopyalarHTML}
+      ${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
+      <div class="game-stats">
+        <div class="game-row"><span class="game-row-lbl">Günlük</span><span class="game-row-val">${fmt(o.gunluk)}</span></div>
+        <div class="game-row"><span class="game-row-lbl">Toplam Gelir</span><span class="game-row-val profit">${fmt(o.toplamGelir||0)}</span></div>
+        <div class="game-row"><span class="game-row-lbl">Net K/Z</span><span class="game-row-val ${netClass}">${net>=0?'▲':'▼'} ${fmt(Math.abs(net))}</span></div>
+      </div>
       <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editOyun(${o.id})">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteOyun(${o.id})">🗑</button>
         ${!henuzCikmadi?`<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();hizliKirala(${o.id})">+ Kirala</button>`:`<button class="btn btn-purple btn-sm" onclick="event.stopPropagation();hizliRezerv(${o.id})">🔖 Rezerv</button>`}
         ${deaktifDolabilir&&!henuzCikmadi?`<button class="btn btn-warning btn-sm" onclick="event.stopPropagation();hizliDeaktif(${o.id})" title="Uzaktan Deaktif Et">📡</button>`:''}
-        ${(o.kopyalar||[]).length<3?`<button class="btn btn-sm" style="background:rgba(0,229,160,.15);color:var(--success);border:1px solid rgba(0,229,160,.3)" onclick="event.stopPropagation();openKopyaModal(${o.id})">📀 +Kopya</button>`:''}
+        ${(o.kopyalar||[]).length<4?`<button class="btn btn-sm" style="background:rgba(0,229,160,.12);color:var(--success);border:1px solid rgba(0,229,160,.3)" onclick="event.stopPropagation();openKopyaModal(${o.id})">📀 +Kopya</button>`:''}
       </div>
     </div>
   </div>`;
 }
-
-
-function hizliKiralaKopya(oyunId, kopyaIdx, tip) {
-  openKiralamaModal();
-  setTimeout(() => {
-    const oSel = document.getElementById('kira-oyun');
-    oSel.value = oyunId;
-    onKiraOyunChange();
-    // Kopya seç
-    const kSel = document.getElementById('kira-kopya');
-    if (kSel) kSel.value = kopyaIdx || 0;
-    // Tip seç
-    const tSel = document.getElementById('kira-tip');
-    if (tSel) tSel.value = tip || 'primary';
-    calcKira();
-  }, 150);
-}
-
 function hizliKirala(oyunId){
   openKiralamaModal();
   setTimeout(()=>{
@@ -1427,6 +1429,8 @@ function showMusteriDetay(id){
 // =================== KİRALAMA ===================
 function openKiralamaModal(){
   document.getElementById('kira-eid').value='';
+  document.getElementById('kopya-secim-grup').style.display='none';
+  document.getElementById('kira-kopya-idx').value='0';
   document.getElementById('kira-modal-title').textContent='📋 Kiralama Oluştur';
   document.getElementById('kira-save-btn').textContent='✅ Kiralama Başlat';
   document.getElementById('kira-musteri').innerHTML='<option value="">-- Müşteri --</option>'+D.musteriler.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad}</option>`).join('');
@@ -1439,39 +1443,31 @@ function openKiralamaModal(){
   ['kira-ucret','kira-indirim-pct','kira-indirim-tl','kira-net','kira-on-odeme'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('kira-notlar').value='';
   document.getElementById('kira-ozet').style.display='none';
-  document.getElementById('hediye-info').style.display='none';
+  document.getElementById('hediye-info').style.display='block';
   document.getElementById('h0').checked=true;
+  updateHediyeOptions();
   openModal('modal-kiralama');
 }
 
 function onKiraOyunChange(){
-  const oyunId=parseInt(document.getElementById('kira-oyun').value);
-  const oyun=D.oyunlar.find(o=>o.id===oyunId);
-  const hediyeEl=document.getElementById('hediye-info');
-  // Kopya dropdown güncelle
-  const kopyaWrap=document.getElementById('kira-kopya-wrap');
-  const kopyaSel=document.getElementById('kira-kopya');
-  if(oyun&&(oyun.kopyalar||[]).filter(k=>!k.satildi).length>0){
-    kopyaWrap.style.display='block';
-    kopyaSel.innerHTML='<option value="0">📀 Ana Hesap</option>'+
-      (oyun.kopyalar||[]).map((kp,ki)=>kp.satildi?'':'<option value="'+(ki+1)+'">📀 '+(kp.not||('Kopya '+(ki+2)))+'</option>').join('');
+  // Kopya seçimi güncelle
+  const oyunId2=parseInt(document.getElementById('kira-oyun').value);
+  const oyun2=D.oyunlar.find(o=>o.id===oyunId2);
+  const kopyaGrup=document.getElementById('kopya-secim-grup');
+  const kopyaSel=document.getElementById('kira-kopya-idx');
+  if(oyun2&&oyun2.kopyalar&&oyun2.kopyalar.filter(k=>!k.satildi).length>0){
+    kopyaGrup.style.display='';
+    const aktifKopyalar=oyun2.kopyalar.map((k,i)=>({k,i})).filter(x=>!x.k.satildi);
+    kopyaSel.innerHTML='<option value="0">🎮 Ana Hesap</option>'+
+      aktifKopyalar.map(x=>'<option value="'+(x.i+1)+'">📀 '+(x.k.not||('Kopya '+(x.i+2)))+'</option>').join('');
   } else {
-    kopyaWrap.style.display='none';
-    kopyaSel.innerHTML='<option value="0">📀 Ana Hesap</option>';
+    kopyaGrup.style.display='none';
+    kopyaSel.innerHTML='<option value="0">🎮 Ana Hesap</option>';
   }
-  if(oyun&&oyun.cikis){
-    const gunler=daysDiff(oyun.cikis,today());
-    // ESKİ oyun: çıkışından bu yana 30 günden FAZLA geçmiş → hediye aktif
-    // YENİ oyun: çıkışından bu yana 30 gün veya daha az → hediye yok
-    if(gunler>30){
-      hediyeEl.style.display='block';
-      document.getElementById('h0').checked=true;
-    }else hediyeEl.style.display='none';
-  }else{
-    // Çıkış tarihi bilinmiyorsa eski kabul et, hediye göster
-    hediyeEl.style.display='block';
-    document.getElementById('h0').checked=true;
-  }
+  const oyunId=parseInt(document.getElementById('kira-oyun').value);
+  document.getElementById('hediye-info').style.display='block';
+  document.getElementById('h0').checked=true;
+  updateHediyeOptions();
   calcKira();
 }
 
@@ -1483,7 +1479,7 @@ function updateHediyeOptions(){
   if(gun<10){
     h10.style.opacity='0.4';h10.style.pointerEvents='none';
     h20.style.opacity='0.4';h20.style.pointerEvents='none';
-    uyari.textContent='⚠️ Hediye için en az 10 gün kiralama gerekli';
+    uyari.textContent='ℹ️ 10+ gün kiralamada 5 gün, 20+ günde 10 gün hediye verilebilir';
     document.getElementById('h0').checked=true;
   } else if(gun>=10&&gun<20){
     h10.style.opacity='1';h10.style.pointerEvents='auto';
@@ -1546,7 +1542,6 @@ function calcIndirimTL(){
 }
 
 function saveKiralama(){
-  try {
   const eid=parseInt(document.getElementById('kira-eid').value);
   const musteriId=parseInt(document.getElementById('kira-musteri').value);
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
@@ -1561,55 +1556,58 @@ function saveKiralama(){
   if(!musteriId||!oyunId||!bas||!bit){toast('Zorunlu alanları doldurun','error');return;}
   if(daysDiff(bas,bit)<=0){toast('Bitiş tarihi başlangıçtan sonra olmalı','error');return;}
   const oyun=D.oyunlar.find(o=>o.id===oyunId);if(!oyun)return;
+
+  // Hediye gün — radio seçiminden al
   const seciliHediye=parseInt(document.querySelector('input[name="hediye"]:checked')?.value||'0');
-  const kopyaIdx=parseInt(document.getElementById('kira-kopya')?.value||'0');
+
   if(eid){
-    const ki=D.kiralamalar.findIndex(x=>x.id===eid);
-    if(ki<0)return;
-    const eski=D.kiralamalar[ki];
+    // DÜZENLEME MODU
+    const idx=D.kiralamalar.findIndex(x=>x.id===eid);
+    if(idx<0)return;
+    const eski=D.kiralamalar[idx];
+    // Eski geliri geri al
     const eskiOyun=D.oyunlar.find(o=>o.id===eski.oyunId);
     if(eskiOyun){eskiOyun.toplamGelir=Math.max(0,eskiOyun.toplamGelir-eski.net);eskiOyun.kiralamaSayisi=Math.max(0,eskiOyun.kiralamaSayisi-1);}
-    D.kiralamalar[ki]={...eski,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun:seciliHediye,notlar};
+    // Yeni değerleri yaz
+    D.kiralamalar[idx]={...eski,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun:seciliHediye,notlar};
+    // Yeni geliri ekle
     oyun.toplamGelir+=net;oyun.kiralamaSayisi++;
     if(eski.durum==='aktif'){oyun.durum='kirada';}
     save();closeModal('modal-kiralama');renderKiralamalar();renderDashboard();updateStats();
     toast('Kiralama güncellendi ✅','success');
   } else {
+    // OLUŞTURMA MODU — önce kara liste kontrolü
     const klkayit=D.karaListe.find(k=>k.musteriId===musteriId);
     if(klkayit){
       const m=D.musteriler.find(x=>x.id===musteriId);
-      document.getElementById('kl-uyari-text').innerHTML=`<strong style="color:var(--text)">${m?.ad} ${m?.soyad}</strong> kara listede.<br><span style="color:var(--warning)">Sebep:</span> ${klkayit.sebep}`;
-      document.getElementById('kl-devam-btn').onclick=()=>{closeModal('modal-kl-uyari');_kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);};
+      document.getElementById('kl-uyari-text').innerHTML=`<strong style="color:var(--text)">${m?.ad} ${m?.soyad}</strong> kara listede bulunmaktadır.<br><br><span style="color:var(--warning)">Sebep:</span> ${klkayit.sebep}<br><span style="color:var(--text2)">Eklenme: ${fmtDate(klkayit.tarih)}</span>`;
+      const kopyaIdxKL=parseInt(document.getElementById('kira-kopya-idx')?.value||'0')||0;
+    document.getElementById('kl-devam-btn').onclick=()=>{closeModal('modal-kl-uyari');_kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdxKL);};
       openModal('modal-kl-uyari');
       return;
     }
-    _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdx);
+    const kopyaIdxV=parseInt(document.getElementById('kira-kopya-idx')?.value||'0')||0;
+    _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,seciliHediye,notlar,oyun,kopyaIdxV);
   }
-  } catch(e) { toast("🔴 saveKiralama Hata: "+e.message,"error",8000); console.error("saveKiralama",e); }
 }
+
 function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,hediyeGun,notlar,oyun,kopyaIdx){
-  try {
-    const ki = kopyaIdx || 0;
+    const kIdx = kopyaIdx || 0;
     if(tip==='primary'){
-      // Her kopya kendi slotunu sayar - sadece aynı kopyaIdx'e ait primary'leri say
-      const aktifPrimler = D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='primary'&&k.durum==='aktif'&&(k.kopyaIdx||0)===ki).length;
-      // Hangi kopyanın ciftPrimary değerini kullan
-      let maxP = 1;
-      if(ki===0) maxP = oyun.ciftPrimary ? 2 : 1;
-      else {
-        const kopya = (oyun.kopyalar||[])[ki-1];
-        maxP = kopya?.ciftPrimary ? 2 : 1;
-      }
-      if(aktifPrimler>=maxP){toast(`Bu kopya max ${maxP} Primary kiralamaya izin veriyor!`,'error');return;}
+      // kIdx=0 ana hesap, kIdx>0 kopya - kendi slotunu kontrol et
+      const kopya = kIdx > 0 ? (oyun.kopyalar||[])[kIdx-1] : null;
+      const ciftP = kIdx > 0 ? (kopya?.ciftPrimary||false) : (oyun.ciftPrimary||false);
+      const aktifPrimler=D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='primary'&&k.durum==='aktif'&&(k.kopyaIdx||0)===kIdx).length;
+      const maxP=ciftP?2:1;
+      if(aktifPrimler>=maxP){toast('Bu hesap/kopya max '+maxP+' Primary kiralamaya izin veriyor!','error');return;}
     }
-    D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:ki});
+    D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:kIdx});
     oyun.durum='kirada';oyun.kiralamaSayisi++;oyun.toplamGelir+=net;
     save();closeModal('modal-kiralama');renderKiralamalar();renderDashboard();updateStats();
     const hediyeMesaj=hediyeGun>0?` 🎁 +${hediyeGun} gün hediye!`:'';
-    const kopyaAd = ki===0?'Ana Hesap':((oyun.kopyalar||[])[ki-1]?.not||('Kopya '+(ki+1)));
-    toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'} · 📀 ${kopyaAd}${hediyeMesaj}`,'success');
-  } catch(e) { toast("🔴 _kiralamaOlustur Hata: "+e.message,"error",8000); console.error("_kiralamaOlustur",e); }
+    toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'}${hediyeMesaj}`,'success');
 }
+
 function editKiralama(id){
   const k=D.kiralamalar.find(x=>x.id===id); if(!k)return;
   // Modal'ı aç ve tüm oyunları listele (düzenlemede kısıtlama yok)
@@ -1672,7 +1670,7 @@ function renderKiralamalar(){
     const gun=daysDiff(k.bas,k.bit);
     return `<tr ${isG?'class="overdue"':''}>
       <td style="color:var(--text3);font-size:11px">#${k.id}</td>
-      <td><strong>${o?.ad||'-'}</strong>${k.kopyaIdx?`<span style="font-size:10px;background:rgba(0,229,160,.15);color:var(--success);padding:1px 5px;border-radius:3px;margin-left:4px">📀 ${(o?.kopyalar||[])[k.kopyaIdx-1]?.not||('Kopya '+(k.kopyaIdx+1))}</span>`:''}<br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span></td>
+      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span></td>
       <td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${k.musteriId})">${m?.ad||''} ${m?.soyad||''}</span><br><span style="font-size:10px;color:var(--text2)">${m?.tel||''}</span></td>
       <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
       <td>${fmtDate(k.bas)}</td>
@@ -1682,7 +1680,7 @@ function renderKiralamalar(){
       <td class="${k.indirim>0?'loss':'neutral'}">${k.indirim>0?'-'+fmt(k.indirim):'—'}</td>
       <td class="profit"><strong>${fmt(k.net)}</strong></td>
       <td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td>
-      <td><div class="action-btns">${k.durum==='aktif'?`<button class="btn btn-success btn-sm" onclick="teslimAl(${k.id})">✅ İade</button><button class="btn btn-sm" style="background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3)" onclick="openUzatmaModal(${k.id})">🔄 Uzat</button>`:''}<button class="btn btn-outline btn-sm" onclick="editKiralama(${k.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteKira(${k.id})">🗑</button></div></td>
+      <td><div class="action-btns">${k.durum==='aktif'?`<button class="btn btn-success btn-sm" onclick="teslimAl(${k.id})">✅ İade</button><button class="btn btn-warning btn-sm" onclick="openUzatmaModal(${k.id})">🔄 Uzat</button>`:''}<button class="btn btn-outline btn-sm" onclick="editKiralama(${k.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteKira(${k.id})">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -1693,14 +1691,16 @@ function teslimAl(id){
   const o=D.oyunlar.find(x=>x.id===k.oyunId);
   if(o&&!D.kiralamalar.some(x=>x.id!==id&&x.oyunId===k.oyunId&&x.durum==='aktif')) o.durum='mevcut';
   save();renderKiralamalar();renderDashboard();updateStats();
-  // Bekleme listesi uyarısı
+  // Bekleyen var mı?
   const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor');
   if(bekleyenler.length>0){
-    bekleyenler.sort((a,b)=>(a.sira||99)-(b.sira||99));
-    const ilk=D.musteriler.find(m=>m.id===bekleyenler[0].musteriId);
-    const isim=ilk?(ilk.ad+' '+(ilk.soyad||'')).trim():'?';
-    const tel=ilk?.tel||'';
-    toast(`✅ İade alındı! ⏳ Bekleme listesinde ${bekleyenler.length} kişi var — Sıradaki: ${isim}${tel?' ('+tel+')':''}`, 'warning', 6000);
+    const ilk=bekleyenler[0];
+    const m=D.musteriler.find(x=>x.id===ilk.musteriId);
+    const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'?';
+    const tel=m&&m.tel?' ('+m.tel+')':'';
+    setTimeout(function(){
+      toast('🔔 '+o?.ad+' için '+bekleyenler.length+' kişi bekliyor! Sıradaki: '+ad+tel,'warning');
+    },400);
   } else {
     toast('İade alındı ✅','success');
   }
@@ -1722,12 +1722,106 @@ function deleteKira(id){
 }
 
 // =================== REZERVASYON ===================
-// openRezervModal -> bekleme listesi sistemine taşındı
+function openRezervModal(){
+  document.getElementById('rezerv-musteri').innerHTML='<option value="">-- Müşteri --</option>'+D.musteriler.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad}</option>`).join('');
+  document.getElementById('rezerv-oyun').innerHTML='<option value="">-- Oyun --</option>'+D.oyunlar.map(o=>`<option value="${o.id}">${o.ad} [${o.platform}]${o.cikis&&o.cikis>today()?' 🔜':''}</option>`).join('');
+  document.getElementById('rezerv-not').value='';
+  document.getElementById('rezerv-tarih').value='';
+  openModal('modal-rezerv');
+}
 
-// saveRezervason -> bekleme listesi sistemine taşındı
+function saveRezervason(){
+  const musteriId=parseInt(document.getElementById('rezerv-musteri').value);
+  const oyunId=parseInt(document.getElementById('rezerv-oyun').value);
+  const tip=document.getElementById('rezerv-tip').value;
+  const tarih=document.getElementById('rezerv-tarih').value;
+  const notlar=document.getElementById('rezerv-not').value;
+  if(!musteriId||!oyunId){toast('Müşteri ve oyun seçin','error');return;}
+  // Aynı müşteri aynı oyun için zaten bekliyor mu?
+  const zatenVar=D.rezervasyonlar.some(r=>r.oyunId===oyunId&&r.musteriId===musteriId&&r.durum==='bekliyor');
+  if(zatenVar){toast('Bu müşteri zaten bu oyun için bekliyor!','error');return;}
+  D.rezervasyonlar.push({id:D.nextId.r++,oyunId,musteriId,tip,tarih,notlar,alinantarih:today(),durum:'bekliyor'});
+  save();closeModal('modal-rezerv');renderRezervasyonlar();updateStats();
+  toast('Bekleme listesine eklendi ⏳','success');
+}
 
-// renderRezervasyonlar -> bekleme listesi sistemine taşındı
+function renderRezervasyonlar(){
+  const q=(document.getElementById('rezerv-search')?.value||'').toLowerCase();
+  const aktif=D.rezervasyonlar.filter(r=>{
+    if(r.durum!=='bekliyor') return false;
+    const o=D.oyunlar.find(x=>x.id===r.oyunId),m=D.musteriler.find(x=>x.id===r.musteriId);
+    return ((o?.ad||'')+' '+(m?.ad||'')+' '+(m?.soyad||'')+' '+(m?.tel||'')).toLowerCase().includes(q);
+  });
+  const container=document.getElementById('bekleyen-gruplar');
+  const uyariEl=document.getElementById('bekleyen-uyari');
+  if(!aktif.length){
+    container.innerHTML='<div style="text-align:center;color:var(--text3);padding:60px 20px;font-size:14px">⏳ Bekleme listesi boş</div>';
+    uyariEl.style.display='none';
+    return;
+  }
+  const gruplar={};
+  aktif.forEach(r=>{if(!gruplar[r.oyunId])gruplar[r.oyunId]=[];gruplar[r.oyunId].push(r);});
+  uyariEl.style.display='block';
+  uyariEl.innerHTML='⏳ Toplam <strong>'+aktif.length+' kişi</strong> '+Object.keys(gruplar).length+' oyun için bekliyor';
+  container.innerHTML=Object.entries(gruplar).map(function(entry){
+    const oyunId=entry[0], rezervler=entry[1];
+    const o=D.oyunlar.find(x=>x.id===parseInt(oyunId));
+    const musait=!D.kiralamalar.some(k=>k.oyunId===parseInt(oyunId)&&k.durum==='aktif');
+    const rowsHTML=rezervler.map(function(r,i){
+      const m=D.musteriler.find(x=>x.id===r.musteriId);
+      const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'-';
+      const tel=m&&m.tel?m.tel:'';
+      const gun=r.alinantarih?Math.floor((Date.now()-new Date(r.alinantarih))/(86400000)):null;
+      const siraClass=i===0?'bekleyen-sira first':'bekleyen-sira';
+      return '<div class="bekleyen-row">'
+        +'<div class="'+siraClass+'">'+(i+1)+'</div>'
+        +'<div class="bekleyen-info">'
+          +'<div class="bekleyen-musteri">'+ad+'</div>'
+          +'<div class="bekleyen-meta">'+(r.tip==='primary'?'🔵 Primary':'🟣 Secondary')+(tel?' · '+tel:'')+(r.tarih?' · '+fmtDate(r.tarih):'')+(gun!==null?' · <span style="color:var(--warning)">'+gun+' gündür bekliyor</span>':'')+'</div>'
+          +(r.notlar?'<div style="font-size:11px;color:var(--text3);margin-top:2px">📝 '+r.notlar+'</div>':'')
+        +'</div>'
+        +'<div class="bekleyen-actions">'
+          +(i===0?'<button class="btn btn-success btn-sm" onclick="rezervKirala('+r.id+')">✅ Kirala</button>':'')
+          +'<button class="btn btn-danger btn-sm" onclick="rezervIptal('+r.id+')">✕</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+    const platformTag=o?'<span class="tag '+(o.platform==='PS5'?'tag-ps5':'tag-ps4')+'" style="font-size:10px;vertical-align:middle">'+o.platform+'</span>':'';
+    const durumRenk=musait?'var(--success)':'var(--text3)';
+    const durumText=musait?'✓ Oyun müsait — kirala!':'Kirada, sıra bekleniyor';
+    return '<div class="bekleyen-grup">'
+      +'<div class="bekleyen-grup-head">'
+        +'<div>'
+          +'<div class="bekleyen-grup-title">'+(o?o.ad:'?')+' '+platformTag+'</div>'
+          +'<div style="font-size:11px;margin-top:2px;color:'+durumRenk+'">'+durumText+'</div>'
+        +'</div>'
+        +'<span class="bekleyen-badge">'+rezervler.length+' kişi</span>'
+      +'</div>'
+      +rowsHTML
+    +'</div>';
+  }).join('');
+}
 
+function rezervKirala(id){
+  const r=D.rezervasyonlar.find(x=>x.id===id);if(!r)return;
+  r.durum='iptal'; // kaydı pasifleştir
+  save(); openKiralamaModal();
+  setTimeout(()=>{
+    document.getElementById('kira-musteri').value=r.musteriId;
+    document.getElementById('kira-oyun').value=r.oyunId;
+    document.getElementById('kira-tip').value=r.tip;
+    onKiraOyunChange(); calcKira();
+  },100);
+  closeModal('modal-rezerv');toast('Rezervasyon kiralama formuna aktarıldı','info');
+}
+
+function rezervIptal(id){
+  if(!confirm('Rezervasyonu iptal et?'))return;
+  D.rezervasyonlar=D.rezervasyonlar.filter(r=>r.id!==id);
+  save();renderRezervasyonlar();updateStats();toast('İptal edildi','info');
+}
+
+// =================== MALİYET ===================
 function openMaliyetModal(){
   document.getElementById('maliyet-oyun').innerHTML=D.oyunlar.map(o=>`<option value="${o.id}">${o.ad} [${o.platform}]</option>`).join('');
   document.getElementById('maliyet-aciklama').value='';
@@ -2023,13 +2117,12 @@ function renderPeriodChart(kiralar,s,e){
 
 // =================== UZAKTAN DEAKTİF ===================
 function hizliDeaktif(oyunId){
-  try {
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.map(o=>`<option value="${o.id}" ${o.id===oyunId?'selected':''}>${o.ad}</option>`).join('');
   document.getElementById('deaktif-tarih').value=today();
   document.getElementById('deaktif-not').value='';
   openModal('modal-deaktif');
-  } catch(e) { toast("🔴 hizliDeaktif Hata: "+e.message,"error",8000); console.error("hizliDeaktif",e); }
 }
+
 function openDeaktifModal(){
   document.getElementById('deaktif-oyun').innerHTML=D.oyunlar.filter(o=>{
     if(!o.deaktifGecmisi)o.deaktifGecmisi=[];
@@ -2301,193 +2394,6 @@ function setSyncStatus(status) {
   else if (status === 'error') { el.textContent = '⚠️ Hata'; el.style.color = '#ff4757'; el.style.background = 'rgba(255,71,87,.1)'; el.style.borderColor = 'rgba(255,71,87,.3)'; }
 }
 
-// ═══════════════════════════════════════════════════
-// KOPYA SİSTEMİ
-// ═══════════════════════════════════════════════════
-
-function openKopyaModal(oyunId, kopyaIdx) {
-  try {
-  document.getElementById('kopya-oyun-id').value = oyunId;
-  document.getElementById('kopya-idx').value = kopyaIdx !== undefined ? kopyaIdx : '';
-  const oyun = D.oyunlar.find(o => o.id === oyunId);
-  if (!oyun) return;
-  if (!oyun.kopyalar) oyun.kopyalar = [];
-
-  if (kopyaIdx !== undefined) {
-    // Düzenleme
-    const k = oyun.kopyalar[kopyaIdx];
-    document.getElementById('modal-kopya-title').textContent = '📀 Kopya Düzenle';
-    document.getElementById('kopya-not').value = k.not || '';
-    document.getElementById('kopya-alis').value = k.alis || '';
-    document.getElementById('kopya-cift-primary').checked = k.ciftPrimary || false;
-    document.getElementById('kopya-satildi').checked = k.satildi || false;
-    document.getElementById('kopya-satildi-wrap').style.display = 'block';
-  } else {
-    // Yeni kopya
-    document.getElementById('modal-kopya-title').textContent = '📀 Kopya Ekle';
-    document.getElementById('kopya-not').value = (oyun.kopyalar.length + 2) + '. Hesap';
-    document.getElementById('kopya-alis').value = '';
-    document.getElementById('kopya-cift-primary').checked = false;
-    document.getElementById('kopya-satildi').checked = false;
-    document.getElementById('kopya-satildi-wrap').style.display = 'none';
-  }
-  openModal('modal-kopya');
-  } catch(e) { toast("🔴 openKopyaModal Hata: "+e.message,"error",8000); console.error("openKopyaModal",e); }
-}
-function saveKopya() {
-  try {
-  const oyunId = parseInt(document.getElementById('kopya-oyun-id').value);
-  const kopyaIdxStr = document.getElementById('kopya-idx').value;
-  const not = document.getElementById('kopya-not').value.trim();
-  const alis = parseFloat(document.getElementById('kopya-alis').value) || 0;
-  const ciftPrimary = document.getElementById('kopya-cift-primary').checked;
-  const satildi = document.getElementById('kopya-satildi').checked;
-
-  if (!alis) { toast('Alış fiyatı zorunlu', 'error'); return; }
-
-  const oyun = D.oyunlar.find(o => o.id === oyunId);
-  if (!oyun) return;
-  if (!oyun.kopyalar) oyun.kopyalar = [];
-
-  if (kopyaIdxStr !== '') {
-    // Düzenleme
-    const idx = parseInt(kopyaIdxStr);
-    oyun.kopyalar[idx] = { ...oyun.kopyalar[idx], not, alis, ciftPrimary, satildi };
-    toast('Kopya güncellendi ✅', 'success');
-  } else {
-    // Yeni
-    if (oyun.kopyalar.length >= 3) { toast('Maksimum 3 ek kopya ekleyebilirsiniz (toplam 4)', 'error'); return; }
-    oyun.kopyalar.push({ id: Date.now(), not, alis, ciftPrimary, satildi: false });
-    oyun.alis = (oyun.alis || 0) + alis; // Ana alış maliyetine ekle
-    toast('Kopya eklendi 📀', 'success');
-  }
-
-  closeModal('modal-kopya');
-  save();
-  renderOyunlar();
-  renderDashboard();
-  } catch(e) { toast("🔴 saveKopya Hata: "+e.message,"error",8000); console.error("saveKopya",e); }
-}
-function deleteKopya(oyunId, kopyaIdx) {
-  if (!confirm('Bu kopyayı silmek istediğinize emin misiniz?')) return;
-  const oyun = D.oyunlar.find(o => o.id === oyunId);
-  if (!oyun || !oyun.kopyalar) return;
-  const kopya = oyun.kopyalar[kopyaIdx];
-  oyun.alis = Math.max(0, (oyun.alis || 0) - (kopya.alis || 0));
-  oyun.kopyalar.splice(kopyaIdx, 1);
-  save();
-  renderOyunlar();
-  renderDashboard();
-  toast('Kopya silindi', 'success');
-}
-
-// ═══════════════════════════════════════════════════
-// KİRALAMA UZATMA SİSTEMİ
-// ═══════════════════════════════════════════════════
-
-function openUzatmaModal(kiraId) {
-  const k = D.kiralamalar.find(x => x.id === kiraId);
-  if (!k) return;
-  const oyun = D.oyunlar.find(o => o.id === k.oyunId);
-  const musteri = D.musteriler.find(m => m.id === k.musteriId);
-
-  document.getElementById('uzatma-kira-id').value = kiraId;
-  document.getElementById('uzatma-gun').value = '';
-  document.getElementById('uzatma-ucret').value = '';
-  document.getElementById('uzatma-not').value = '';
-  document.getElementById('uzatma-yeni-bit').value = '';
-  document.getElementById('uzatma-uyari').style.display = 'none';
-
-  // Bilgi kartı
-  const uzatmaSayisi = (k.uzatmalar || []).length;
-  document.getElementById('uzatma-bilgi').innerHTML =
-    '<strong>' + (oyun?.ad || '-') + '</strong> · ' + (k.tip === 'primary' ? '🔵 Primary' : '🟣 Secondary') + '<br>' +
-    '<span style="color:var(--text3)">Müşteri:</span> ' + (musteri?.ad || '') + ' ' + (musteri?.soyad || '') + '<br>' +
-    '<span style="color:var(--text3)">Mevcut bitiş:</span> <strong style="color:var(--warning)">' + fmtDate(k.bit) + '</strong>' +
-    (uzatmaSayisi > 0 ? '<br><span style="color:var(--accent)">📌 Daha önce ' + uzatmaSayisi + ' kez uzatıldı</span>' : '');
-
-  // 2. uzatma uyarısı - rezervasyon kontrolü
-  if (uzatmaSayisi >= 1) {
-    const rezervVar = D.rezervasyonlar && D.rezervasyonlar.some(r =>
-      r.oyunId === k.oyunId && r.durum !== 'iptal' && r.musteriId !== k.musteriId
-    );
-    const uyariEl = document.getElementById('uzatma-uyari');
-    if (rezervVar) {
-      const bekleyenler = D.rezervasyonlar.filter(r =>
-        r.oyunId === k.oyunId && r.durum !== 'iptal' && r.musteriId !== k.musteriId
-      );
-      const isimler = bekleyenler.map(r => {
-        const m = D.musteriler.find(x => x.id === r.musteriId);
-        return m ? (m.ad + ' ' + m.soyad).trim() : '?';
-      }).join(', ');
-      uyariEl.innerHTML = '⚠️ <strong>Dikkat!</strong> Bu oyun için ' + bekleyenler.length + ' rezervasyon var: <strong>' + isimler + '</strong><br>Uzatma bu müşterilere haksızlık oluşturabilir!';
-      uyariEl.style.display = 'block';
-    } else {
-      uyariEl.style.display = 'none';
-    }
-  }
-
-  openModal('modal-uzatma');
-}
-
-function calcUzatma() {
-  const kiraId = parseInt(document.getElementById('uzatma-kira-id').value);
-  const gun = parseInt(document.getElementById('uzatma-gun').value) || 0;
-  if (!gun) return;
-
-  const k = D.kiralamalar.find(x => x.id === kiraId);
-  if (!k) return;
-  const oyun = D.oyunlar.find(o => o.id === k.oyunId);
-  if (!oyun) return;
-
-  // Yeni bitiş tarihi
-  const mevcutBit = new Date(k.bit);
-  mevcutBit.setDate(mevcutBit.getDate() + gun);
-  const yeniBit = mevcutBit.toISOString().split('T')[0];
-  document.getElementById('uzatma-yeni-bit').value = fmtDate(yeniBit);
-
-  // Ücret hesapla - günlük fiyat kullan
-  const gunlukFiyat = k.tip === 'primary' ? (oyun.gunlukPri || oyun.gunluk || 0) : (oyun.gunlukSec || oyun.gunluk || 0);
-  const ucret = gunlukFiyat * gun;
-  document.getElementById('uzatma-ucret').value = ucret;
-}
-
-function saveUzatma() {
-  const kiraId = parseInt(document.getElementById('uzatma-kira-id').value);
-  const gun = parseInt(document.getElementById('uzatma-gun').value) || 0;
-  const ucret = parseFloat(document.getElementById('uzatma-ucret').value) || 0;
-  const not = document.getElementById('uzatma-not').value.trim();
-
-  if (!gun || gun < 1) { toast('Gün sayısı giriniz', 'error'); return; }
-
-  const k = D.kiralamalar.find(x => x.id === kiraId);
-  if (!k) return;
-  const oyun = D.oyunlar.find(o => o.id === k.oyunId);
-  if (!oyun) return;
-
-  // Yeni bitiş tarihi hesapla
-  const mevcutBit = new Date(k.bit);
-  mevcutBit.setDate(mevcutBit.getDate() + gun);
-  const yeniBit = mevcutBit.toISOString().split('T')[0];
-
-  // Uzatma kaydı ekle
-  if (!k.uzatmalar) k.uzatmalar = [];
-  k.uzatmalar.push({ gun, ucret, tarih: today(), not });
-
-  // Bitiş tarihini ve geliri güncelle
-  k.bit = yeniBit;
-  k.ucret = (k.ucret || 0) + ucret;
-  k.net = (k.net || 0) + ucret;
-  oyun.toplamGelir = (oyun.toplamGelir || 0) + ucret;
-
-  save();
-  closeModal('modal-uzatma');
-  renderKiralamalar();
-  renderDashboard();
-  updateStats();
-  toast('Kiralama ' + gun + ' gün uzatıldı! +' + fmt(ucret), 'success');
-}
-
 // Auth state değişince
 auth.onAuthStateChanged(async (user) => {
   if (user) {
@@ -2509,287 +2415,214 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════════
-// BEKLEME LİSTESİ SİSTEMİ
-// ═══════════════════════════════════════════════════════════════
+// =================== KOPYA SİSTEMİ ===================
 
-function openRezervModal(oyunId) {
-  const mSel = document.getElementById('rezerv-musteri');
-  const oSel = document.getElementById('rezerv-oyun');
-  mSel.innerHTML = '<option value="">-- Müşteri --</option>' +
-    D.musteriler.map(m => `<option value="${m.id}">${m.ad} ${m.soyad||''} ${m.tel?'· '+m.tel:''}</option>`).join('');
-  oSel.innerHTML = '<option value="">-- Oyun Seç --</option>' +
-    D.oyunlar.map(o => {
-      const bekSayisi = D.rezervasyonlar.filter(r => r.oyunId===o.id && r.durum==='bekliyor').length;
-      const yeni = o.cikis && o.cikis > today();
-      const kirada = o.durum === 'kirada';
-      const label = `${o.ad} [${o.platform}]${yeni?' 🔜':kirada?' 🎮':''}${bekSayisi>0?' ('+bekSayisi+' bekliyor)':''}`;
-      return `<option value="${o.id}">${label}</option>`;
-    }).join('');
-  if (oyunId) { oSel.value = oyunId; onRezervOyunChange(); }
-  else { document.getElementById('rezerv-cikis-bilgi').style.display='none'; document.getElementById('bekl-sira-bilgi').style.display='none'; }
-  document.getElementById('rezerv-not').value = '';
-  document.getElementById('rezerv-oncelik').value = 'normal';
-  document.getElementById('rezerv-tip').value = 'primary';
-  openModal('modal-rezerv');
+function hizliKiralaSlot(oyunId, kopyaIdx, tip) {
+  openKiralamaModal();
+  setTimeout(function(){
+    const oSel = document.getElementById('kira-oyun');
+    if(oSel){ oSel.value = oyunId; onKiraOyunChange(); }
+    // Kopya seçimini ayarla (onKiraOyunChange sonrası select dolar)
+    setTimeout(function(){
+      const kSel = document.getElementById('kira-kopya-idx');
+      if(kSel) kSel.value = kopyaIdx;
+      const tipSel = document.getElementById('kira-tip');
+      if(tipSel){ tipSel.value = tip; calcKira(); }
+    }, 100);
+  }, 150);
 }
 
-function onRezervOyunChange() {
-  const oyunId = parseInt(document.getElementById('rezerv-oyun').value);
-  const oyun = D.oyunlar.find(o => o.id === oyunId);
-  const cikisBilgi = document.getElementById('rezerv-cikis-bilgi');
-  const siraEl = document.getElementById('bekl-sira-bilgi');
-
-  if (!oyun) { cikisBilgi.style.display='none'; siraEl.style.display='none'; return; }
-
-  // Çıkış tarihi bilgisi
-  if (oyun.cikis && oyun.cikis > today()) {
-    document.getElementById('rezerv-cikis-text').innerHTML =
-      `🔜 Bu oyun <strong>${fmtDate(oyun.cikis)}</strong> tarihinde çıkıyor`;
-    cikisBilgi.style.display = 'block';
+function openKopyaModal(oyunId, kopyaIdx) {
+  const o = D.oyunlar.find(x=>x.id===oyunId);
+  if(!o) return;
+  if(!o.kopyalar) o.kopyalar = [];
+  
+  document.getElementById('kopya-oyun-id').value = oyunId;
+  
+  const duzenleme = kopyaIdx !== undefined && kopyaIdx !== null && kopyaIdx !== '';
+  document.getElementById('modal-kopya-title').textContent = duzenleme ? '📀 Kopya Düzenle' : '📀 Kopya Ekle';
+  document.getElementById('kopya-satildi-wrap').style.display = duzenleme ? 'block' : 'none';
+  
+  if(duzenleme) {
+    document.getElementById('kopya-idx').value = kopyaIdx;
+    const kopya = o.kopyalar[kopyaIdx];
+    document.getElementById('kopya-not').value = kopya.not || '';
+    document.getElementById('kopya-alis').value = kopya.alis || '';
+    document.getElementById('kopya-cift-primary').checked = kopya.ciftPrimary || false;
+    document.getElementById('kopya-satildi').checked = kopya.satildi || false;
   } else {
-    cikisBilgi.style.display = 'none';
+    document.getElementById('kopya-idx').value = '';
+    document.getElementById('kopya-not').value = '';
+    document.getElementById('kopya-alis').value = '';
+    document.getElementById('kopya-cift-primary').checked = false;
   }
-
-  // Mevcut sıra bilgisi
-  const siradakiler = D.rezervasyonlar.filter(r => r.oyunId===oyunId && r.durum==='bekliyor');
-  if (siradakiler.length > 0) {
-    const isimler = siradakiler.map((r,i) => {
-      const m = D.musteriler.find(x => x.id===r.musteriId);
-      return `${i+1}. ${m ? (m.ad+' '+(m.soyad||'')).trim() : '?'}`;
-    }).join(', ');
-    siraEl.innerHTML = `📋 Şu an <strong>${siradakiler.length} kişi</strong> bekliyor: ${isimler}`;
-    siraEl.style.display = 'block';
-  } else {
-    siraEl.style.display = 'none';
-  }
+  
+  openModal('modal-kopya');
 }
 
-function saveRezervason() {
-  const musteriId = parseInt(document.getElementById('rezerv-musteri').value);
-  const oyunId = parseInt(document.getElementById('rezerv-oyun').value);
-  const tip = document.getElementById('rezerv-tip').value;
-  const oncelik = document.getElementById('rezerv-oncelik').value;
-  const notlar = document.getElementById('rezerv-not').value.trim();
-  if (!musteriId || !oyunId) { toast('Müşteri ve oyun seçin','error'); return; }
-
-  // Aynı müşteri aynı oyun için zaten bekliyor mu?
-  const zatenVar = D.rezervasyonlar.find(r => r.oyunId===oyunId && r.musteriId===musteriId && r.durum==='bekliyor');
-  if (zatenVar) { toast('Bu müşteri zaten bu oyun için bekliyor!','error'); return; }
-
-  const sira = D.rezervasyonlar.filter(r => r.oyunId===oyunId && r.durum==='bekliyor').length + 1;
-  D.rezervasyonlar.push({
-    id: D.nextId.r++,
-    oyunId, musteriId, tip, oncelik, notlar,
-    alınanTarih: today(),
-    durum: 'bekliyor',
-    sira,
-    tarih: ''
-  });
+function saveKopya() {
+  const oyunId = parseInt(document.getElementById('kopya-oyun-id').value);
+  const kopyaIdxVal = document.getElementById('kopya-idx').value;
+  const not = document.getElementById('kopya-not').value.trim();
+  const alis = parseFloat(document.getElementById('kopya-alis').value) || 0;
+  const ciftPrimary = document.getElementById('kopya-cift-primary').checked;
+  const satildi = document.getElementById('kopya-satildi').checked;
+  
+  const o = D.oyunlar.find(x=>x.id===oyunId);
+  if(!o) return;
+  if(!o.kopyalar) o.kopyalar = [];
+  
+  const duzenleme = kopyaIdxVal !== '';
+  
+  if(duzenleme) {
+    const ki = parseInt(kopyaIdxVal);
+    const eskiAlis = o.kopyalar[ki].alis || 0;
+    o.kopyalar[ki] = { not, alis, ciftPrimary, satildi };
+    // Maliyet farkını ana oyuna yansıt
+    o.alis = Math.max(0, (o.alis || 0) - eskiAlis + alis);
+    toast('Kopya güncellendi ✅', 'success');
+  } else {
+    if(o.kopyalar.length >= 4) { toast('En fazla 4 kopya eklenebilir', 'error'); return; }
+    o.kopyalar.push({ not, alis, ciftPrimary, satildi: false });
+    // Yeni kopya maliyetini ana oyuna ekle
+    o.alis = (o.alis || 0) + alis;
+    toast('Kopya eklendi ✅', 'success');
+  }
+  
   save();
-  closeModal('modal-rezerv');
-  renderRezervasyonlar();
-  updateStats();
-  const oyun = D.oyunlar.find(o => o.id===oyunId);
-  toast(`Bekleme listesine eklendi! ${oyun?.ad||''} için sıra: #${sira} ⏳`,'success');
+  closeModal('modal-kopya');
+  renderOyunlar();
 }
 
-function rezervKirala(id) {
-  const r = D.rezervasyonlar.find(x => x.id===id); if (!r) return;
-  r.durum = 'iptal';
-  save(); openKiralamaModal();
-  setTimeout(() => {
-    document.getElementById('kira-musteri').value = r.musteriId;
-    document.getElementById('kira-oyun').value = r.oyunId;
-    document.getElementById('kira-tip').value = r.tip;
-    onKiraOyunChange(); calcKira();
-  }, 100);
-  closeModal('modal-rezerv');
-  toast('Kiralama formuna aktarıldı ✅','info');
+function deleteKopya(oyunId, kopyaIdx) {
+  const o = D.oyunlar.find(x=>x.id===oyunId);
+  if(!o || !o.kopyalar) return;
+  
+  // Bu kopyaya ait aktif kiralama var mı?
+  const aktifVar = D.kiralamalar.some(k=>k.oyunId===oyunId && k.kopyaIdx===(kopyaIdx+1) && k.durum==='aktif');
+  if(aktifVar) { toast('Bu kopyada aktif kiralama var, önce teslim alın', 'error'); return; }
+  
+  if(!confirm('Bu kopyayı silmek istediğinize emin misiniz?')) return;
+  const silKopya = o.kopyalar[kopyaIdx];
+  o.alis = Math.max(0, (o.alis || 0) - (silKopya.alis || 0));
+  o.kopyalar.splice(kopyaIdx, 1);
+  save();
+  renderOyunlar();
+  toast('Kopya silindi', 'info');
 }
 
-function rezervIptal(id) {
-  if (!confirm('Bu bekleme kaydını iptal etmek istediğinize emin misiniz?')) return;
-  const r = D.rezervasyonlar.find(x => x.id===id); if (!r) return;
-  r.durum = 'iptal';
-  // Sıraları yeniden düzenle
-  const kalanlar = D.rezervasyonlar.filter(x => x.oyunId===r.oyunId && x.durum==='bekliyor');
-  kalanlar.forEach((x,i) => x.sira = i+1);
-  save(); renderRezervasyonlar(); updateStats();
-  toast('Bekleme listesinden çıkarıldı','success');
-}
 
-function rezervSirayukari(id) {
-  const r = D.rezervasyonlar.find(x => x.id===id); if (!r || r.sira<=1) return;
-  const onceki = D.rezervasyonlar.find(x => x.oyunId===r.oyunId && x.durum==='bekliyor' && x.sira===r.sira-1);
-  if (onceki) { onceki.sira++; r.sira--; }
-  save(); renderRezervasyonlar();
-}
 
-function rezervSiraasagi(id) {
-  const r = D.rezervasyonlar.find(x => x.id===id); if (!r) return;
-  const siradakiler = D.rezervasyonlar.filter(x => x.oyunId===r.oyunId && x.durum==='bekliyor');
-  if (r.sira >= siradakiler.length) return;
-  const sonraki = D.rezervasyonlar.find(x => x.oyunId===r.oyunId && x.durum==='bekliyor' && x.sira===r.sira+1);
-  if (sonraki) { sonraki.sira--; r.sira++; }
-  save(); renderRezervasyonlar();
-}
 
-function renderRezervasyonlar() {
-  const q = (document.getElementById('rezerv-search')?.value||'').toLowerCase();
-  const filtreTip = document.getElementById('bekl-filtre-tip')?.value || '';
-  const filtreOyun = document.getElementById('bekl-filtre-oyun')?.value || '';
-  const now = today();
 
-  // Sadece bekleyenleri göster (iptal edilenleri gizle)
-  let bekleyenler = D.rezervasyonlar.filter(r => r.durum==='bekliyor');
 
-  // Özet kartları güncelle
-  const yeniOyunBekl = bekleyenler.filter(r => {
-    const o = D.oyunlar.find(x=>x.id===r.oyunId);
-    return o && o.cikis && o.cikis > now;
-  }).length;
-  const kiradaBekl = bekleyenler.filter(r => {
-    const o = D.oyunlar.find(x=>x.id===r.oyunId);
-    return o && o.durum==='kirada';
-  }).length;
-  const farkliMusteri = new Set(bekleyenler.map(r=>r.musteriId)).size;
-  document.getElementById('bekl-toplam').textContent = bekleyenler.length;
-  document.getElementById('bekl-yeni-oyun').textContent = yeniOyunBekl;
-  document.getElementById('bekl-aktif-oyun').textContent = kiradaBekl;
-  document.getElementById('bekl-musteri').textContent = farkliMusteri;
 
-  // Bu hafta çıkacak oyunlar
-  const haftaSonu = new Date(); haftaSonu.setDate(haftaSonu.getDate()+7);
-  const haftaStr = haftaSonu.toISOString().split('T')[0];
-  const buHaftaCikacak = D.oyunlar.filter(o => o.cikis && o.cikis>now && o.cikis<=haftaStr);
-  const haftaBox = document.getElementById('bekl-haftabox');
-  if (buHaftaCikacak.length) {
-    document.getElementById('bekl-hafta-list').innerHTML = buHaftaCikacak.map(o => {
-      const bek = D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
-      return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0">
-        <strong style="color:var(--text)">${o.ad}</strong>
-        <span style="font-size:12px;color:var(--accent2)">${fmtDate(o.cikis)}</span>
-        ${bek.length?`<span style="font-size:11px;background:rgba(123,47,255,.2);color:var(--accent2);padding:1px 8px;border-radius:10px">${bek.length} kişi bekliyor</span>`:'<span style="font-size:11px;color:var(--text3)">Bekleme yok</span>'}
-        <button class="btn btn-purple btn-sm" style="margin-left:auto;font-size:11px" onclick="openRezervModal(${o.id})">+ Ekle</button>
-      </div>`;
-    }).join('');
-    haftaBox.style.display = 'block';
+
+
+
+
+// ══════════════════════════════════════════
+// KİRALAMA UZATMA SİSTEMİ
+// ══════════════════════════════════════════
+
+function openUzatmaModal(kiraId){
+  const k=D.kiralamalar.find(x=>x.id===kiraId);
+  if(!k) return;
+  const o=D.oyunlar.find(x=>x.id===k.oyunId);
+  const m=D.musteriler.find(x=>x.id===k.musteriId);
+
+  document.getElementById('uzatma-kira-id').value=kiraId;
+  document.getElementById('uzatma-gun').value='';
+  document.getElementById('uzatma-ucret').value='';
+  document.getElementById('uzatma-not').value='';
+  document.getElementById('uzatma-yeni-bit').textContent='—';
+  document.getElementById('uzatma-yeni-bit').style.color='var(--success)';
+
+  // Bilgi kartı
+  const uzSayisi=(k.uzatmalar||[]).length;
+  const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'-';
+  document.getElementById('uzatma-bilgi').innerHTML=
+    '<strong>'+(o?o.ad:'-')+'</strong> &middot; '+(k.tip==='primary'?'🔵 Primary':'🟣 Secondary')+'<br>'+
+    '<span style="color:var(--text3)">Müşteri:</span> '+ad+(m&&m.tel?' · '+m.tel:'')+'<br>'+
+    '<span style="color:var(--text3)">Mevcut bitiş:</span> <strong style="color:var(--warning)">'+fmtDate(k.bit)+'</strong>'+
+    (uzSayisi>0?'<br><span style="color:var(--accent)">📌 Daha önce '+uzSayisi+' kez uzatıldı</span>':'');
+
+  // 2. uzatmada bekleyen uyarısı
+  const uyariEl=document.getElementById('uzatma-uyari');
+  if(uzSayisi>=1){
+    const bekleyenler=(D.rezervasyonlar||[]).filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor'&&r.musteriId!==k.musteriId);
+    if(bekleyenler.length>0){
+      const isimler=bekleyenler.map(r=>{
+        const bm=D.musteriler.find(x=>x.id===r.musteriId);
+        return bm?((bm.ad||'')+' '+(bm.soyad||'')).trim():'?';
+      }).join(', ');
+      uyariEl.innerHTML='⚠️ <strong>Dikkat!</strong> Bu oyun için '+bekleyenler.length+' kişi sırada bekliyor: <strong>'+isimler+'</strong>';
+      uyariEl.style.display='block';
+    } else {
+      uyariEl.style.display='none';
+    }
   } else {
-    haftaBox.style.display = 'none';
+    uyariEl.style.display='none';
   }
 
-  // Oyun filtre dropdown güncelle
-  const oyunSel = document.getElementById('bekl-filtre-oyun');
-  if (oyunSel) {
-    const bekOyunIds = [...new Set(bekleyenler.map(r=>r.oyunId))];
-    oyunSel.innerHTML = '<option value="">🎮 Tüm Oyunlar</option>' +
-      bekOyunIds.map(id => {
-        const o = D.oyunlar.find(x=>x.id===id);
-        return o ? `<option value="${id}" ${filtreOyun==id?'selected':''}>${o.ad}</option>` : '';
-      }).join('');
-    if (filtreOyun) oyunSel.value = filtreOyun;
-  }
-
-  // Filtrele
-  if (q) bekleyenler = bekleyenler.filter(r => {
-    const o=D.oyunlar.find(x=>x.id===r.oyunId), m=D.musteriler.find(x=>x.id===r.musteriId);
-    return `${o?.ad||''} ${m?.ad||''} ${m?.soyad||''}`.toLowerCase().includes(q);
-  });
-  if (filtreOyun) bekleyenler = bekleyenler.filter(r => r.oyunId==filtreOyun);
-  if (filtreTip==='yeni') bekleyenler = bekleyenler.filter(r => {
-    const o=D.oyunlar.find(x=>x.id===r.oyunId); return o&&o.cikis&&o.cikis>now;
-  });
-  if (filtreTip==='kirada') bekleyenler = bekleyenler.filter(r => {
-    const o=D.oyunlar.find(x=>x.id===r.oyunId); return o&&o.durum==='kirada';
-  });
-
-  // Oyun bazlı grupla
-  const gruplar = {};
-  bekleyenler.forEach(r => {
-    if (!gruplar[r.oyunId]) gruplar[r.oyunId] = [];
-    gruplar[r.oyunId].push(r);
-  });
-  Object.values(gruplar).forEach(g => g.sort((a,b)=>(a.sira||99)-(b.sira||99)));
-
-  const container = document.getElementById('bekl-gruplar');
-  if (!Object.keys(gruplar).length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3)">
-      <div style="font-size:40px;margin-bottom:12px">⏳</div>
-      <div>Bekleme listesi boş</div>
-    </div>`;
-    return;
-  }
-
-  container.innerHTML = Object.entries(gruplar).map(([oyunId, liste]) => {
-    const o = D.oyunlar.find(x=>x.id==oyunId);
-    if (!o) return '';
-    const yeni = o.cikis && o.cikis > now;
-    const kirada = o.durum === 'kirada';
-    const aktifKiralar = D.kiralamalar.filter(k=>k.oyunId==oyunId&&k.durum==='aktif');
-
-    const oyunBilgi = yeni
-      ? `<span style="background:rgba(123,47,255,.2);color:var(--accent2);font-size:11px;padding:2px 8px;border-radius:10px">🔜 ${fmtDate(o.cikis)}</span>`
-      : kirada
-        ? `<span style="background:rgba(255,71,87,.15);color:var(--danger);font-size:11px;padding:2px 8px;border-radius:10px">🎮 Kirada · ${aktifKiralar.length} aktif</span>`
-        : `<span style="background:rgba(0,229,160,.15);color:var(--success);font-size:11px;padding:2px 8px;border-radius:10px">✅ Müsait</span>`;
-
-    const satirlar = liste.map((r, i) => {
-      const m = D.musteriler.find(x=>x.id===r.musteriId);
-      const oncelikBadge = r.oncelik==='vip'
-        ? '<span style="font-size:10px;background:rgba(240,192,64,.2);color:#f0c040;border:1px solid rgba(240,192,64,.3);padding:1px 5px;border-radius:4px">👑 VIP</span>'
-        : r.oncelik==='yuksek'
-          ? '<span style="font-size:10px;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);padding:1px 5px;border-radius:4px">⭐ Yüksek</span>'
-          : '';
-      return `<tr>
-        <td style="text-align:center;font-weight:700;color:${i===0?'#f0c040':i===1?'#aaa':i===2?'#cd7f32':'var(--text3)'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</td>
-        <td>
-          <span style="cursor:pointer;color:var(--accent);font-weight:600" onclick="showMusteriDetay(${r.musteriId})">${m?(m.ad+' '+(m.soyad||'')).trim():'?'}</span>
-          ${oncelikBadge}
-          ${r.notlar?`<div style="font-size:11px;color:var(--text3);margin-top:2px">💬 ${r.notlar}</div>`:''}
-        </td>
-        <td><span class="rt-badge ${r.tip==='primary'?'rt-primary':'rt-secondary'}">${r.tip}</span></td>
-        <td style="font-size:11px;color:var(--text3)">${m?.tel||''}</td>
-        <td style="font-size:12px;color:var(--text3)">${fmtDate(r.alınanTarih)}</td>
-        <td>
-          <div class="action-btns">
-            <button title="Yukarı" onclick="rezervSirayukari(${r.id})" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;color:var(--text2)" ${r.sira<=1?'disabled':''}>▲</button>
-            <button title="Aşağı" onclick="rezervSiraasagi(${r.id})" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;color:var(--text2)">▼</button>
-            <button class="btn btn-success btn-sm" onclick="rezervKirala(${r.id})">✅ Kirala</button>
-            <button class="btn btn-danger btn-sm" onclick="rezervIptal(${r.id})">✕</button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
-
-    return `<div class="section" style="margin-bottom:14px">
-      <div class="section-head" style="cursor:pointer" onclick="openRezervModal(${o.id})">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div class="section-title" style="margin:0">${o.ad}</div>
-          <span class="tag ${o.platform==='PS5'?'tag-ps5':'tag-ps4'}">${o.platform}</span>
-          ${oyunBilgi}
-          <span style="font-size:12px;color:var(--text3)">${liste.length} kişi bekliyor</span>
-        </div>
-        <button class="btn btn-purple btn-sm" onclick="event.stopPropagation();openRezervModal(${o.id})">+ Ekle</button>
-      </div>
-      <div class="section-body" style="padding:0">
-        <table class="table" style="margin:0">
-          <thead><tr>
-            <th style="width:36px;text-align:center">Sıra</th>
-            <th>Müşteri</th>
-            <th>Tip</th>
-            <th>Telefon</th>
-            <th>Eklenme</th>
-            <th>İşlem</th>
-          </tr></thead>
-          <tbody>${satirlar}</tbody>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
+  openModal('modal-uzatma');
 }
 
+function calcUzatma(){
+  const kiraId=parseInt(document.getElementById('uzatma-kira-id').value);
+  const gun=parseInt(document.getElementById('uzatma-gun').value)||0;
+  if(!gun||gun<1){ document.getElementById('uzatma-yeni-bit').textContent='—'; return; }
 
+  const k=D.kiralamalar.find(x=>x.id===kiraId);
+  if(!k) return;
+  const o=D.oyunlar.find(x=>x.id===k.oyunId);
+
+  // Yeni bitiş tarihi
+  const mevcutBit=new Date(k.bit+'T12:00:00');
+  mevcutBit.setDate(mevcutBit.getDate()+gun);
+  const yeniBit=mevcutBit.toISOString().split('T')[0];
+  document.getElementById('uzatma-yeni-bit').textContent=fmtDate(yeniBit);
+
+  // Ücret hesapla
+  if(o){
+    const gunluk=k.tip==='primary'?(o.gunlukPri||o.gunluk||0):(o.gunlukSec||Math.round((o.gunlukPri||o.gunluk||0)*0.7));
+    document.getElementById('uzatma-ucret').value=gunluk*gun;
+  }
+}
+
+function saveUzatma(){
+  const kiraId=parseInt(document.getElementById('uzatma-kira-id').value);
+  const gun=parseInt(document.getElementById('uzatma-gun').value)||0;
+  const ucret=parseFloat(document.getElementById('uzatma-ucret').value)||0;
+  const not=document.getElementById('uzatma-not').value.trim();
+
+  if(!gun||gun<1){ toast('Gün sayısı giriniz','error'); return; }
+
+  const k=D.kiralamalar.find(x=>x.id===kiraId);
+  if(!k) return;
+  const o=D.oyunlar.find(x=>x.id===k.oyunId);
+
+  // Yeni bitiş tarihi
+  const mevcutBit=new Date(k.bit+'T12:00:00');
+  mevcutBit.setDate(mevcutBit.getDate()+gun);
+  k.bit=mevcutBit.toISOString().split('T')[0];
+
+  // Uzatma kaydı
+  if(!k.uzatmalar) k.uzatmalar=[];
+  k.uzatmalar.push({gun,ucret,tarih:today(),not});
+
+  // Gelir güncelle
+  k.ucret=(k.ucret||0)+ucret;
+  k.net=(k.net||0)+ucret;
+  if(o) o.toplamGelir=(o.toplamGelir||0)+ucret;
+
+  save();
+  closeModal('modal-uzatma');
+  renderKiralamalar();
+  renderDashboard();
+  updateStats();
+  toast('Kiralama '+gun+' gün uzatıldı! +'+fmt(ucret),'success');
+}
 
 </script>
 
@@ -2807,46 +2640,9 @@ if('serviceWorker' in navigator){
 }
 </script>
 
-<!-- UZATMA MODAL -->
-<div class="modal-overlay" id="modal-uzatma">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head">
-      <div class="modal-title">🔄 Kiralama Uzat</div>
-      <button class="modal-close" onclick="closeModal('modal-uzatma')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="uzatma-kira-id">
-      <div id="uzatma-bilgi" style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
-      <div id="uzatma-uyari" style="display:none;background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);margin-bottom:12px"></div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>Uzatma Süresi (Gün) *</label>
-          <input type="number" id="uzatma-gun" placeholder="Kaç gün uzatılsın?" min="1" oninput="calcUzatma()">
-        </div>
-        <div class="form-group full">
-          <label>Hesaplanan Ücret</label>
-          <input type="number" id="uzatma-ucret" placeholder="₺0" min="0">
-        </div>
-        <div class="form-group full">
-          <label>Yeni Bitiş Tarihi</label>
-          <input type="text" id="uzatma-yeni-bit" readonly style="background:var(--surface2);color:var(--text3)">
-        </div>
-        <div class="form-group full">
-          <label>Not</label>
-          <input type="text" id="uzatma-not" placeholder="Opsiyonel...">
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn btn-outline" onclick="closeModal('modal-uzatma')" style="flex:1">İptal</button>
-        <button class="btn btn-primary" onclick="saveUzatma()" style="flex:2">✅ Uzatmayı Kaydet</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- KOPYA EKLE/DÜZENLE MODAL -->
+<!-- KOPYA MODAL -->
 <div class="modal-overlay" id="modal-kopya">
-  <div class="modal" style="max-width:480px">
+  <div class="modal" style="max-width:460px">
     <div class="modal-head">
       <div class="modal-title" id="modal-kopya-title">📀 Kopya Ekle</div>
       <button class="modal-close" onclick="closeModal('modal-kopya')">✕</button>
@@ -2856,7 +2652,7 @@ if('serviceWorker' in navigator){
       <input type="hidden" id="kopya-idx">
       <div class="form-grid">
         <div class="form-group full">
-          <label>Kopya Adı / Notu</label>
+          <label>Kopya Notu (opsiyonel)</label>
           <input type="text" id="kopya-not" placeholder="Örn: 2. Hesap, Yedek Kopya...">
         </div>
         <div class="form-group">
@@ -2866,14 +2662,14 @@ if('serviceWorker' in navigator){
         <div class="form-group">
           <label>Çift Primary</label>
           <div class="toggle-wrap">
-            <label class="toggle"><input type="checkbox" id="kopya-cift-primary"><span class="slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="kopya-cift-primary"><span class="toggle-slider"></span></label>
             <span style="font-size:12px;color:var(--text2)">2 Primary verebilir</span>
           </div>
         </div>
         <div class="form-group full" id="kopya-satildi-wrap" style="display:none">
-          <label style="color:var(--warning)">⚠️ Bu kopyayı sat (slotlar kapanır)</label>
+          <label style="color:var(--warning)">⚠️ Kopyayı sat (slotlar kapanır)</label>
           <div class="toggle-wrap">
-            <label class="toggle"><input type="checkbox" id="kopya-satildi"><span class="slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="kopya-satildi"><span class="toggle-slider"></span></label>
             <span style="font-size:12px;color:var(--text2)">Satıldı olarak işaretle</span>
           </div>
         </div>
@@ -2885,5 +2681,6 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 </div>
+
 </body>
 </html>

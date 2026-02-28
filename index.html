@@ -267,6 +267,89 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 .bekleyen-actions{display:flex;gap:5px;flex-shrink:0;}
 
 </style>
+<!-- AYARLAR -->
+<div class="page" id="page-ayarlar">
+  <div class="section">
+    <div class="section-head"><div class="section-title">💬 WhatsApp Mesaj Şablonları</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:20px">
+        Kullanabileceğin değişkenler: <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{isim}</code> müşteri adı &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{oyun}</code> oyun adı &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{gun}</code> gecikme günü &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{ucret}</code> ekstra ücret
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text1);display:block;margin-bottom:8px">
+            🚨 Gecikmiş İade Mesajı
+          </label>
+          <textarea id="sablo-gecikme" rows="4" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text1);font-size:13px;font-family:inherit;resize:vertical;line-height:1.6" placeholder="Gecikme mesajı..."></textarea>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">📌 Gecikmiş kiralamalar için İade butonu yanındaki 💬 WA butonunda kullanılır.</div>
+        </div>
+
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text1);display:block;margin-bottom:8px">
+            🔔 Yarın Bitiyor Mesajı
+          </label>
+          <textarea id="sablo-yaklasan" rows="4" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text1);font-size:13px;font-family:inherit;resize:vertical;line-height:1.6" placeholder="Hatırlatma mesajı..."></textarea>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">📌 Süresi yarın dolacak kiralamalar için kullanılır.</div>
+        </div>
+
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text1);display:block;margin-bottom:8px">
+            👋 Genel Mesaj
+          </label>
+          <textarea id="sablo-genel" rows="3" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text1);font-size:13px;font-family:inherit;resize:vertical;line-height:1.6" placeholder="Genel mesaj..."></textarea>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">📌 Müşteriler sekmesindeki 💬 butonunda kullanılır.</div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="saveAyarlar()">💾 Kaydet</button>
+        <button class="btn btn-outline" onclick="resetSablonlar()">↩️ Varsayılana Dön</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BİLDİRİMLER -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🔔 İade Hatırlatıcıları</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">
+        Uygulama açıldığında gecikmiş iadeler ve yarın biten kiralamalar için otomatik bildirim gönderilir.<br>
+        <strong>Mobilde en iyi sonuç için</strong> uygulamayı ana ekrana ekleyin.
+      </p>
+      <div id="notif-durum" style="background:var(--surface3);border-radius:10px;padding:14px 16px;font-size:13px">Yükleniyor...</div>
+    </div>
+  </div>
+
+  <!-- VERİ YEDEKLEMESİ -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🗄️ Veri Yedekleme & Geri Yükleme</div></div>
+    <div class="section-body">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div style="background:var(--surface3);border-radius:12px;padding:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--text1);margin-bottom:6px">📤 Dışa Aktar</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">Tüm oyun, müşteri ve kiralama verilerini JSON dosyası olarak indir. Güvenli yere kaydet.</div>
+          <button class="btn btn-primary" style="width:100%" onclick="exportData()">⬇️ JSON İndir</button>
+        </div>
+        <div style="background:var(--surface3);border-radius:12px;padding:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--text1);margin-bottom:6px">📥 İçe Aktar</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">Daha önce indirdiğin JSON dosyasını yükle. <strong style="color:var(--danger)">Mevcut veriler silinir!</strong></div>
+          <button class="btn btn-warning" style="width:100%" onclick="document.getElementById('import-file').click()">⬆️ JSON Yükle</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </div>
+
+      <div id="yedek-bilgi" style="background:var(--surface3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text3)">
+        <span id="yedek-bilgi-text">📊 Yükleniyor...</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -335,6 +418,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   <button class="nav-btn" onclick="nav('ekgelir',this)">💵 Ek Gelir</button>
   <button class="nav-btn" onclick="nav('raporlar',this)">📈 Raporlar</button>
 
+  <button class="nav-btn" onclick="nav('ayarlar',this)">⚙️ Ayarlar</button>
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto;padding-right:4px">
     <div id="sync-status" style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(0,229,160,.15);color:#00e5a0;border:1px solid rgba(0,229,160,.3);display:none;white-space:nowrap">☁️ Senkronize</div>
     <button onclick="doLogout()" id="logout-btn" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:5px 12px;color:#ff4757;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:none;white-space:nowrap">🚪 Çıkış</button>
@@ -353,12 +437,36 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     <div class="card green"><div class="card-icon">💰</div><div class="card-val" id="d-ay-gelir">₺0</div><div class="card-lbl">Bu Ay Gelir</div></div>
     <div class="card red"><div class="card-icon">⏰</div><div class="card-val" id="d-gecikme">0</div><div class="card-lbl">Gecikmiş</div></div>
   </div>
+
+  <!-- AYLIK HEDEF ÇUBUĞU -->
+  <div id="hedef-bar-wrap" style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap">
+      <div style="font-size:14px;font-weight:700;color:var(--text1)">🎯 Aylık Gelir Hedefi</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="hedef-oran-lbl" style="font-size:13px;font-weight:700;color:var(--success)">%0</span>
+        <span style="font-size:12px;color:var(--text3)" id="hedef-rakam-lbl">₺0 / ₺0</span>
+        <button onclick="openHedefModal()" style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer">✏️ Düzenle</button>
+      </div>
+    </div>
+    <div style="background:var(--surface3);border-radius:99px;height:12px;overflow:hidden">
+      <div id="hedef-progress" style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--success),#00c8ff);transition:width .6s ease;width:0%"></div>
+    </div>
+    <div id="hedef-mesaj" style="margin-top:8px;font-size:12px;color:var(--text3)">Hedef belirlemek için ✏️ Düzenle butonuna tıklayın.</div>
+  </div>
+
   <div class="two-col">
     <div class="section">
       <div class="section-head"><div class="section-title">⏰ Gecikmiş İadeler</div></div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
         <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Teslim</th><th>Gecikme</th><th>Ekstra Ücret</th><th>İşlem</th></tr></thead>
         <tbody id="d-gecikme-tbl"></tbody>
+      </table></div></div>
+    </div>
+    <div class="section">
+      <div class="section-head"><div class="section-title">🔔 Yarın Biten Kiralamalar</div></div>
+      <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
+        <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Tip</th><th>Bitiş</th><th>İşlem</th></tr></thead>
+        <tbody id="d-yaklasan-tbl"></tbody>
       </table></div></div>
     </div>
     <div class="section">
@@ -409,6 +517,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 <!-- KİRALAMALAR -->
 <div class="page" id="page-kiralamalar">
   <div id="kira-gecikme-banner" style="display:none;margin-bottom:10px;background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.35);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--danger)"></div>
+  <div id="kira-yaklasan-banner" style="display:none;margin-bottom:10px;background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.35);border-radius:10px;padding:10px 16px;font-size:13px;color:#ffc107"></div>
   <div class="search-bar">
     <input type="text" class="search-input" placeholder="🔍 Ara..." id="kiralama-search" oninput="renderKiralamalar()">
     <div class="filter-bar">
@@ -467,6 +576,28 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   </div>
 </div>
 
+
+<!-- HEDEF MODAL -->
+<div class="modal-overlay" id="modal-hedef">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <div class="modal-title">🎯 Aylık Gelir Hedefi</div>
+      <button class="modal-close" onclick="closeModal('modal-hedef')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Bu ay için hedef gelir (₺)</label>
+        <input type="number" id="hedef-input" min="0" step="1000" placeholder="Örn: 15000">
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Hedef her ay sıfırlanmaz, istediğin zaman güncelleyebilirsin.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-hedef')">İptal</button>
+      <button class="btn btn-success" onclick="saveHedef()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- KARA LİSTE -->
 <div class="page" id="page-karaliste">
   <div class="search-bar">
@@ -517,6 +648,51 @@ tr.overdue td{background:rgba(255,71,87,.05);}
       <button class="btn btn-primary btn-sm" onclick="renderRaporlar()">Uygula</button>
     </div>
   </div>
+  <!-- GENEL KAR/ZARAR ÖZETİ -->
+  <div id="karz-panel" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px">📊 Genel Kâr / Zarar Özeti</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+      <div style="background:var(--surface3);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">💰 Toplam PS Geliri</div>
+        <div id="karz-ps-gelir" style="font-size:20px;font-weight:800;color:var(--success)">₺0</div>
+      </div>
+      <div style="background:var(--surface3);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Toplam Ek Gelir</div>
+        <div id="karz-ek-gelir" style="font-size:20px;font-weight:800;color:var(--success)">₺0</div>
+      </div>
+      <div style="background:var(--surface3);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">🛒 Oyun Alış Maliyeti</div>
+        <div id="karz-alis" style="font-size:20px;font-weight:800;color:var(--danger)">₺0</div>
+      </div>
+      <div style="background:var(--surface3);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">🎮 DLC / Ek Maliyet</div>
+        <div id="karz-dlc" style="font-size:20px;font-weight:800;color:var(--danger)">₺0</div>
+      </div>
+    </div>
+    <!-- Hesaplama gösterimi -->
+    <div style="background:var(--surface3);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px">
+      <span style="color:var(--success);font-weight:700" id="karz-toplam-gelir-lbl">₺0</span>
+      <span style="color:var(--text3)">toplam gelir</span>
+      <span style="color:var(--text3)">−</span>
+      <span style="color:var(--danger);font-weight:700" id="karz-toplam-maliyet-lbl">₺0</span>
+      <span style="color:var(--text3)">toplam maliyet</span>
+      <span style="color:var(--text3)">=</span>
+      <span id="karz-net-lbl" style="font-size:18px;font-weight:900">₺0</span>
+      <span id="karz-net-badge" style="border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700"></span>
+    </div>
+    <!-- Amorti çubuğu -->
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px">
+        <span>Maliyet Karşılama Oranı</span>
+        <span id="karz-oran-lbl">%0</span>
+      </div>
+      <div style="background:var(--surface3);border-radius:99px;height:8px;overflow:hidden">
+        <div id="karz-oran-bar" style="height:100%;border-radius:99px;transition:width .6s;width:0%"></div>
+      </div>
+      <div id="karz-amorti-mesaj" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+    </div>
+  </div>
+
   <div class="cards">
     <div class="card green"><div class="card-icon">💰</div><div class="card-val" id="rep-gelir">₺0</div><div class="card-lbl">Dönem PS Geliri</div></div>
     <div class="card green"><div class="card-icon">💵</div><div class="card-val" id="rep-ek-gelir">₺0</div><div class="card-lbl">Dönem Ek Gelir</div></div>
@@ -864,6 +1040,17 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 // ═══════════════════════════════════════════════════════
 // FIREBASE ENTEGRASYONU
 // ═══════════════════════════════════════════════════════
@@ -1009,6 +1196,7 @@ function nav(page,btn){
 }
 
 function renderPage(p){
+  if(p==='ayarlar'){ renderAyarlar(); return; }
   if(p==='dashboard') renderDashboard();
   else if(p==='oyunlar') renderOyunlar();
   else if(p==='musteriler') renderMusteriler();
@@ -1067,6 +1255,7 @@ function renderDashboard(){
   document.getElementById('d-kira-sub').textContent=`${primK} Primary, ${secK} Secondary`;
   document.getElementById('d-rezerv').textContent=rezervSayisi;
   document.getElementById('d-ay-gelir').textContent=fmt(ayGelir);
+  renderHedefBar(ayGelir);
   document.getElementById('d-gecikme').textContent=gecikme.length;
   document.getElementById('hs-kira').textContent=aktifler.length;
   document.getElementById('hs-musteri').textContent=D.musteriler.length;
@@ -1081,10 +1270,7 @@ function renderDashboard(){
     const gecGun=daysDiff(k.bit,now);
     const gunluk=k.tip==='primary'?(o?.gunluk||0):(o?.gunluk?Math.round(o.gunluk*0.7):0);
     const ekstra=gunluk*gecGun;
-    const whatsappMsg=encodeURIComponent('Merhaba '+(m?.ad||m?.soyad||'')+'! 👋\n'+
-      (o?.ad||'Oyun')+' kiralama süreniz '+(gecGun)+' gün önce doldu.\n'+
-      'Ekstra ücret: ₺'+ekstra+'\n'+
-      'Oyunu iade etmenizi rica ederiz. Teşekkürler!');
+    const whatsappMsg=encodeURIComponent(buildWaMsg('gecikme',{isim:(m?.ad||m?.soyad||''),oyun:(o?.ad||''),gun:gecGun,ucret:ekstra}));
     const tel=(m?.tel||'').replace(/[^0-9]/g,'');
     const waLink=tel?'https://wa.me/90'+tel.replace(/^0/,'')+'?text='+whatsappMsg:'#';
     return '<tr class="overdue">'+
@@ -1100,6 +1286,31 @@ function renderDashboard(){
         (tel?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+'</div></td>'+
     '</tr>';
   }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Gecikmiş iade yok ✅</td></tr>';
+
+  // Yaklaşan iadeler tablosu
+  const yaklasanTbl=document.getElementById('d-yaklasan-tbl');
+  if(yaklasanTbl){
+    const yarin3=new Date(); yarin3.setDate(yarin3.getDate()+1); const yarinStr3=yarin3.toISOString().split('T')[0];
+    const yakList2=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit>=now&&k.bit<=yarinStr3);
+    yaklasanTbl.innerHTML=yakList2.length?yakList2.map(k=>{
+      const o=D.oyunlar.find(x=>x.id===k.oyunId),m=D.musteriler.find(x=>x.id===k.musteriId);
+      const tel=(m?.tel||'').replace(/[^0-9]/g,'').replace(/^0/,'');
+      const msg=encodeURIComponent(buildWaMsg('yaklasan',{isim:(m?.ad||m?.soyad||''),oyun:(o?.ad||'')}));
+      const waLink=tel?'https://wa.me/90'+tel+'?text='+msg:'';
+      return '<tr style="background:rgba(255,193,7,.05)">'+
+        '<td><strong>'+(o?.ad||'-')+'</strong></td>'+
+        '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
+        '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
+        '<td><span class="rt-badge '+(k.tip==='primary'?'rt-primary':'rt-secondary')+'">'+k.tip+'</span></td>'+
+        '<td style="color:#ffc107;font-weight:600">'+fmtDate(k.bit)+'</td>'+
+        '<td><div class="action-btns">'+
+          '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
+          '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
+          (waLink?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+
+        '</div></td>'+
+      '</tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Yarın biten kiralama yok 👍</td></tr>';
+  }
 
   const atbl=document.getElementById('d-aktif-tbl');
   atbl.innerHTML=aktifler.length?aktifler.map(k=>{
@@ -1180,6 +1391,12 @@ function oyunKartHTML(o){
   }
 
   // Ana hesap slot paneli
+  // Yaklaşan iadeler (1 gün içinde)
+  const _now=today();
+  const _yarin=new Date(); _yarin.setDate(_yarin.getDate()+1);
+  const _yarinStr=_yarin.toISOString().split('T')[0];
+  const yaklasanlar=[...primKiralar,...secKiralar].filter(k=>k&&k.durum==='aktif'&&k.bit>=_now&&k.bit<=_yarinStr);
+
   // Bekleyen müşteriler
   const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
   let slotPanelHTML = '<div class="slot-panel">'
@@ -1237,7 +1454,7 @@ function oyunKartHTML(o){
     <div class="game-body">
       ${slotPanelHTML}
       ${kopyalarHTML}
-      ${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
+      ${yaklasanlar.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,193,7,.2);margin-bottom:4px;font-size:12px;color:#ffc107;background:rgba(255,193,7,.08);border-radius:6px;padding:6px 8px">🔔 <strong>${yaklasanlar.length} kiralama</strong> yarın bitiyor!</div>`:""}${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
       <div class="game-stats">
         <div class="game-row"><span class="game-row-lbl">Günlük</span><span class="game-row-val">${fmt(o.gunluk)}</span></div>
         <div class="game-row"><span class="game-row-lbl">Toplam Gelir</span><span class="game-row-val profit">${fmt(o.toplamGelir||0)}</span></div>
@@ -1426,34 +1643,109 @@ function deleteMusteri(id){
 }
 
 function showMusteriDetay(id){
-  const m=D.musteriler.find(x=>x.id===id);if(!m)return;
+  const m=D.musteriler.find(x=>x.id===id); if(!m) return;
   const kiralar=D.kiralamalar.filter(k=>k.musteriId===id).sort((a,b)=>b.bas.localeCompare(a.bas));
   const now=today();
-  document.getElementById('mmd-title').textContent=`👤 ${m.ad} ${m.soyad}`;
+
+  const toplamHarcama=kiralar.reduce((s,k)=>s+k.net,0);
+  const toplamIndirim=kiralar.reduce((s,k)=>s+(k.indirim||0),0);
+  const toplamGecikme=kiralar.filter(k=>(k.durum==='aktif'&&k.bit<now)||(k.durum==='teslim'&&k.teslimTarih&&k.bit<k.teslimTarih)).length;
+  const uzatmalar=kiralar.reduce((s,k)=>s+(k.uzatmalar?.length||0),0);
+  const sonKiralama=kiralar[0];
+  const ilkKiralama=kiralar[kiralar.length-1];
+  const aktifKira=kiralar.find(k=>k.durum==='aktif');
+  const karaListede=(D.karaListe||[]).some(k=>k.musteriId===id);
+
+  let skor=100;
+  skor -= toplamGecikme*15;
+  skor -= toplamIndirim>0?5:0;
+  skor += kiralar.length>=5?10:0;
+  skor += toplamHarcama>=2000?10:0;
+  skor = Math.max(0,Math.min(100,skor));
+  const skorRenk=skor>=80?'var(--success)':skor>=50?'var(--warning)':'var(--danger)';
+  const skorLabel=skor>=80?'✅ Güvenilir':skor>=50?'⚠️ Orta':'🚨 Riskli';
+
+  const tel=(m.tel||'').replace(/[^0-9]/g,'').replace(/^0/,'');
+  const waLink=tel?`https://wa.me/90${tel}`:'';
+
+  document.getElementById('mmd-title').innerHTML=
+    `👤 ${m.ad} ${m.soyad}${karaListede?' <span style="background:rgba(255,71,87,.2);color:var(--danger);border-radius:6px;padding:2px 8px;font-size:12px;margin-left:6px">⛔ Kara Listede</span>':''}`;
+
   document.getElementById('mmd-body').innerHTML=`
-    <div class="two-col" style="margin-bottom:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${waLink?`<a href="${waLink}" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WhatsApp</a>`:''}
+      ${aktifKira?`<button class="btn btn-warning btn-sm" onclick="closeModal('modal-musteri-detay');openUzatmaModal(${aktifKira.id})">🔄 Uzat</button>`:''}
+      ${aktifKira?`<button class="btn btn-success btn-sm" onclick="closeModal('modal-musteri-detay');teslimAl(${aktifKira.id})">✅ İade Al</button>`:''}
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-musteri-detay');editMusteri(${id})">✏️ Düzenle</button>
+      ${!karaListede?`<button class="btn btn-danger btn-sm" onclick="closeModal('modal-musteri-detay');openKaraListeEkle(${id})">⛔ Kara Listeye Al</button>`:''}
+    </div>
+
+    <div class="two-col" style="margin-bottom:16px">
       <div class="info-box">
-        <div class="info-row"><span class="info-row-lbl">Telefon</span><span>${m.tel}</span></div>
-        <div class="info-row"><span class="info-row-lbl">E-posta</span><span>${m.email||'-'}</span></div>
-        <div class="info-row"><span class="info-row-lbl">Adres</span><span>${m.adres||'-'}</span></div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">İletişim</div>
+        <div class="info-row"><span class="info-row-lbl">📞 Telefon</span><span>${m.tel||'—'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">📧 E-posta</span><span>${m.email||'—'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">📍 Adres</span><span>${m.adres||'—'}</span></div>
       </div>
       <div class="info-box">
-        <div class="info-row"><span class="info-row-lbl">Toplam Kiralama</span><span>${kiralar.length}x</span></div>
-        <div class="info-row"><span class="info-row-lbl">Toplam Harcama</span><span class="profit">${fmt(kiralar.reduce((s,k)=>s+k.net,0))}</span></div>
-        <div class="info-row"><span class="info-row-lbl">Toplam İndirim</span><span class="loss">${fmt(kiralar.reduce((s,k)=>s+(k.indirim||0),0))}</span></div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Özet</div>
+        <div class="info-row"><span class="info-row-lbl">📦 Toplam Kiralama</span><span><strong>${kiralar.length}x</strong></span></div>
+        <div class="info-row"><span class="info-row-lbl">💰 Toplam Harcama</span><span class="profit"><strong>${fmt(toplamHarcama)}</strong></span></div>
+        <div class="info-row"><span class="info-row-lbl">🎁 Aldığı İndirim</span><span class="${toplamIndirim>0?'loss':'neutral'}">${toplamIndirim>0?'-'+fmt(toplamIndirim):'—'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">🔄 Uzatma Sayısı</span><span>${uzatmalar>0?uzatmalar+'x':'—'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">⏰ Gecikme Sayısı</span><span style="color:${toplamGecikme>0?'var(--danger)':'var(--success)'};font-weight:600">${toplamGecikme>0?toplamGecikme+'x ⚠️':'Hiç yok ✅'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">📅 İlk Kiralama</span><span>${ilkKiralama?fmtDate(ilkKiralama.bas):'—'}</span></div>
+        <div class="info-row"><span class="info-row-lbl">📅 Son Kiralama</span><span>${sonKiralama?fmtDate(sonKiralama.bas):'—'}</span></div>
       </div>
     </div>
+
+    <div style="background:var(--surface3);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700">🛡️ Güvenilirlik Skoru</span>
+        <span style="font-size:22px;font-weight:900;color:${skorRenk}">${skor}<span style="font-size:12px;color:var(--text3)">/100</span> &nbsp;<span style="font-size:13px">${skorLabel}</span></span>
+      </div>
+      <div style="background:var(--surface2);border-radius:99px;height:9px;overflow:hidden">
+        <div style="height:100%;border-radius:99px;width:${skor}%;background:${skor>=80?'linear-gradient(90deg,var(--success),#00e5a0)':skor>=50?'linear-gradient(90deg,var(--warning),#ffaa00)':'linear-gradient(90deg,var(--danger),#ff8c42)'};transition:width .5s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.8">
+        ${toplamGecikme>0?`⚠️ ${toplamGecikme} gecikme (-${toplamGecikme*15} puan) &nbsp;`:''}${kiralar.length>=5?'✅ Sadık müşteri (+10) &nbsp;':''}${toplamHarcama>=2000?'💰 Yüksek harcama (+10)':''}
+      </div>
+    </div>
+
+    ${aktifKira?`<div style="background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px">
+      🟢 <strong>Aktif kiralama:</strong> ${D.oyunlar.find(o=>o.id===aktifKira.oyunId)?.ad||'?'} &nbsp;·&nbsp; Bitiş: <strong style="color:${aktifKira.bit<now?'var(--danger)':'var(--text1)'}">${fmtDate(aktifKira.bit)}</strong>${aktifKira.bit<now?` <span class="status s-gecikme">${daysDiff(aktifKira.bit,now)} gün gecikmiş</span>`:''}
+    </div>`:''}
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Kiralama Geçmişi</div>
     ${kiralar.length?`<div class="tbl-wrap"><table>
-      <thead><tr><th>Oyun</th><th>Tip</th><th>Başlangıç</th><th>Bitiş</th><th>Brüt</th><th>İndirim</th><th>Net</th><th>Durum</th></tr></thead>
-      <tbody>${kiralar.map(k=>{const o=D.oyunlar.find(x=>x.id===k.oyunId);const isG=k.durum==='aktif'&&k.bit<now;
-        return `<tr><td><strong>${o?.ad||'-'}</strong></td><td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td><td>${fmtDate(k.bas)}</td><td ${isG?'style="color:var(--danger)"':''}>${fmtDate(k.bit)}</td><td>${fmt(k.ucret)}</td><td class="${k.indirim>0?'loss':'neutral'}">${k.indirim>0?'-'+fmt(k.indirim):'—'}</td><td class="profit">${fmt(k.net)}</td><td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td></tr>`;
+      <thead><tr><th>Oyun</th><th>Tip</th><th>Başlangıç</th><th>Bitiş</th><th>Süre</th><th>Net</th><th>Uzatma</th><th>Durum</th></tr></thead>
+      <tbody>${kiralar.map(k=>{
+        const o=D.oyunlar.find(x=>x.id===k.oyunId);
+        const isG=k.durum==='aktif'&&k.bit<now;
+        const gun=daysDiff(k.bas,k.bit);
+        const uzSayisi=(k.uzatmalar||[]).length;
+        return `<tr ${isG?'class="overdue"':''}>
+          <td><strong>${o?.ad||'-'}</strong></td>
+          <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
+          <td>${fmtDate(k.bas)}</td>
+          <td style="${isG?'color:var(--danger);font-weight:600':''}">${fmtDate(k.bit)}${isG?` <span style="font-size:10px">(+${daysDiff(k.bit,now)}g)</span>`:''}</td>
+          <td>${gun}g</td>
+          <td class="profit">${fmt(k.net)}</td>
+          <td>${uzSayisi>0?`<span style="color:var(--accent);font-size:12px">🔄 ${uzSayisi}x</span>`:'—'}</td>
+          <td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td>
+        </tr>`;
       }).join('')}</tbody>
-    </table></div>`:'<div class="empty"><div class="empty-text">Kiralama yok</div></div>'}
-    ${m.notlar?`<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text2)">📝 ${m.notlar}</div>`:''}`;
+    </table></div>`:'<div class="empty"><div class="empty-text">Kiralama geçmişi yok</div></div>'}
+    ${m.notlar?`<div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text2)">📝 ${m.notlar}</div>`:''}
+  
+
+    <div style="margin-top:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">🎯 Oyun Tavsiyeleri</div>
+      ${renderTavsiyeHTML(id)}
+    </div>`;
   openModal('modal-musteri-detay');
 }
 
-// =================== KİRALAMA ===================
 function openKiralamaModal(){
   document.getElementById('kira-eid').value='';
   document.getElementById('kopya-secim-grup').style.display='none';
@@ -1691,8 +1983,11 @@ function renderKiralamalar(){
 
   const tbl=document.getElementById('kiralama-tbl');
   const gecBanner=document.getElementById('kira-gecikme-banner');
+  const yaklasanBanner=document.getElementById('kira-yaklasan-banner');
   const now2=today();
+  const yarin2=new Date(); yarin2.setDate(yarin2.getDate()+1); const yarinStr2=yarin2.toISOString().split('T')[0];
   const gecList=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit<now2);
+  const yakList=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit>=now2&&k.bit<=yarinStr2);
   if(gecBanner){
     if(gecList.length&&(filters.kira==='hepsi'||filters.kira==='aktif'||filters.kira==='gecikme')){
       gecBanner.style.display='';
@@ -1701,6 +1996,21 @@ function renderKiralamalar(){
         '</strong>';
     } else {
       gecBanner.style.display='none';
+    }
+  }
+  if(yaklasanBanner){
+    if(yakList.length&&(filters.kira==='hepsi'||filters.kira==='aktif')){
+      yaklasanBanner.style.display='';
+      const isimler=yakList.map(k=>{
+        const m=D.musteriler.find(x=>x.id===k.musteriId);
+        const o=D.oyunlar.find(x=>x.id===k.oyunId);
+        const tel=(m?.tel||'').replace(/[^0-9]/g,'').replace(/^0/,'');
+        const msg=encodeURIComponent(buildWaMsg('yaklasan',{isim:(m?.ad||m?.soyad||''),oyun:(o?.ad||'')}));
+        return (tel?'<a href="https://wa.me/90'+tel+'?text='+msg+'" target="_blank" style="color:#25d366;text-decoration:none">💬 '+(m?.ad||m?.soyad||'?')+'</a>':'<span>'+(m?.ad||m?.soyad||'?')+'</span>')+' ('+( o?.ad||'-')+')';
+      }).join(' &nbsp;·&nbsp; ');
+      yaklasanBanner.innerHTML='🔔 <strong>Yarın iadesi olanlar ('+yakList.length+'):</strong> '+isimler;
+    } else {
+      yaklasanBanner.style.display='none';
     }
   }
   if(!list.length){tbl.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:30px">Kayıt bulunamadı</td></tr>';return;}
@@ -1725,7 +2035,7 @@ function renderKiralamalar(){
         const _gec=isG?daysDiff(k.bit,now):0;
         const _gun=o?.gunluk||0;
         const _extra=Math.round(_gun*(k.tip==='secondary'?0.7:1)*_gec);
-        const _msg=encodeURIComponent('Merhaba '+(m?.ad||m?.soyad||'')+'! 👋\n'+(o?.ad||'Oyun')+' kiralama süreniz '+_gec+' gün önce doldu.\nEkstra ücret: ₺'+_extra+'\nOyunu iade etmenizi rica ederiz. Teşekkürler!');
+        const _msg=encodeURIComponent(buildWaMsg('gecikme',{isim:(m?.ad||m?.soyad||''),oyun:(o?.ad||''),gun:_gec,ucret:_extra}));
         const _wa=_tel?'https://wa.me/90'+_tel.replace(/^0/,'')+'?text='+_msg:'';
         return '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
                '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
@@ -1910,6 +2220,35 @@ function renderRaporlar(){
   const toplamPSGelir=D.kiralamalar.reduce((x,k)=>x+k.net,0);
   const toplamEkGelir=(D.ekGelirler||[]).reduce((x,g)=>x+g.tutar,0);
   const net=(toplamPSGelir+toplamEkGelir)-toplamMaliyet;
+
+  // Genel kar/zarar paneli
+  const karzPS = document.getElementById('karz-ps-gelir');
+  if(karzPS){
+    document.getElementById('karz-ps-gelir').textContent = fmt(toplamPSGelir);
+    document.getElementById('karz-ek-gelir').textContent = fmt(toplamEkGelir);
+    document.getElementById('karz-alis').textContent = fmt(toplamAlis);
+    document.getElementById('karz-dlc').textContent = fmt(toplamDlc);
+    const toplamGelir = toplamPSGelir + toplamEkGelir;
+    document.getElementById('karz-toplam-gelir-lbl').textContent = fmt(toplamGelir);
+    document.getElementById('karz-toplam-maliyet-lbl').textContent = fmt(toplamMaliyet);
+    const netLbl = document.getElementById('karz-net-lbl');
+    netLbl.textContent = (net>=0?'+':'')+fmt(net);
+    netLbl.style.color = net>=0 ? 'var(--success)' : 'var(--danger)';
+    const badge = document.getElementById('karz-net-badge');
+    badge.textContent = net>=0 ? '✅ Kârdasın' : '⚠️ Zararda';
+    badge.style.background = net>=0 ? 'rgba(0,230,118,.15)' : 'rgba(255,71,87,.15)';
+    badge.style.color = net>=0 ? 'var(--success)' : 'var(--danger)';
+    const oran = toplamMaliyet>0 ? Math.round((toplamGelir/toplamMaliyet)*100) : 0;
+    document.getElementById('karz-oran-lbl').textContent = '%'+oran;
+    const bar = document.getElementById('karz-oran-bar');
+    bar.style.width = Math.min(oran,100)+'%';
+    bar.style.background = oran>=100 ? 'linear-gradient(90deg,var(--success),#00e5a0)' : oran>=75 ? 'linear-gradient(90deg,var(--accent),var(--success))' : 'linear-gradient(90deg,var(--danger),#ff8c42)';
+    const kalan = toplamMaliyet - toplamGelir;
+    const mesajEl = document.getElementById('karz-amorti-mesaj');
+    if(oran>=100) mesajEl.textContent = '🏆 Tüm maliyetler karşılandı, net kâr: '+fmt(net);
+    else mesajEl.textContent = '📌 Maliyeti karşılamak için '+fmt(kalan)+' daha gerekiyor (%'+oran+' tamamlandı)';
+    mesajEl.style.color = oran>=100 ? 'var(--success)' : 'var(--text3)';
+  }
 
   document.getElementById('rep-gelir').textContent=fmt(periodGelir);
   document.getElementById('rep-ek-gelir').textContent=fmt(periodEkGelir);
@@ -2199,14 +2538,16 @@ function saveDeaktif(){
 }
 
 // =================== KARA LİSTE ===================
-function openKLModal(){
+function openKLModal(presetMusteriId){
   const zatenKL=D.karaListe.map(k=>k.musteriId);
   const uygunlar=D.musteriler.filter(m=>!zatenKL.includes(m.id));
   if(!uygunlar.length){toast('Tüm müşteriler zaten kara listede veya müşteri yok','warning');return;}
   document.getElementById('kl-musteri').innerHTML=uygunlar.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad} — ${m.tel}</option>`).join('');
+  if(presetMusteriId) document.getElementById('kl-musteri').value=presetMusteriId;
   document.getElementById('kl-sebep').value='';
   openModal('modal-kl-ekle');
 }
+function openKaraListeEkle(musteriId){ openKLModal(musteriId); }
 
 function saveKL(){
   const musteriId=parseInt(document.getElementById('kl-musteri').value);
@@ -2671,6 +3012,7 @@ function saveUzatma(){
   renderKiralamalar();
   renderDashboard();
   updateStats();
+  setTimeout(autoCheckNotif, 2000);
   toast('Kiralama '+gun+' gün uzatıldı! +'+fmt(ucret),'success');
 }
 
@@ -2690,27 +3032,286 @@ function openWhatsApp(musteriId, kiraId){
   const gecGun=isGec?daysDiff(k.bit,now):0;
   const gunluk=k&&o?(o.gunluk||0)*(k.tip==='secondary'?0.7:1):0;
   const ekstra=Math.round(gunluk*gecGun);
+  const vars={isim:(m.ad||m.soyad||''), oyun:(o?.ad||''), gun:gecGun, ucret:ekstra};
 
   let msg='';
-  if(isGec){
-    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
-        (o?.ad||'Oyun')+' kiralama süreniz '+gecGun+' gün önce doldu.\n'+
-        'Ekstra ücret: ₺'+ekstra+'\n'+
-        'Oyunu iade etmenizi rica ederiz. Teşekkürler! 🙏';
-  } else if(k){
-    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
-        (o?.ad||'Oyun')+' kiralama süreniz '+fmtDate(k.bit)+' tarihinde doluyor.\n'+
-        'Uzatmak ister misiniz? 📞';
-  } else {
-    msg='Merhaba '+(m.ad||m.soyad||'')+'! 👋\n'+
-        'PlayStation oyun kiralama hakkında görüşmek istiyoruz.';
-  }
+  if(isGec) msg=buildWaMsg('gecikme',vars);
+  else if(k) msg=buildWaMsg('yaklasan',vars);
+  else msg=buildWaMsg('genel',vars);
 
   const waNum='90'+tel.replace(/^0/,'');
   window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
 }
 
+function openHedefModal(){
+  const hedef=parseInt(localStorage.getItem('aylikHedef')||'0');
+  document.getElementById('hedef-input').value=hedef||'';
+  openModal('modal-hedef');
+}
 
+function saveHedef(){
+  const val=parseInt(document.getElementById('hedef-input').value)||0;
+  localStorage.setItem('aylikHedef', val);
+  closeModal('modal-hedef');
+  renderDashboard();
+  toast('Hedef güncellendi 🎯','success');
+}
+
+function renderHedefBar(ayGelir){
+  const hedef=parseInt(localStorage.getItem('aylikHedef')||'0');
+  const wrap=document.getElementById('hedef-bar-wrap');
+  if(!wrap) return;
+
+  if(!hedef){
+    document.getElementById('hedef-progress').style.width='0%';
+    document.getElementById('hedef-oran-lbl').textContent='—';
+    document.getElementById('hedef-rakam-lbl').textContent='Hedef belirlenmedi';
+    document.getElementById('hedef-mesaj').textContent='Hedef belirlemek için ✏️ Düzenle butonuna tıklayın.';
+    document.getElementById('hedef-mesaj').style.color='var(--text3)';
+    return;
+  }
+
+  const oran=Math.min(Math.round((ayGelir/hedef)*100),100);
+  const kalan=Math.max(hedef-ayGelir,0);
+  const bar=document.getElementById('hedef-progress');
+
+  // Renk
+  let renk='linear-gradient(90deg,var(--success),#00c8ff)';
+  if(oran>=100) renk='linear-gradient(90deg,#ffd700,#ffaa00)';
+  else if(oran>=75) renk='linear-gradient(90deg,var(--success),#00e5a0)';
+  else if(oran<30) renk='linear-gradient(90deg,var(--danger),#ff8c42)';
+  bar.style.background=renk;
+  bar.style.width=Math.max(oran,2)+'%';
+
+  document.getElementById('hedef-oran-lbl').textContent='%'+oran;
+  document.getElementById('hedef-oran-lbl').style.color=oran>=100?'#ffd700':oran>=75?'var(--success)':oran<30?'var(--danger)':'var(--accent)';
+  document.getElementById('hedef-rakam-lbl').textContent=fmt(ayGelir)+' / '+fmt(hedef);
+
+  let mesaj='';
+  if(oran>=100) mesaj='🏆 Tebrikler! Bu ayın hedefini aştın!';
+  else if(oran>=75) mesaj='💪 Hedefe çok yakınsın! '+fmt(kalan)+' kaldı.';
+  else if(oran>=50) mesaj='📈 Yarı yoldasın. '+fmt(kalan)+' daha lazım.';
+  else if(oran>=25) mesaj='🚀 Devam et! Hedefe '+fmt(kalan)+' kaldı.';
+  else mesaj='📌 Hedefe ulaşmak için '+fmt(kalan)+' daha gerekiyor.';
+  const mesajEl=document.getElementById('hedef-mesaj');
+  mesajEl.textContent=mesaj;
+  mesajEl.style.color=oran>=100?'#ffd700':oran>=75?'var(--success)':'var(--text3)';
+}
+
+
+
+// ══════════════════════════════════════════
+// AYARLAR & WA ŞABLONLARI
+// ══════════════════════════════════════════
+const SABLO_DEFAULTS = {
+  gecikme: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz {gun} gün önce doldu.\nEkstra ücret: ₺{ucret}\nOyunu iade etmenizi rica ederiz. Teşekkürler! 🙏',
+  yaklasan: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz yarın dolacak.\nUzatmak ister misiniz? 🎮',
+  genel: 'Merhaba {isim}! 👋\nPlayStation oyun kiralama hakkında görüşmek istiyoruz.'
+};
+
+function getSablo(tip){
+  return localStorage.getItem('sablo_'+tip) || SABLO_DEFAULTS[tip] || '';
+}
+
+function buildWaMsg(tip, vars){
+  let msg = getSablo(tip);
+  msg = msg.replace(/\{isim\}/g, vars.isim||'');
+  msg = msg.replace(/\{oyun\}/g, vars.oyun||'');
+  msg = msg.replace(/\{gun\}/g, vars.gun||'');
+  msg = msg.replace(/\{ucret\}/g, vars.ucret||'0');
+  return msg;
+}
+
+function renderAyarlar(){
+  renderYedekBilgi();
+  renderNotifDurumu();
+  const g = document.getElementById('sablo-gecikme');
+  const y = document.getElementById('sablo-yaklasan');
+  const n = document.getElementById('sablo-genel');
+  if(g) g.value = getSablo('gecikme');
+  if(y) y.value = getSablo('yaklasan');
+  if(n) n.value = getSablo('genel');
+}
+
+function saveAyarlar(){
+  const g = document.getElementById('sablo-gecikme')?.value.trim();
+  const y = document.getElementById('sablo-yaklasan')?.value.trim();
+  const n = document.getElementById('sablo-genel')?.value.trim();
+  if(g) localStorage.setItem('sablo_gecikme', g);
+  if(y) localStorage.setItem('sablo_yaklasan', y);
+  if(n) localStorage.setItem('sablo_genel', n);
+  toast('Şablonlar kaydedildi ✅','success');
+}
+
+function resetSablonlar(){
+  if(!confirm('Şablonlar varsayılana dönecek, emin misiniz?')) return;
+  localStorage.removeItem('sablo_gecikme');
+  localStorage.removeItem('sablo_yaklasan');
+  localStorage.removeItem('sablo_genel');
+  renderAyarlar();
+  toast('Varsayılan şablonlar yüklendi','info');
+}
+
+
+
+
+
+// ══════════════════════════════════════════
+// VERİ YEDEKLEMESİ
+// ══════════════════════════════════════════
+function exportData(){
+  try{
+    const now = new Date();
+    const tarih = now.getFullYear()+'-'+
+      String(now.getMonth()+1).padStart(2,'0')+'-'+
+      String(now.getDate()).padStart(2,'0');
+    const veri = JSON.stringify(D, null, 2);
+    const blob = new Blob([veri], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gamerental-yedek-'+tarih+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Yedek dosyası indirildi ✅','success');
+    renderYedekBilgi();
+  } catch(e){
+    toast('Dışa aktarma hatası: '+e.message,'error');
+  }
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(!confirm('⚠️ DİKKAT!\n\nMevcut tüm veriler silinecek ve bu dosyadaki veriler yüklenecek.\n\nDevam etmek istiyor musunuz?')){
+    event.target.value='';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      // Temel yapı kontrolü
+      if(!parsed.oyunlar || !parsed.musteriler || !parsed.kiralamalar){
+        toast('Geçersiz yedek dosyası!','error');
+        return;
+      }
+      D = parsed;
+      save();
+      renderDashboard();
+      toast('Veriler başarıyla yüklendi! 🎉 ('+parsed.oyunlar.length+' oyun, '+parsed.musteriler.length+' müşteri, '+parsed.kiralamalar.length+' kiralama)','success');
+      renderYedekBilgi();
+    } catch(err){
+      toast('Dosya okunamadı: '+err.message,'error');
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function renderYedekBilgi(){
+  const el = document.getElementById('yedek-bilgi-text');
+  if(!el) return;
+  const boyut = Math.round(JSON.stringify(D).length / 1024);
+  el.innerHTML = '📊 <strong>'+D.oyunlar.length+'</strong> oyun &nbsp;·&nbsp; '+
+    '<strong>'+D.musteriler.length+'</strong> müşteri &nbsp;·&nbsp; '+
+    '<strong>'+D.kiralamalar.length+'</strong> kiralama &nbsp;·&nbsp; '+
+    'Veri boyutu: <strong>~'+boyut+' KB</strong> &nbsp;·&nbsp; '+
+    'Son kayıt: <strong>'+new Date().toLocaleString('tr-TR')+'</strong>';
+}
+
+
+
+
+
+// ══════════════════════════════════════════
+// BİLDİRİM SİSTEMİ
+// ══════════════════════════════════════════
+async function requestNotifPermission(){
+  if(!('Notification' in window)){
+    toast('Bu tarayıcı bildirimleri desteklemiyor','error'); return false;
+  }
+  if(Notification.permission==='granted') return true;
+  if(Notification.permission==='denied'){
+    toast('Bildirim izni reddedilmiş. Tarayıcı ayarlarından açabilirsiniz.','warning'); return false;
+  }
+  const result = await Notification.requestPermission();
+  return result==='granted';
+}
+
+async function sendNotif(title, body, tag){
+  if(Notification.permission!=='granted') return;
+  const sw = await navigator.serviceWorker?.ready.catch(()=>null);
+  if(sw?.showNotification){
+    sw.showNotification(title,{body,tag:tag||'gamerental',icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>',badge:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>',data:{url:location.href}});
+  } else {
+    new Notification(title,{body,tag:tag||'gamerental',icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>'});
+  }
+}
+
+function checkAndNotify(){
+  if(Notification.permission!=='granted') return;
+  const now=today();
+  const yarin=new Date(); yarin.setDate(yarin.getDate()+1);
+  const yarinStr=yarin.toISOString().split('T')[0];
+
+  const gecikme=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit<now);
+  const yarinBiten=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit>=now&&k.bit<=yarinStr);
+
+  if(gecikme.length>0){
+    const isimler=gecikme.slice(0,3).map(k=>{
+      const m=D.musteriler.find(x=>x.id===k.musteriId);
+      const o=D.oyunlar.find(x=>x.id===k.oyunId);
+      return `${m?.ad||'?'} (${o?.ad||'?'})`;
+    }).join(', ')+(gecikme.length>3?` +${gecikme.length-3} daha`:'');
+    sendNotif(`🚨 ${gecikme.length} Gecikmiş İade`,isimler,'gecikme');
+  }
+
+  if(yarinBiten.length>0){
+    const isimler=yarinBiten.slice(0,3).map(k=>{
+      const m=D.musteriler.find(x=>x.id===k.musteriId);
+      const o=D.oyunlar.find(x=>x.id===k.oyunId);
+      return `${m?.ad||'?'} (${o?.ad||'?'})`;
+    }).join(', ')+(yarinBiten.length>3?` +${yarinBiten.length-3} daha`:'');
+    sendNotif(`🔔 ${yarinBiten.length} Kiralama Yarın Bitiyor`,isimler,'yaklasan');
+  }
+
+  // Son kontrol zamanını kaydet
+  localStorage.setItem('sonNotifKontrol', now);
+}
+
+function autoCheckNotif(){
+  // Günde bir kez kontrol (aynı günde tekrar çalışmasın)
+  const son=localStorage.getItem('sonNotifKontrol');
+  const now=today();
+  if(son===now) return;
+  checkAndNotify();
+}
+
+function renderNotifDurumu(){
+  const el=document.getElementById('notif-durum');
+  if(!el) return;
+  if(!('Notification' in window)){
+    el.innerHTML='<span style="color:var(--text3)">Bu cihaz bildirimleri desteklemiyor.</span>';
+    return;
+  }
+  const izin=Notification.permission;
+  if(izin==='granted'){
+    const son=localStorage.getItem('sonNotifKontrol')||'—';
+    el.innerHTML=`<span style="color:var(--success)">✅ Bildirimler aktif</span> &nbsp;·&nbsp; <span style="color:var(--text3);font-size:12px">Son kontrol: ${son}</span>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="checkAndNotify();toast('Kontrol yapıldı','success')">🔔 Şimdi Kontrol Et</button>
+      <button class="btn btn-danger btn-sm" onclick="localStorage.setItem('notifKapat','1');renderNotifDurumu();toast('Bildirimler kapatıldı','info')">Kapat</button>
+    </div>`;
+  } else if(izin==='denied'){
+    el.innerHTML='<span style="color:var(--danger)">⛔ İzin reddedilmiş.</span> Tarayıcı ayarlarından bu site için bildirimlere izin verin.';
+  } else {
+    el.innerHTML=`<span style="color:var(--text3)">Henüz izin verilmedi.</span>
+    <div style="margin-top:10px">
+      <button class="btn btn-primary btn-sm" onclick="requestNotifPermission().then(ok=>{if(ok){localStorage.removeItem('notifKapat');autoCheckNotif();}renderNotifDurumu()})">🔔 Bildirimlere İzin Ver</button>
+    </div>`;
+  }
+}
 
 </script>
 
@@ -2718,9 +3319,13 @@ function openWhatsApp(musteriId, kiraId){
 <script>
 if('serviceWorker' in navigator){
   const swCode = `
-    const CACHE='gamerental-v1';
+    const CACHE='gamerental-v2';
     self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['.']))));
     self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{caches.open(CACHE).then(c=>c.put(e.request,res.clone()));return res;}).catch(()=>caches.match('.')))));
+    self.addEventListener('notificationclick',e=>{
+      e.notification.close();
+      e.waitUntil(clients.openWindow(e.notification.data?.url||'/'));
+    });
   `;
   const blob = new Blob([swCode],{type:'application/javascript'});
   const url = URL.createObjectURL(blob);
@@ -2770,5 +3375,72 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<script>
+function getTavsiyeler(musteriId, limit){
+  limit = limit || 5;
+  var kiralar = D.kiralamalar.filter(function(k){ return k.musteriId === musteriId; });
+  var kiraladigi = new Set(kiralar.map(function(k){ return k.oyunId; }));
+  var musaitOyunlar = D.oyunlar.filter(function(o){ return !kiraladigi.has(o.id); });
+  if(!musaitOyunlar.length) return [];
+  var benzerlik = new Map();
+  D.kiralamalar.forEach(function(k){
+    if(k.musteriId === musteriId) return;
+    if(kiraladigi.has(k.oyunId)) benzerlik.set(k.musteriId, (benzerlik.get(k.musteriId)||0)+1);
+  });
+  var colSkor = new Map();
+  D.kiralamalar.forEach(function(k){
+    if(k.musteriId === musteriId || kiraladigi.has(k.oyunId)) return;
+    var b = benzerlik.get(k.musteriId)||0;
+    if(b>0) colSkor.set(k.oyunId, (colSkor.get(k.oyunId)||0)+b);
+  });
+  var popSkor = new Map();
+  D.kiralamalar.forEach(function(k){
+    if(!kiraladigi.has(k.oyunId)){
+      if(!popSkor.has(k.oyunId)) popSkor.set(k.oyunId, new Set());
+      popSkor.get(k.oyunId).add(k.musteriId);
+    }
+  });
+  return musaitOyunlar.map(function(o){
+    var col=colSkor.get(o.id)||0, pop=popSkor.has(o.id)?popSkor.get(o.id).size:0;
+    return {oyun:o, col:col, pop:pop, birlesik:(col*3)+pop};
+  }).filter(function(s){return s.birlesik>0;})
+  .sort(function(a,b){return b.birlesik-a.birlesik;})
+  .slice(0,limit);
+}
+
+function buildKiralaOnclick(oyunId, musteriId){
+  return "closeModal('modal-musteri-detay');openKiralamaModal();setTimeout(function(){"
+    + "var os=document.getElementById('kira-oyun');if(os){os.value=" + oyunId + ";onKiraOyunChange();}"
+    + "var ms=document.getElementById('kira-musteri');if(ms)ms.value=" + musteriId + ";},150)";
+}
+
+function renderTavsiyeHTML(musteriId){
+  var tavsiyeler = getTavsiyeler(musteriId, 5);
+  if(!tavsiyeler.length){
+    return '<div style="color:var(--text3);font-size:13px;padding:8px 0">Öneri oluşturmak için yeterli veri yok. Müşteri daha fazla kiralama yaptıkça tavsiyeler çıkacak.</div>';
+  }
+  return tavsiyeler.map(function(t){
+    var o = t.oyun;
+    var musait = !o.durum || o.durum === 'mevcut';
+    var etiket = t.col > 0
+      ? ('👥 ' + t.col + ' ortak puan · 🔥 ' + t.pop + ' kiralama')
+      : ('🔥 ' + t.pop + ' farklı müşteri kiraladı');
+    var renk = t.col > 0 ? 'var(--accent)' : 'var(--success)';
+    var kiralaBtn = musait
+      ? '<button class="btn btn-primary btn-sm" onclick="' + buildKiralaOnclick(o.id, musteriId) + '">+ Kirala</button>'
+      : '<span style="font-size:11px;color:var(--warning)">Kirada</span>';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface3);border-radius:10px;margin-bottom:8px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text1)">' + o.ad + '</div>'
+      + '<div style="font-size:11px;margin-top:2px">' + (o.platform||'') + ' &nbsp;·&nbsp; <span style="color:' + renk + '">' + etiket + '</span></div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">' + fmt(o.gunluk) + '<span style="color:var(--text3)">/gün</span></div>'
+      + kiralaBtn
+      + '</div></div>';
+  }).join('');
+}
+
+</script>
 </body>
 </html>

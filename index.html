@@ -2193,7 +2193,8 @@ function renderRezervasyonlar(){
 
     function makeRows(list, tip, slotMusait){
       // İlk atlanmamış kişiyi bul - ona kirala butonu verilecek
-      const ilkAktifIdx = list.findIndex(function(x){ return !x.atla; });
+      var ilkAktifIdx = list.findIndex(function(x){ return !x.atla; });
+if(ilkAktifIdx === -1) ilkAktifIdx = 0;
       return list.map(function(r,i){
         const m=D.musteriler.find(x=>x.id===r.musteriId);
         const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'-';

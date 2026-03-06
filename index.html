@@ -800,6 +800,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
             <span class="toggle-lbl">Bu oyun aynı anda 2 Primary hesapta kiralanabilir (Dijital kopya paylaşımı vb.)</span>
           </div>
         </div>
+        <div class="form-group full"><label>Kapak URL <span style="font-weight:400;color:var(--text3);font-size:11px">(opsiyonel - .jpg ile biten link)</span></label><input type="text" id="oyun-kapak" placeholder="https://..." oninput="onizleKapak()" style="width:100%;box-sizing:border-box"><div id="oyun-kapak-onizleme" style="margin-top:8px;display:none;align-items:center;gap:10px"><img id="oyun-kapak-img" style="width:100px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><span style="font-size:11px;color:var(--success)">✓ Önizleme</span></div></div>
         <div class="form-group full"><label>Notlar</label><textarea id="oyun-notlar" placeholder="Notlar..."></textarea></div>
       </div>
     </div>
@@ -1450,6 +1451,7 @@ function oyunKartHTML(o){
   const deaktifBadge = deaktifAktif ? `<span style="font-size:10px;background:rgba(255,71,87,.2);color:var(--danger);border:1px solid rgba(255,71,87,.4);padding:2px 7px;border-radius:4px;font-weight:700;">📡 DEAKTİF</span>` : '';
 
   return `<div class="game-card ${henuzCikmadi?'rezerv-card':''} ${deaktifAktif?'deaktif':''}" onclick="showOyunDetay(${o.id})" style="cursor:pointer">
+    ${o.kapak?`<div class="kapak-wrap" style="position:relative;width:100%;height:130px;border-radius:10px 10px 0 0;overflow:hidden"><img src="${o.kapak}" alt="${o.ad}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.display='none'"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,10,20,.85))"></div><div style="position:absolute;top:7px;right:7px">${statusBadge}</div>${yeniCikti?`<div style="position:absolute;top:7px;left:7px"><span class="tag" style="background:rgba(0,229,160,.9);color:#000;font-weight:800;border:none;font-size:10px">✦ YENİ</span></div>`:''}</div>`:''}
     <div class="game-card-header">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1461,7 +1463,7 @@ function oyunKartHTML(o){
           ${yeniCikti?`<span class="tag" style="background:linear-gradient(135deg,rgba(0,229,160,.25),rgba(0,198,255,.2));color:var(--success);font-weight:800;border:1px solid rgba(0,229,160,.4);letter-spacing:0.5px">✦ YENİ</span>`:''}
         </div>
       </div>
-      <div style="flex-shrink:0;margin-top:2px">${statusBadge}</div>
+      ${!o.kapak?`<div style="flex-shrink:0;margin-top:2px">${statusBadge}</div>`:''}
     </div>
     <div class="game-body">
       ${slotPanelHTML}
@@ -1504,6 +1506,8 @@ function openOyunModal(){
   document.getElementById('oyun-tur').value='Aksiyon';
   document.getElementById('oyun-cift-primary').checked=false;
   document.getElementById('modal-oyun-title').textContent='🎮 Yeni Oyun Ekle';
+  document.getElementById('oyun-kapak').value='';
+  document.getElementById('oyun-kapak-onizleme').style.display='none';
   openModal('modal-oyun');
 }
 
@@ -1521,6 +1525,8 @@ function editOyun(id){
   document.getElementById('oyun-haftalik-sec').value=o.haftalikSec||'';
   document.getElementById('oyun-cift-primary').checked=!!o.ciftPrimary;
   document.getElementById('oyun-notlar').value=o.notlar||'';
+  document.getElementById('oyun-kapak').value=o.kapak||'';
+  onizleKapak();
   document.getElementById('modal-oyun-title').textContent='✏️ Oyun Düzenle';
   openModal('modal-oyun');
 }
@@ -1541,7 +1547,8 @@ function saveOyun(){
     haftalikSec:parseFloat(document.getElementById('oyun-haftalik-sec').value)||0,
     haftalik:parseFloat(document.getElementById('oyun-haftalik-pri').value)||(parseFloat(document.getElementById('oyun-gunluk-pri').value)||0)*7,
     ciftPrimary:document.getElementById('oyun-cift-primary').checked,
-    notlar:document.getElementById('oyun-notlar').value
+    notlar:document.getElementById('oyun-notlar').value,
+    kapak:document.getElementById('oyun-kapak').value.trim()||null
   };
   if(eid){
     const i=D.oyunlar.findIndex(x=>x.id===eid);
@@ -2194,7 +2201,7 @@ function renderRezervasyonlar(){
     function makeRows(list, tip, slotMusait){
       // İlk atlanmamış kişiyi bul - ona kirala butonu verilecek
       var ilkAktifIdx = list.findIndex(function(x){ return !x.atla; });
-if(ilkAktifIdx === -1) ilkAktifIdx = 0;
+      if(ilkAktifIdx === -1) ilkAktifIdx = 0;
       return list.map(function(r,i){
         const m=D.musteriler.find(x=>x.id===r.musteriId);
         const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'-';
@@ -2206,9 +2213,9 @@ if(ilkAktifIdx === -1) ilkAktifIdx = 0;
           ? '<button class="btn btn-success btn-sm" onclick="rezervKirala('+r.id+')">✅ Kirala</button>'
           : '';
         // Ertele butonu: bu turu atla
-        const erteleBtn = (!r.atla && list.length > 1)
+        const erteleBtn = (!r.atla)
           ? '<button class="btn btn-outline btn-sm" onclick="rezervErtele('+r.id+')" title="Bu turu atla">⏩ Ertele</button>'
-          : (r.atla ? '<span style="font-size:11px;color:var(--warning);padding:4px 8px">⏸ Atlandı</span>' : '');
+          : '<button class="btn btn-sm" style="background:rgba(255,193,7,.15);color:var(--warning);border:1px solid rgba(255,193,7,.3);font-size:11px" onclick="rezervGeriAl('+r.id+')" title="Sıraya geri dön">⏸ Atlandı — Geri Al</button>';
         return '<div class="bekleyen-row">'
           +'<div class="'+siraClass+'">'+(i+1)+'</div>'
           +'<div class="bekleyen-info">'
@@ -2258,6 +2265,14 @@ function rezervErtele(id){
   r.atla = true;
   save(); renderRezervasyonlar();
   toast('Bu tur atlandı, sıradaki kişi öne geçti ⏩','info');
+}
+
+function rezervGeriAl(id){
+  const r=D.rezervasyonlar.find(x=>x.id===id);
+  if(!r) return;
+  r.atla = false;
+  save(); renderRezervasyonlar();
+  toast('Sıraya geri alındı ✅','success');
 }
 
 function rezervKirala(id){
@@ -3637,6 +3652,16 @@ function renderTavsiyeHTML(musteriId){
   }).join('');
 }
 
+
+function onizleKapak(){
+  var url = document.getElementById('oyun-kapak').value.trim();
+  var wrap = document.getElementById('oyun-kapak-onizleme');
+  var img = document.getElementById('oyun-kapak-img');
+  if(!url){ wrap.style.display='none'; return; }
+  img.src = url;
+  img.onerror = function(){ wrap.style.display='none'; };
+  img.onload = function(){ wrap.style.display='flex'; };
+}
 </script>
 </body>
 </html>

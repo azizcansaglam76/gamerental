@@ -523,6 +523,16 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     <button class="btn btn-sm" onclick="openRaporWaModal()" style="background:rgba(99,102,241,.2);color:#818cf8;border:1px solid rgba(99,102,241,.3)">📊 Rapor Gönder</button>
     <button class="btn btn-primary" onclick="openMusteriModal()">+ Müşteri Ekle</button>
   </div>
+  <div class="filter-bar" style="margin-bottom:12px">
+    <button class="filter-btn active" id="mf-hepsi" onclick="setMusteriFiltre('hepsi',this)">👥 Hepsi</button>
+    <button class="filter-btn" id="mf-platin" onclick="setMusteriFiltre('platin',this)" style="color:#a78bfa">💎 Platin</button>
+    <button class="filter-btn" id="mf-altin" onclick="setMusteriFiltre('altin',this)" style="color:#fbbf24">🥇 Altın</button>
+    <button class="filter-btn" id="mf-gumus" onclick="setMusteriFiltre('gumus',this)" style="color:#94a3b8">🥈 Gümüş</button>
+    <button class="filter-btn" id="mf-bronz" onclick="setMusteriFiltre('bronz',this)" style="color:#cd7c54">🥉 Bronz</button>
+    <button class="filter-btn" id="mf-aktif" onclick="setMusteriFiltre('aktif',this)" style="color:#00e676">🎮 Aktif Kiralama</button>
+    <button class="filter-btn" id="mf-kayip" onclick="setMusteriFiltre('kayip',this)" style="color:#ff4757">⚠️ Kayıp Risk</button>
+    <span id="musteri-filtre-sayi" style="font-size:12px;color:var(--text3);margin-left:4px;align-self:center"></span>
+  </div>
   <div class="section"><div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
     <thead><tr><th>#</th><th>Ad Soyad</th><th>Telefon</th><th>E-posta</th><th>Toplam Kiralama</th><th>Aktif</th><th>Toplam Harcama</th><th>İşlem</th></tr></thead>
     <tbody id="musteri-tbl"></tbody>
@@ -558,6 +568,9 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
   <!-- Bekleyen uyarısı banner -->
   <div id="bekleyen-uyari" style="display:none;margin:0 0 12px;background:linear-gradient(135deg,rgba(255,193,7,.15),rgba(255,107,53,.1));border:1px solid rgba(255,193,7,.4);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--warning)"></div>
+
+  <!-- Kayıp müşteri uyarı banner -->
+  <div id="kayip-uyari" style="display:none;margin:0 0 12px;background:linear-gradient(135deg,rgba(255,71,87,.12),rgba(255,107,53,.08));border:1px solid rgba(255,71,87,.4);border-radius:10px;padding:12px 16px;cursor:pointer" onclick="showPage('musteriler');setMusteriFiltre('kayip',document.getElementById('mf-kayip'))"></div>
 
   <!-- Oyuna göre gruplu bekleme listesi -->
   <div id="bekleyen-gruplar"></div>
@@ -919,7 +932,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="form-group full"><label>Notlar</label><textarea id="kira-notlar" placeholder="..."></textarea></div>
       </div>
       <div class="hediye-info" id="hediye-info" style="display:none">
-        <div style="font-weight:700;margin-bottom:8px">🎁 Hediye Gün Seçin (opsiyonel):</div>
+        <div style="font-weight:700;margin-bottom:8px">🎁 Hediye Gün Seçin <span id="hediye-badge" style="font-size:10px;background:rgba(0,229,160,.2);border:1px solid rgba(0,229,160,.4);border-radius:4px;padding:2px 7px;margin-left:4px;color:var(--success);font-weight:600;display:none">🕹️ Eski Oyun Kampanyası</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid rgba(0,229,160,.3);background:rgba(0,229,160,.07);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0">
             <input type="radio" name="hediye" value="0" id="h0" style="background:none;border:none;padding:0;width:auto"> Hediye Verme
@@ -1698,18 +1711,40 @@ function showOyunDetay(id){
 }
 
 // =================== MÜŞTERİLER ===================
+function getMusteriKayipDurum(musteriId){
+  // En son kiralama tarihine bak
+  const kiralar=D.kiralamalar.filter(k=>k.musteriId===musteriId&&k.durum!=='iptal').sort((a,b)=>b.bas>a.bas?1:-1);
+  if(!kiralar.length) return null; // Hiç kiralama yok, yeni müşteri
+  const sonKiralama=kiralar[0];
+  const sonTarih=sonKiralama.bit||sonKiralama.bas;
+  const gecenGun=daysDiff(sonTarih, today());
+  if(gecenGun>=60) return {risk:'yuksek', gecenGun, label:'🔴 '+gecenGun+' gündür yok'};
+  if(gecenGun>=30) return {risk:'orta',   gecenGun, label:'🟡 '+gecenGun+' gündür yok'};
+  return null;
+}
+
 function renderMusteriler(){
   const q=(document.getElementById('musteri-search')?.value||'').toLowerCase();
-  const list=D.musteriler.filter(m=>`${m.ad} ${m.soyad} ${m.tel}`.toLowerCase().includes(q));
+  const _mf=window._musteriFiltre||'hepsi';
+  const list=D.musteriler.filter(m=>{
+    if(!`${m.ad} ${m.soyad} ${m.tel}`.toLowerCase().includes(q)) return false;
+    if(_mf==='hepsi') return true;
+    if(_mf==='aktif') return D.kiralamalar.some(k=>k.musteriId===m.id&&k.durum==='aktif');
+    if(_mf==='kayip') return getMusteriKayipDurum(m.id)!==null;
+    return getMusteriTier(m.id).seviye===_mf;
+  });
+  const sayi=document.getElementById('musteri-filtre-sayi');
+  if(sayi) sayi.textContent=list.length+' müşteri';
   const tbl=document.getElementById('musteri-tbl');
   if(!list.length){tbl.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Müşteri bulunamadı</td></tr>';return;}
   tbl.innerHTML=list.map((m,i)=>{
     const kiralar=D.kiralamalar.filter(k=>k.musteriId===m.id);
     const aktif=kiralar.filter(k=>k.durum==='aktif');
     const toplam=kiralar.reduce((s,k)=>s+k.net,0);
+    const kayip=getMusteriKayipDurum(m.id);
     return `<tr>
       <td style="color:var(--text3)">${i+1}</td>
-      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}</td>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}${kayip?` <span style="font-size:10px;color:${kayip.risk==='yuksek'?'#ff4757':'#ffa502'};font-weight:600">${kayip.label}</span>`:''}</td>
       <td>${m.tel}</td><td style="color:var(--text2)">${m.email||'-'}</td>
       <td style="text-align:center">${kiralar.length}</td>
       <td style="text-align:center">${aktif.length?`<span class="badge">${aktif.length}</span>`:'-'}</td>
@@ -1718,6 +1753,13 @@ function renderMusteriler(){
     </div></td>
     </tr>`;
   }).join('');
+}
+
+function setMusteriFiltre(filtre, btn) {
+  window._musteriFiltre = filtre;
+  document.querySelectorAll('[id^="mf-"]').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderMusteriler();
 }
 
 function openMusteriModal(){
@@ -1946,6 +1988,7 @@ function onKiraOyunChange(){
   document.getElementById('hediye-info').style.display='none';
   document.getElementById('h0').checked=true;
   calcKira();
+  // calcKira içinde eskiOyun kontrolü yapılıyor, panel otomatik açılacak
 }
 
 function updateHediyeOptions(){
@@ -1991,7 +2034,34 @@ function calcKira(){
   document.getElementById('kira-ozet').style.display='block';
   document.getElementById('ko-sure').textContent=`${gun} gün`;
   document.getElementById('ko-tip').textContent=tip==='primary'?'🔵 Primary':'🟣 Secondary';
-  if(document.getElementById('hediye-info').style.display!=='none') updateHediyeOptions();
+  // Hediye paneli mantığı
+  const hediyeEl=document.getElementById('hediye-info');
+  const badge=document.getElementById('hediye-badge');
+  // Eski oyun kontrolü (1 aydan önce çıkmış/kiralanmış)
+  const birAyOnce=new Date();birAyOnce.setMonth(birAyOnce.getMonth()-1);
+  const ilkKiralama=D.kiralamalar.filter(k=>k.oyunId===oyun.id).sort((a,b)=>a.bas>b.bas?1:-1)[0];
+  const referansTarih=oyun.cikis&&oyun.cikis<=today()?oyun.cikis:(ilkKiralama?ilkKiralama.bas:null);
+  const eskiOyun=referansTarih&&new Date(referansTarih)<birAyOnce;
+  // Müşteri Platin mi?
+  const musteriId=parseInt(document.getElementById('kira-musteri').value);
+  const musteriTier=musteriId?getMusteriTier(musteriId):{seviye:'bronz'};
+  const platinMusteri=musteriTier.seviye==='platin';
+  // Panel açma koşulu: eski oyun VEYA platin müşteri → 10+ günde aç
+  const hediyeAc=(eskiOyun||platinMusteri)&&gun>=10;
+  // Badge metni
+  if(badge){
+    if(platinMusteri&&!eskiOyun) badge.textContent='💎 Platin Ayrıcalığı';
+    else badge.textContent='🕹️ Eski Oyun Kampanyası';
+    badge.style.display=hediyeAc?'inline':'none';
+  }
+  if(hediyeAc){
+    hediyeEl.style.display='block';
+    updateHediyeOptions();
+    const checked=document.querySelector('input[name="hediye"]:checked');
+    if(!checked||checked.value==='0'){const h10r=document.getElementById('h10');if(h10r)h10r.checked=true;}
+  } else {
+    if(hediyeEl.style.display!=='none') updateHediyeOptions();
+  }
 }
 
 function calcIndirim(){
@@ -2969,6 +3039,33 @@ function updateStats(){
   document.getElementById('badge-gecikme').style.display=aktifler.some(k=>k.bit<now)?'':'none';
   document.getElementById('badge-kl').textContent=D.karaListe.length;
   document.getElementById('badge-kl').style.display=D.karaListe.length?'':'none';
+  // Kayıp müşteri banner
+  const kayipEl=document.getElementById('kayip-uyari');
+  if(kayipEl){
+    const aktifMusteriIdler=new Set(aktifler.map(k=>k.musteriId));
+    const kayiplar=D.musteriler.filter(m=>{
+      if(aktifMusteriIdler.has(m.id)) return false;
+      return getMusteriKayipDurum(m.id)!==null;
+    });
+    const yuksek=kayiplar.filter(m=>getMusteriKayipDurum(m.id).risk==='yuksek');
+    const orta=kayiplar.filter(m=>getMusteriKayipDurum(m.id).risk==='orta');
+    if(kayiplar.length){
+      kayipEl.style.display='block';
+      kayipEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <span style="font-size:13px;font-weight:700;color:#ff4757">⚠️ ${kayiplar.length} müşteri uzun süredir kiralamadı</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">
+            ${yuksek.length?`<span style="color:#ff4757">🔴 ${yuksek.length} kritik (60+ gün)</span>`:''}
+            ${yuksek.length&&orta.length?' · ':''}
+            ${orta.length?`<span style="color:#ffa502">🟡 ${orta.length} risk (30-60 gün)</span>`:''}
+          </div>
+        </div>
+        <span style="font-size:11px;color:var(--text3);white-space:nowrap">Listeyi gör →</span>
+      </div>`;
+    } else {
+      kayipEl.style.display='none';
+    }
+  }
 }
 
 // =================== INIT ===================
@@ -3612,14 +3709,14 @@ function renderNotifDurumu(){
 
 // ===== MUSTERI TIER / SEGMENT SISTEMI =====
 function getMusteriTier(musteriId){
-  var d2ay = new Date();
-  d2ay.setMonth(d2ay.getMonth()-2);
-  var d2ayStr = d2ay.toISOString().slice(0,10);
-  var kiralar = D.kiralamalar.filter(function(k){ return k.musteriId===musteriId && k.bas>=d2ayStr; });
+  var d3ay = new Date();
+  d3ay.setMonth(d3ay.getMonth()-3);
+  var d3ayStr = d3ay.toISOString().slice(0,10);
+  var kiralar = D.kiralamalar.filter(function(k){ return k.musteriId===musteriId && k.bas>=d3ayStr; });
   var toplam = kiralar.reduce(function(s,k){return s+k.net;},0);
-  if(toplam>=3000) return {seviye:'platin',label:'\uD83D\uDC8E Platin',indirim:20,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam};
+  if(toplam>=3000) return {seviye:'platin',label:'\uD83D\uDC8E Platin',indirim:15,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam};
   if(toplam>=1500) return {seviye:'altin', label:'\uD83E\uDD47 Alt\u0131n',indirim:10,renk:'#fbbf24',bg:'rgba(251,191,36,.15)', toplam:toplam};
-  if(toplam>=500)  return {seviye:'gumus', label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:5, renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam};
+  if(toplam>=750)  return {seviye:'gumus', label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:5, renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam};
   return {seviye:'bronz',label:'\uD83E\uDD49 Bronz',indirim:0,renk:'#cd7c54',bg:'rgba(205,124,84,.15)',toplam:toplam};
 }
 
@@ -3631,15 +3728,15 @@ function getTierBadgeHTML(musteriId){
 function renderTierKarti(musteriId){
   var t = getMusteriTier(musteriId);
   var esikler = [
-    {max:500, label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f (%5)'},
+    {max:750, label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f (%5)'},
     {max:1500,label:'\uD83E\uDD47 Alt\u0131n (%10)'},
-    {max:3000,label:'\uD83D\uDC8E Platin (%20)'}
+    {max:3000,label:'\uD83D\uDC8E Platin (%15)'}
   ];
   var sonraki = esikler.find(function(e){return t.toplam<e.max;});
   var html = '<div style="background:'+t.bg+';border:1px solid '+t.renk+'44;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">';
   html += '<div>';
   html += '<div style="font-size:18px;font-weight:800;color:'+t.renk+'">'+t.label+'</div>';
-  html += '<div style="font-size:12px;color:var(--text3);margin-top:3px">Son 2 ay harcama: <strong style="color:var(--text1)">'+t.toplam.toLocaleString('tr-TR')+'\u20ba</strong></div>';
+  html += '<div style="font-size:12px;color:var(--text3);margin-top:3px">Son 3 ay harcama: <strong style="color:var(--text1)">'+t.toplam.toLocaleString('tr-TR')+'\u20ba</strong></div>';
   if(t.indirim) html += '<div style="font-size:11px;margin-top:4px;color:'+t.renk+'">\u2728 %'+t.indirim+' indirim hakk\u0131 kazand\u0131!</div>';
   html += '</div>';
   if(sonraki){
@@ -4045,6 +4142,8 @@ function musteriSec(el){
   document.getElementById('kira-musteri-ara').value=ad;
   document.getElementById('kira-musteri-dropdown').style.display='none';
   document.getElementById('kira-musteri-secili').textContent='✓ '+ad+(tel?' · '+tel:'');
+  // Müşteri tier kontrolü için calcKira'yı tetikle (platin hediye ayrıcalığı)
+  calcKira();
 }
 document.addEventListener('click',function(e){
   var dd=document.getElementById('kira-musteri-dropdown');
@@ -4548,5 +4647,8 @@ Sizi bekleriz 🕹️</textarea>
     </div>
   </div>
 </div>
+<!-- SABİT HIZLI MÜŞTERİ EKLE BUTONU -->
+<button onclick="openMusteriModal()" title="Hızlı Müşteri Ekle" style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;font-size:22px;color:#fff;box-shadow:0 4px 20px rgba(0,198,255,.4);z-index:999;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 28px rgba(0,198,255,.6)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(0,198,255,.4)'">👤</button>
+
 </body>
 </html>

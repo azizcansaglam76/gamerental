@@ -850,7 +850,14 @@ tr.overdue td{background:rgba(255,71,87,.05);}
             <span class="toggle-lbl">Bu oyun aynı anda 2 Primary hesapta kiralanabilir (Dijital kopya paylaşımı vb.)</span>
           </div>
         </div>
-        <div class="form-group full"><label>Kapak URL <span style="font-weight:400;color:var(--text3);font-size:11px">(opsiyonel - .jpg ile biten link)</span></label><input type="text" id="oyun-kapak" placeholder="https://..." oninput="onizleKapak()" style="width:100%;box-sizing:border-box"><div id="oyun-kapak-onizleme" style="margin-top:8px;display:none;align-items:center;gap:10px"><img id="oyun-kapak-img" style="width:100px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><span style="font-size:11px;color:var(--success)">✓ Onizleme</span></div></div>
+        <div class="form-group full"><label>Kapak Görseli <span style="font-weight:400;color:var(--text3);font-size:11px">(opsiyonel)</span></label>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+  <input type="text" id="oyun-kapak-ara" placeholder="🔍 Oyun adıyla ara..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px" onkeydown="if(event.key==='Enter')kapakAra()">
+  <button type="button" class="btn btn-primary btn-sm" onclick="kapakAra()">Ara</button>
+</div>
+<div id="kapak-sonuclar" style="display:none;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:8px;background:var(--surface3);border-radius:8px;border:1px solid var(--border)"></div>
+<input type="text" id="oyun-kapak" placeholder="https://... (URL manuel de girilebilir)" oninput="onizleKapak()" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
+<div id="oyun-kapak-onizleme" style="margin-top:8px;display:none;align-items:center;gap:10px"><img id="oyun-kapak-img" style="width:100px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><span style="font-size:11px;color:var(--success)">✓ Önizleme</span><button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('oyun-kapak').value='';document.getElementById('oyun-kapak-onizleme').style.display='none'">✕ Kaldır</button></div></div>
         <div class="form-group full"><label>Notlar</label><textarea id="oyun-notlar" placeholder="Notlar..."></textarea></div>
       </div>
     </div>
@@ -1536,7 +1543,6 @@ function oyunKartHTML(o){
 
   return `<div class="game-card ${henuzCikmadi?'rezerv-card':''} ${deaktifAktif?'deaktif':''}" onclick="showOyunDetay(${o.id})" style="cursor:pointer">
     ${o.kapak?`<div style="position:relative;width:100%;height:130px;border-radius:10px 10px 0 0;overflow:hidden"><img src="${o.kapak}" alt="${o.ad}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.display='none'"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,10,20,.85))"></div><div style="position:absolute;top:7px;right:7px">${statusBadge}</div></div>`:''}
-    ${o.kapak?`<div style="position:relative;width:100%;height:130px;border-radius:10px 10px 0 0;overflow:hidden"><img src="${o.kapak}" alt="${o.ad}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.display='none'"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,10,20,.85))"></div><div style="position:absolute;top:7px;right:7px">${statusBadge}</div></div>`:''}
     <div class="game-card-header">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1593,8 +1599,8 @@ function openOyunModal(){
   document.getElementById('modal-oyun-title').textContent='🎮 Yeni Oyun Ekle';
   document.getElementById('oyun-kapak').value='';
   document.getElementById('oyun-kapak-onizleme').style.display='none';
-  document.getElementById('oyun-kapak').value='';
-  document.getElementById('oyun-kapak-onizleme').style.display='none';
+  document.getElementById('oyun-kapak-ara').value='';
+  document.getElementById('kapak-sonuclar').style.display='none';
   openModal('modal-oyun');
 }
 
@@ -3647,6 +3653,20 @@ function renderTierKarti(musteriId){
     html += '<div style="font-size:12px;color:'+t.renk+';font-weight:700">\uD83C\uDFC6 Maksimum<br>seviyedesin!</div>';
   }
   html += '</div>';
+  // Progress bar — sonraki seviyeye ilerleme
+  if(sonraki) {
+    var oncekiMax = esikler[esikler.indexOf(sonraki)-1] ? esikler[esikler.indexOf(sonraki)-1].max : 0;
+    var pct = Math.min(100, Math.round((t.toplam - oncekiMax) / (sonraki.max - oncekiMax) * 100));
+    html += '<div style="margin-top:10px">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px">';
+    html += '<span>'+oncekiMax.toLocaleString('tr-TR')+'\u20ba</span><span style="color:'+t.renk+';font-weight:700">'+pct+'%</span><span>'+sonraki.max.toLocaleString('tr-TR')+'\u20ba</span>';
+    html += '</div>';
+    html += '<div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden">';
+    html += '<div style="height:100%;border-radius:99px;width:'+pct+'%;background:linear-gradient(90deg,'+t.renk+','+t.renk+'aa);transition:width .6s ease;box-shadow:0 0 8px '+t.renk+'66"></div>';
+    html += '</div>';
+    html += '<div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">'+t.toplam.toLocaleString('tr-TR')+'\u20ba / '+sonraki.max.toLocaleString('tr-TR')+'\u20ba</div>';
+    html += '</div>';
+  }
   return html;
 }
 
@@ -4156,6 +4176,48 @@ function onizleKapak(){
   img.src=url;
   img.onerror=function(){wrap.style.display='none';};
   img.onload=function(){wrap.style.display='flex';};
+}
+
+async function kapakAra(){
+  var q = (document.getElementById('oyun-kapak-ara').value||'').trim();
+  if(!q){ toast('Oyun adı girin','error'); return; }
+  var sonucDiv = document.getElementById('kapak-sonuclar');
+  sonucDiv.style.display='flex';
+  sonucDiv.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">🔍 Aranıyor...</div>';
+  try {
+    // IGDB/RAWG yerine SteamGridDB CDN ve Google Images proxy kullan
+    var aramaAdi = encodeURIComponent(q + ' PS4 PS5 cover art');
+    // PlayStation Store search
+    var res = await fetch('https://store.playstation.com/store/api/han/v1/product/search/query='+encodeURIComponent(q)+'&country=TR&lang=tr').catch(()=>null);
+    
+    // Alternatif: birden fazla hazır görsel kaynağı sun
+    var oyunAdi = q.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    var kaynaklar = [
+      { url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/'+oyunAdi+'.jpg', kaynak: 'IGDB' },
+      { url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+oyunAdi+'/header.jpg', kaynak: 'Steam' },
+    ];
+    
+    // DuckDuckGo image search proxy (CORS friendly)
+    var ddgUrl = 'https://duckduckgo.com/?q='+encodeURIComponent(q+' ps5 ps4 game cover')+'&iax=images&ia=images';
+    
+    // Sabit güvenilir PS kapak kaynakları göster
+    var onerilenler = [
+      { label: '🎮 PlayStation Store\'dan ara', url: 'https://store.playstation.com/tr-tr/search/'+encodeURIComponent(q), tip: 'link' },
+      { label: '🖼️ Google Görseller\'den ara', url: 'https://www.google.com/search?q='+encodeURIComponent(q+' ps5 ps4 kapak cover')+'&tbm=isch', tip: 'link' },
+      { label: '📦 RAWG.io\'dan ara', url: 'https://rawg.io/search?query='+encodeURIComponent(q), tip: 'link' },
+    ];
+    
+    sonucDiv.innerHTML = 
+      '<div style="width:100%">' +
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Aşağıdaki sitelerden kapak görselinin URL\'sini kopyalayıp yapıştırın:</div>' +
+      onerilenler.map(function(o){
+        return '<a href="'+o.url+'" target="_blank" class="btn btn-sm" style="background:var(--surface2);color:var(--accent);border:1px solid var(--border);text-decoration:none;font-size:11px">'+o.label+'</a>';
+      }).join('') +
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px">💡 Görseli bulduktan sonra sağ tık → "Görsel adresini kopyala" → aşağıdaki kutuya yapıştırın</div>' +
+      '</div>';
+  } catch(e) {
+    sonucDiv.innerHTML='<div style="color:var(--danger);font-size:12px">Hata: '+e.message+'</div>';
+  }
 }
 
 function renderKarlilikGrafigi(){

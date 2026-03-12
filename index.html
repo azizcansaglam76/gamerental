@@ -2080,7 +2080,7 @@ function openKiralamaModal(){
   document.getElementById('kira-musteri-secili').textContent='';
   if(document.getElementById('kira-gun-sayi')) document.getElementById('kira-gun-sayi').value='';
   if(document.getElementById('kira-musteri-dropdown')) document.getElementById('kira-musteri-dropdown').style.display='none';
-  window._aktifRezervId = null; // Rezerv iptal edilmeden modal kapandıysa sıfırla
+  if(!window._aktifRezervId) window._aktifRezervId = null; // sadece rezervden gelmediyse sıfırla
   document.getElementById('kira-oyun').innerHTML='<option value="">-- Oyun --</option>'+D.oyunlar.filter(o=>!o.cikis||o.cikis<=today()).map(o=>`<option value="${o.id}">${o.ad} [${o.platform}]${o.durum==='kirada'?' ⚡':''}</option>`).join('');
   document.getElementById('kira-tip').value='primary';
   document.getElementById('kira-sure-tip').value='gunluk';
@@ -2285,38 +2285,24 @@ function saveKiralama(){
 function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme,hediyeGun,notlar,oyun,kopyaIdx){
     const kIdx = kopyaIdx || 0;
     if(tip==='primary'){
-      // kIdx=0 ana hesap, kIdx>0 kopya - kendi slotunu kontrol et
       const kopya = kIdx > 0 ? (oyun.kopyalar||[])[kIdx-1] : null;
       const ciftP = kIdx > 0 ? (kopya?.ciftPrimary||false) : (oyun.ciftPrimary||false);
       const aktifPrimler=D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='primary'&&k.durum==='aktif'&&(k.kopyaIdx||0)===kIdx).length;
       const maxP=ciftP?2:1;
       if(aktifPrimler>=maxP){toast('Bu hesap/kopya max '+maxP+' Primary kiralamaya izin veriyor!','error');return;}
     }
+    if(tip==='secondary'){
+      const aktifSecler=D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.tip==='secondary'&&k.durum==='aktif'&&(k.kopyaIdx||0)===kIdx).length;
+      if(aktifSecler>=1){toast('Bu kopya için zaten aktif bir Secondary kiralama var!','error');return;}
+    }
     D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:kIdx});
     oyun.durum='kirada';oyun.kiralamaSayisi++;oyun.toplamGelir+=net;
-    // Rezervasyondan geldiyse şimdi iptal et
+    // Rezervasyondan geldiyse iptal et (tek seferlik)
     if(window._aktifRezervId){
       const rv=D.rezervasyonlar.find(x=>x.id===window._aktifRezervId);
-      if(rv) rv.durum='iptal';
-      window._aktifRezervId=null;
-      renderRezervasyonlar();
-    }
-    // Rezervasyondan geldiyse şimdi iptal et
-    if(window._aktifRezervId){
-      const rv=D.rezervasyonlar.find(x=>x.id===window._aktifRezervId);
-      if(rv) rv.durum='iptal';
-      window._aktifRezervId=null;
-      renderRezervasyonlar();
-    }
-    if(window._aktifRezervId){const rv=D.rezervasyonlar.find(x=>x.id===window._aktifRezervId);if(rv)rv.durum='iptal';window._aktifRezervId=null;renderRezervasyonlar();}
-    if(window._aktifRezervId){
-      var rv2=D.rezervasyonlar.find(function(x){return x.id===window._aktifRezervId;});
-      if(rv2){
-        rv2.durum='iptal';
-        // Aynı oyun+tip grubundaki atla flag'lerini sıfırla (yeni tur başlıyor)
-        D.rezervasyonlar.forEach(function(x){
-          if(x.oyunId===rv2.oyunId&&x.tip===rv2.tip&&x.durum==='bekliyor') x.atla=false;
-        });
+      if(rv){
+        rv.durum='iptal';
+        D.rezervasyonlar.forEach(x=>{if(x.oyunId===rv.oyunId&&x.tip===rv.tip&&x.durum==='bekliyor')x.atla=false;});
       }
       window._aktifRezervId=null;
       renderRezervasyonlar();

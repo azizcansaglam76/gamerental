@@ -924,7 +924,9 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="form-group" id="kopya-secim-grup" style="display:none"><label>📀 Hesap Seçimi</label><select id="kira-kopya-idx" onchange="calcKira()"><option value="0">🎮 Ana Hesap</option></select></div>
         <div class="form-group"><label>Kiralama Tipi *</label><select id="kira-tip" onchange="calcKira()"><option value="primary">🔵 Primary</option><option value="secondary">🟣 Secondary</option></select></div>
         <div class="form-group"><label>Süre Tipi</label><select id="kira-sure-tip" onchange="calcKira()"><option value="gunluk">Günlük</option><option value="haftalik">Haftalık</option></select></div>
-        <div class="form-group"><label>Başlangıç *</label><input type="date" id="kira-bas" onchange="calcKira()"></div>
+        <div class="form-group"><label>Başlangıç *</label><input type="date" id="kira-bas" onchange="calcKira()">
+          <div id="kira-cikis-bilgi" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.3);border-radius:8px;font-size:12px;color:var(--warning)"></div>
+        </div>
         <div class="form-group"><label>Gün Sayısı *</label><input type="number" id="kira-gun-sayi" placeholder="Kaç gün?" min="1" oninput="calcKira()"></div>
         <div class="form-group"><label>Bitiş <span style="font-size:10px;color:var(--text3)">(otomatik)</span></label><input type="date" id="kira-bit" readonly style="opacity:0.6;cursor:default"></div>
         <div class="form-group"><label>Brüt Ücret (₺)</label><input type="number" id="kira-ucret" placeholder="0" min="0" oninput="calcIndirim()"></div>
@@ -2081,7 +2083,12 @@ function openKiralamaModal(){
   if(document.getElementById('kira-gun-sayi')) document.getElementById('kira-gun-sayi').value='';
   if(document.getElementById('kira-musteri-dropdown')) document.getElementById('kira-musteri-dropdown').style.display='none';
   if(!window._aktifRezervId) window._aktifRezervId = null; // sadece rezervden gelmediyse sıfırla
-  document.getElementById('kira-oyun').innerHTML='<option value="">-- Oyun --</option>'+D.oyunlar.filter(o=>!o.cikis||o.cikis<=today()).map(o=>`<option value="${o.id}">${o.ad} [${o.platform}]${o.durum==='kirada'?' ⚡':''}</option>`).join('');
+  document.getElementById('kira-oyun').innerHTML='<option value="">-- Oyun --</option>'+
+    D.oyunlar.filter(o=>o.durum!=='deaktif').map(o=>{
+      const henuzCikmadi = o.cikis && o.cikis > today();
+      const label = o.ad+' ['+o.platform+']'+(henuzCikmadi?' 🗓 '+fmtDate(o.cikis):'')+(o.durum==='kirada'?' ⚡':'');
+      return `<option value="${o.id}">${label}</option>`;
+    }).join('');
   document.getElementById('kira-tip').value='primary';
   document.getElementById('kira-sure-tip').value='gunluk';
   document.getElementById('kira-bas').value=today();
@@ -2111,10 +2118,19 @@ function onKiraOyunChange(){
     kopyaSel.innerHTML='<option value="0">🎮 Ana Hesap</option>';
   }
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
+  const oyunSecili=D.oyunlar.find(o=>o.id===oyunId);
   document.getElementById('hediye-info').style.display='none';
   document.getElementById('h0').checked=true;
+  // Henüz çıkmamış oyun seçilirse başlangıç tarihini cikis tarihine ayarla
+  const cikisBilgi=document.getElementById('kira-cikis-bilgi');
+  if(oyunSecili && oyunSecili.cikis && oyunSecili.cikis > today()){
+    document.getElementById('kira-bas').value = oyunSecili.cikis;
+    if(cikisBilgi) cikisBilgi.style.display='';
+    if(cikisBilgi) cikisBilgi.textContent = '🗓 Bu oyun '+fmtDate(oyunSecili.cikis)+' tarihinde çıkıyor. Başlangıç tarihi otomatik ayarlandı.';
+  } else {
+    if(cikisBilgi) cikisBilgi.style.display='none';
+  }
   calcKira();
-  // calcKira içinde eskiOyun kontrolü yapılıyor, panel otomatik açılacak
 }
 
 function updateHediyeOptions(){
@@ -2141,10 +2157,15 @@ function updateHediyeOptions(){
 function calcKira(){
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
   const oyun=D.oyunlar.find(o=>o.id===oyunId);
-  const bas=document.getElementById('kira-bas').value;
+  let bas=document.getElementById('kira-bas').value;
   const gunSayi=parseInt(document.getElementById('kira-gun-sayi').value)||0;
   const tip=document.getElementById('kira-tip').value;
   const sureTip=document.getElementById('kira-sure-tip').value;
+  // Henüz çıkmamış oyun — bas tarihi cikis tarihinden önce olamaz
+  if(oyun && oyun.cikis && oyun.cikis > today() && bas < oyun.cikis){
+    document.getElementById('kira-bas').value = oyun.cikis;
+    bas = oyun.cikis;
+  }
   if(!oyun||!bas||!gunSayi||gunSayi<1)return;
 
   // Hediye günü seçili mi?

@@ -2054,7 +2054,7 @@ function showMusteriDetay(id){
           <td style="${isG?'color:var(--danger);font-weight:600':''}">${fmtDate(k.bit)}${isG?` <span style="font-size:10px">(+${daysDiff(k.bit,now)}g)</span>`:''}</td>
           <td>${gun}g</td>
           <td class="profit">${fmt(k.net)}</td>
-          <td>${uzSayisi>0?`<span style="color:var(--accent);font-size:12px">🔄 ${uzSayisi}x</span>`:'—'}</td>
+          <td>${uzSayisi>0?`<span style="color:var(--accent);font-size:12px" title="${(k.uzatmalar||[]).map(u=>u.gun+'g').join(' + ')}">🔄 ${uzSayisi}x (+${(k.uzatmalar||[]).reduce((s,u)=>s+(u.gun||0),0)}g)</span>`:'—'}</td>
           <td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td>
         </tr>`;
       }).join('')}</tbody>
@@ -3755,20 +3755,28 @@ function openUzatmaModal(kiraId){
     '<span style="color:var(--text3)">Mevcut bitiş:</span> <strong style="color:var(--warning)">'+fmtDate(k.bit)+'</strong>'+
     (uzSayisi>0?'<br><span style="color:var(--accent)">📌 Daha önce '+uzSayisi+' kez uzatıldı</span>':'');
 
-  // 2. uzatmada bekleyen uyarısı
+  // Sıra uyarısı — 1. uzatma sarı bilgi, 2.+ uzatma kırmızı uyarı
   const uyariEl=document.getElementById('uzatma-uyari');
-  if(uzSayisi>=1){
-    const bekleyenler=(D.rezervasyonlar||[]).filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor'&&r.musteriId!==k.musteriId);
-    if(bekleyenler.length>0){
-      const isimler=bekleyenler.map(r=>{
-        const bm=D.musteriler.find(x=>x.id===r.musteriId);
-        return bm?((bm.ad||'')+' '+(bm.soyad||'')).trim():'?';
-      }).join(', ');
-      uyariEl.innerHTML='⚠️ <strong>Dikkat!</strong> Bu oyun için '+bekleyenler.length+' kişi sırada bekliyor: <strong>'+isimler+'</strong>';
-      uyariEl.style.display='block';
+  const bekleyenler=(D.rezervasyonlar||[]).filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor'&&r.musteriId!==k.musteriId);
+  if(bekleyenler.length>0){
+    const isimler=bekleyenler.map(r=>{
+      const bm=D.musteriler.find(x=>x.id===r.musteriId);
+      return bm?((bm.ad||'')+' '+(bm.soyad||'')).trim():'?';
+    }).join(', ');
+    if(uzSayisi>=1){
+      // 2. ve sonraki uzatmalar — kırmızı sert uyarı
+      uyariEl.innerHTML='⚠️ <strong>Dikkat!</strong> Bu oyunun '+(uzSayisi+1)+'. uzatması.<br>Sırada <strong>'+bekleyenler.length+' kişi</strong> bekliyor: '+isimler+'<br><span style="font-size:12px;opacity:.8">Yine de uzatmak istiyorsan aşağıdan kaydedebilirsin.</span>';
+      uyariEl.style.background='rgba(239,68,68,.12)';
+      uyariEl.style.borderColor='rgba(239,68,68,.4)';
+      uyariEl.style.color='#ef4444';
     } else {
-      uyariEl.style.display='none';
+      // 1. uzatma — sarı bilgi
+      uyariEl.innerHTML='ℹ️ Bilgi: Bu oyun için '+bekleyenler.length+' kişi sırada bekliyor: <strong>'+isimler+'</strong>';
+      uyariEl.style.background='rgba(255,193,7,.08)';
+      uyariEl.style.borderColor='rgba(255,193,7,.3)';
+      uyariEl.style.color='var(--warning)';
     }
+    uyariEl.style.display='block';
   } else {
     uyariEl.style.display='none';
   }

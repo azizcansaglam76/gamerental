@@ -220,6 +220,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
 /* UZAKTAN DEAKTİF */
 .deaktif-banner{background:linear-gradient(135deg,rgba(255,71,87,.15),rgba(255,107,53,.1));border:1px solid rgba(255,71,87,.4);border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+@keyframes pulse-red{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,71,87,.6)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(255,71,87,0)}}
 .deaktif-banner-icon{font-size:20px;}
 .deaktif-banner-text{flex:1;min-width:0;}
 .deaktif-banner-title{font-size:12px;font-weight:700;color:var(--danger);}
@@ -464,18 +465,28 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <tbody id="d-gecikme-tbl"></tbody>
       </table></div></div>
     </div>
-    <div class="section" id="d-bugun-section">
-      <div class="section-head">
-        <div class="section-title">🔴 Bugün Biten Kiralamalar</div>
-        <span id="d-bugun-sayi" style="font-size:12px;background:rgba(255,71,87,.2);color:var(--danger);border:1px solid rgba(255,71,87,.3);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+    <div class="section" id="d-bugun-section" style="border:2px solid rgba(255,71,87,.6);background:rgba(255,71,87,.06);box-shadow:0 0 20px rgba(255,71,87,.15)">
+      <div class="section-head" style="background:linear-gradient(135deg,rgba(255,71,87,.18),rgba(255,71,87,.08));border-radius:10px 10px 0 0;padding:12px 16px">
+        <div class="section-title" style="color:#ff4757;display:flex;align-items:center;gap:8px">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4757;animation:pulse-red 1.2s infinite"></span>
+          Bugün Biten Kiralamalar
+          <span id="d-bugun-sayi" style="font-size:12px;background:rgba(255,71,87,.25);color:#ff4757;border:1px solid rgba(255,71,87,.5);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+        </div>
+        <div style="font-size:11px;color:rgba(255,71,87,.7);margin-top:2px">⚠️ Bu kiralamaların bugün iade edilmesi veya uzatılması gerekiyor</div>
       </div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
         <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Tip</th><th>Ücret</th><th>İşlem</th></tr></thead>
         <tbody id="d-bugun-tbl"></tbody>
       </table></div></div>
     </div>
-    <div class="section">
-      <div class="section-head"><div class="section-title">🔔 Yarın Biten Kiralamalar</div></div>
+    <div class="section" id="d-yarin-section" style="border:2px solid rgba(255,193,7,.5);background:rgba(255,193,7,.05);box-shadow:0 0 16px rgba(255,193,7,.1)">
+      <div class="section-head" style="background:linear-gradient(135deg,rgba(255,193,7,.15),rgba(255,193,7,.06));border-radius:10px 10px 0 0;padding:12px 16px">
+        <div class="section-title" style="color:#ffc107;display:flex;align-items:center;gap:8px">
+          🔔 Yarın Biten Kiralamalar
+          <span id="d-yarin-sayi" style="font-size:12px;background:rgba(255,193,7,.2);color:#ffc107;border:1px solid rgba(255,193,7,.4);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+        </div>
+        <div style="font-size:11px;color:rgba(255,193,7,.7);margin-top:2px">📅 Müşterilerle yarın için iletişime geçmeyi unutma</div>
+      </div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
         <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Tip</th><th>Bitiş</th><th>İşlem</th></tr></thead>
         <tbody id="d-yaklasan-tbl"></tbody>
@@ -1492,15 +1503,19 @@ function renderDashboard(){
 
   // Yaklaşan iadeler tablosu
   const yaklasanTbl=document.getElementById('d-yaklasan-tbl');
+  const yarinSection=document.getElementById('d-yarin-section');
   if(yaklasanTbl){
     const yarin3=new Date(); yarin3.setDate(yarin3.getDate()+1); const yarinStr3=yarin3.toISOString().split('T')[0];
-    const yakList2=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit>=now&&k.bit<=yarinStr3);
+    const yakList2=D.kiralamalar.filter(k=>k.durum==='aktif'&&k.bit>now&&k.bit<=yarinStr3);
+    if(yarinSection) yarinSection.style.display=yakList2.length?'':'none';
+    const yarinSayiEl=document.getElementById('d-yarin-sayi');
+    if(yarinSayiEl) yarinSayiEl.textContent=yakList2.length?yakList2.length+' kiralama':'';
     yaklasanTbl.innerHTML=yakList2.length?yakList2.map(k=>{
       const o=D.oyunlar.find(x=>x.id===k.oyunId),m=D.musteriler.find(x=>x.id===k.musteriId);
       const tel=(m?.tel||'').replace(/[^0-9]/g,'').replace(/^0/,'');
       const msg=encodeURIComponent(buildWaMsg('yaklasan',{isim:(m?.ad||m?.soyad||''),oyun:(o?.ad||'')}));
       const waLink=tel?'https://wa.me/90'+tel+'?text='+msg:'';
-      return '<tr style="background:rgba(255,193,7,.05)">'+
+      return '<tr style="background:rgba(255,193,7,.08)">'+
         '<td><strong>'+(o?.ad||'-')+'</strong></td>'+
         '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
         '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+

@@ -897,9 +897,21 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="form-group full"><label>Adres</label><textarea id="musteri-adres" placeholder="Adres..."></textarea></div>
         <div class="form-group full"><label>Notlar</label><textarea id="musteri-notlar" placeholder="..."></textarea></div>
       </div>
+      <!-- Harici Harcama Bölümü -->
+      <div id="harici-harcama-bolum" style="display:none;margin-top:16px;padding:14px 16px;background:rgba(123,47,255,.08);border:1px solid rgba(123,47,255,.25);border-radius:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">🔗 Harici Harcamalar (Tier için)</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Başka kütüphanedeki harcamaları tier hesabına ekle. Gelir/kiralama istatistiklerine yansımaz, sadece tier'ı etkiler.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px">
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Tarih</label><input type="date" id="harici-tarih" style="width:100%"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Tutar (₺)</label><input type="number" id="harici-tutar" placeholder="0" min="0" style="width:100%"></div>
+          <button class="btn btn-primary btn-sm" onclick="hariciHarcamaEkle()" style="white-space:nowrap">+ Ekle</button>
+        </div>
+        <div id="harici-liste" style="font-size:12px"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-musteri')">İptal</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('harici-harcama-bolum').style.display=document.getElementById('harici-harcama-bolum').style.display==='none'?'block':'none'" style="font-size:11px">🔗 Harici Harcama</button>
       <button class="btn btn-primary" onclick="saveMusteri()">💾 Kaydet</button>
     </div>
   </div>
@@ -1890,6 +1902,8 @@ function openMusteriModal(){
   document.getElementById('musteri-eid').value='';
   ['musteri-ad','musteri-soyad','musteri-tel','musteri-email','musteri-adres','musteri-notlar'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('modal-musteri-title').textContent='👤 Yeni Müşteri';
+  document.getElementById('harici-harcama-bolum').style.display='none';
+  document.getElementById('harici-liste').innerHTML='';
   openModal('modal-musteri');
 }
 
@@ -1903,7 +1917,51 @@ function editMusteri(id){
   document.getElementById('musteri-adres').value=m.adres||'';
   document.getElementById('musteri-notlar').value=m.notlar||'';
   document.getElementById('modal-musteri-title').textContent='✏️ Müşteri Düzenle';
+  // Harici harcamaları yükle
+  document.getElementById('harici-harcama-bolum').style.display='none';
+  document.getElementById('harici-tarih').value=today();
+  document.getElementById('harici-tutar').value='';
+  renderHariciListe(m.hariciplHarcamalar||[]);
   openModal('modal-musteri');
+}
+
+function renderHariciListe(liste){
+  const el=document.getElementById('harici-liste');
+  if(!liste||!liste.length){el.innerHTML='<div style="color:var(--text3);font-size:11px">Henüz harici harcama yok</div>';return;}
+  const d3ay=new Date();d3ay.setMonth(d3ay.getMonth()-3);const d3ayStr=d3ay.toISOString().slice(0,10);
+  el.innerHTML=liste.map((h,i)=>{
+    const aktif=h.tarih>=d3ayStr;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;${aktif?'':'opacity:0.5'}">
+      <span style="font-size:11px">${fmtDate(h.tarih)} &mdash; <strong style="color:var(--success)">${fmt(h.tutar)}</strong>${h.notlar?` <span style="color:var(--text3)">(${h.notlar})</span>`:''}</span>
+      <span style="font-size:10px;color:${aktif?'var(--accent2)':'var(--text3)'}">${aktif?'✅ Aktif':'⏳ Süresi doldu'}</span>
+      <button onclick="hariciHarcamaSil(${i})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:14px;padding:0 4px">×</button>
+    </div>`;
+  }).join('');
+}
+
+function hariciHarcamaEkle(){
+  const tarih=document.getElementById('harici-tarih').value;
+  const tutar=parseFloat(document.getElementById('harici-tutar').value)||0;
+  if(!tarih||tutar<=0){toast('Tarih ve tutar giriniz','error');return;}
+  const mid=parseInt(document.getElementById('musteri-eid').value);
+  if(!mid){toast('Önce müşteriyi kaydedin','error');return;}
+  const m=D.musteriler.find(x=>x.id===mid);if(!m)return;
+  if(!m.hariciplHarcamalar)m.hariciplHarcamalar=[];
+  m.hariciplHarcamalar.push({tarih,tutar});
+  saveData();
+  renderHariciListe(m.hariciplHarcamalar);
+  document.getElementById('harici-tutar').value='';
+  toast('Harici harcama eklendi ✅');
+}
+
+function hariciHarcamaSil(idx){
+  const mid=parseInt(document.getElementById('musteri-eid').value);if(!mid)return;
+  const m=D.musteriler.find(x=>x.id===mid);if(!m||!m.hariciplHarcamalar)return;
+  if(!confirm('Bu harici harcamayı silmek istiyor musunuz?'))return;
+  m.hariciplHarcamalar.splice(idx,1);
+  saveData();
+  renderHariciListe(m.hariciplHarcamalar);
+  toast('Silindi');
 }
 
 function saveMusteri(){
@@ -4146,6 +4204,13 @@ function getMusteriTier(musteriId){
   var d3ayStr = d3ay.toISOString().slice(0,10);
   var kiralar = D.kiralamalar.filter(function(k){ return k.musteriId===musteriId && k.bas>=d3ayStr; });
   var toplam = kiralar.reduce(function(s,k){return s+k.net;},0);
+  // Harici harcamaları da dahil et (sadece son 3 ay)
+  var musteri = D.musteriler.find(function(m){ return m.id===musteriId; });
+  if(musteri && musteri.hariciplHarcamalar) {
+    musteri.hariciplHarcamalar.forEach(function(h){
+      if(h.tarih >= d3ayStr) toplam += (h.tutar||0);
+    });
+  }
   if(toplam>=3000) return {seviye:'platin',label:'\uD83D\uDC8E Platin',indirim:15,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam};
   if(toplam>=1500) return {seviye:'altin', label:'\uD83E\uDD47 Alt\u0131n',indirim:10,renk:'#fbbf24',bg:'rgba(251,191,36,.15)', toplam:toplam};
   if(toplam>=750)  return {seviye:'gumus', label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:5, renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam};

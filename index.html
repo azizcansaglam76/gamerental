@@ -2081,7 +2081,7 @@ function hariciHarcamaEkle(){
   const m=D.musteriler.find(x=>x.id===mid);if(!m)return;
   if(!m.hariciplHarcamalar)m.hariciplHarcamalar=[];
   m.hariciplHarcamalar.push({tarih,tutar});
-  saveData();
+  save();
   renderHariciListe(m.hariciplHarcamalar);
   document.getElementById('harici-tutar').value='';
   toast('Harici harcama eklendi ✅');
@@ -2092,7 +2092,7 @@ function hariciHarcamaSil(idx){
   const m=D.musteriler.find(x=>x.id===mid);if(!m||!m.hariciplHarcamalar)return;
   if(!confirm('Bu harici harcamayı silmek istiyor musunuz?'))return;
   m.hariciplHarcamalar.splice(idx,1);
-  saveData();
+  save();
   renderHariciListe(m.hariciplHarcamalar);
   toast('Silindi');
 }

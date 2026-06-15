@@ -312,6 +312,64 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
   </div>
 
+  <!-- GÜVEN PUANI AYARLARI -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🛡️ Güven Puanı Ayarları</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">
+        Müşteri güven puanı 100 üzerinden hesaplanır. Aşağıdaki değerleri istediğin gibi ayarlayabilirsin.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">⚠️ Her gecikme (puan)</label>
+          <input type="number" id="pa-gecikme" value="-15" min="-50" max="0" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Negatif yazın (örn: -15)</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">✅ Erken/zamanında iade (puan)</label>
+          <input type="number" id="pa-erken-iade" value="5" min="0" max="20" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🔄 Her uzatma (puan)</label>
+          <input type="number" id="pa-uzatma" value="-3" min="-20" max="0" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Negatif yazın (örn: -3)</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🏅 Sadık müşteri bonusu (puan)</label>
+          <input type="number" id="pa-sadik" value="10" min="0" max="30" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🏅 Sadık müşteri eşiği (kiralama)</label>
+          <input type="number" id="pa-sadik-sinir" value="5" min="1" max="20" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Kaç kiralamadan sonra sadık sayılır</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">💰 Yüksek harcama bonusu (puan)</label>
+          <input type="number" id="pa-yuksek-harcama" value="10" min="0" max="30" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">💰 Yüksek harcama eşiği (₺)</label>
+          <input type="number" id="pa-harcama-sinir" value="2000" min="500" max="10000" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🏷️ İndirim cezası (puan)</label>
+          <input type="number" id="pa-indirim-ceza" value="0" min="-20" max="0" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">İndirim kullanan müşteri cezası</div>
+        </div>
+      </div>
+      <div style="background:var(--surface3);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--text3);line-height:1.8">
+        <strong style="color:var(--text2)">📊 Puan seviyeleri:</strong>&nbsp;
+        <span style="color:#00e676">80-100 ✅ Güvenilir</span> &nbsp;·&nbsp;
+        <span style="color:#ffc107">50-79 ⚠️ Orta</span> &nbsp;·&nbsp;
+        <span style="color:#ff5252">0-49 🚨 Riskli</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="saveGuvenAyarlar()">💾 Kaydet</button>
+        <button class="btn btn-outline" onclick="resetGuvenAyarlar()">↩️ Varsayılana Dön</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BİLDİRİMLER -->
   <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">🔔 İade Hatırlatıcıları</div></div>
@@ -1736,7 +1794,7 @@ function oyunKartHTML(o){
 
   // Bekleyen müşteriler
   const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
-  let slotPanelHTML = '<div class="slot-panel">'
+  let slotPanelHTML = '<div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:4px">📀 Ana Kopya</div><div class="slot-panel">'
     + slotRow('primary',primKiralar[0]||null,0,0)
     + (o.ciftPrimary ? slotRow('primary',primKiralar[1]||null,1,0) : '')
     + (secKiralar.length ? secKiralar.map(k=>slotRow('secondary',k,0,0)).join('') : slotRow('secondary',null,0,0))
@@ -1750,9 +1808,11 @@ function oyunKartHTML(o){
     const kKiralar = D.kiralamalar.filter(function(k){ return k.oyunId===o.id && k.durum==='aktif' && k.kopyaIdx===kIdx; });
     const kPrimler = kKiralar.filter(function(k){ return k.tip==='primary'; });
     const kSecler = kKiralar.filter(function(k){ return k.tip==='secondary'; });
+    const kopyaAdi = kopya.not || ('Kopya ' + (ki+1));
+    const kKiradaMi = kKiralar.length > 0;
     kopyalarHTML += '<div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      + '<span style="font-size:11px;color:var(--text3)">📀 '+(kopya.not||('Kopya '+(ki+1)))+' '+(kopya.ciftPrimary?'<span style=\"color:var(--accent);font-size:10px\">[2P]</span>':'')+' <span style=\"color:var(--text3);font-size:10px\">('+fmt(kopya.alis||0)+')</span></span>'
+      + '<span style="font-size:11px;color:var(--text3)">📀 <strong style="color:var(--text2)">' + kopyaAdi + '</strong> '+(kopya.ciftPrimary?'<span style=\"color:var(--accent);font-size:10px\">[2P]</span>':'')+' <span style=\"color:var(--text3);font-size:10px\">('+fmt(kopya.alis||0)+')</span>'+(kKiradaMi?' <span style=\"color:var(--warning);font-size:10px;font-weight:700\">• KİRADA</span>':' <span style=\"color:var(--success);font-size:10px\">• Müsait</span>')+'</span>'
       + '<div style="display:flex;gap:4px">'
       + '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+(ki)+')">✏️</button>'
       + '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();deleteKopya('+o.id+','+(ki)+')">🗑</button>'
@@ -1790,6 +1850,14 @@ function oyunKartHTML(o){
       ${!o.kapak?`<div style="flex-shrink:0;margin-top:2px">${statusBadge}</div>`:''}
     </div>
     <div class="game-body">
+      ${deaktifAktif ? `<div class="deaktif-banner">
+        <div class="deaktif-banner-icon">📡</div>
+        <div class="deaktif-banner-text">
+          <div class="deaktif-banner-title">Uzaktan Deaktif Edildi</div>
+          <div class="deaktif-banner-sub">${sonDeaktif?.tarih ? fmtDate(sonDeaktif.tarih) + ' tarihinde' : ''} — ${deaktifKalanGun} gün kaldı (${deaktifIlerleme}%)</div>
+          <div class="deaktif-progress"><div class="deaktif-progress-fill" style="width:${deaktifIlerleme}%"></div></div>
+        </div>
+      </div>` : ''}
       ${slotPanelHTML}
       ${kopyalarHTML}
       ${yaklasanlar.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,193,7,.2);margin-bottom:4px;font-size:12px;color:#ffc107;background:rgba(255,193,7,.08);border-radius:6px;padding:6px 8px">🔔 <strong>${yaklasanlar.length} kiralama</strong> yarın bitiyor!</div>`:""}${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
@@ -1972,9 +2040,10 @@ function showOyunDetay(id){
     </div>`:''}
     <h4 style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Kiralama Geçmişi (${kiralar.length})</h4>
     ${kiralar.length?`<div class="tbl-wrap"><table>
-      <thead><tr><th>Müşteri</th><th>Tip</th><th>Başlangıç</th><th>Bitiş</th><th>Brüt</th><th>İndirim</th><th>Net</th><th>Durum</th></tr></thead>
+      <thead><tr><th>Müşteri</th><th>Tip</th><th>Kopya</th><th>Başlangıç</th><th>Bitiş</th><th>Brüt</th><th>İndirim</th><th>Net</th><th>Durum</th></tr></thead>
       <tbody>${kiralar.map(k=>{const m=D.musteriler.find(x=>x.id===k.musteriId);const isG=k.durum==='aktif'&&k.bit<now;
-        return `<tr><td>${m?.ad||''} ${m?.soyad||''}</td><td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td><td>${fmtDate(k.bas)}</td><td ${isG?'style="color:var(--danger)"':''}>${fmtDate(k.bit)}</td><td>${fmt(k.ucret)}</td><td class="${k.indirim>0?'loss':'neutral'}">${k.indirim>0?'-'+fmt(k.indirim):'—'}</td><td class="profit">${fmt(k.net)}</td><td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td></tr>`;
+        const kopyaLabel = !k.kopyaIdx || k.kopyaIdx===0 ? '<span style="font-size:10px;color:var(--text3)">Ana</span>' : '<span style="font-size:10px;color:var(--accent);font-weight:700">📀 '+(k.kopyaIdx)+'</span>';
+        return `<tr><td>${m?.ad||''} ${m?.soyad||''}</td><td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td><td style="text-align:center">${kopyaLabel}</td><td>${fmtDate(k.bas)}</td><td ${isG?'style="color:var(--danger)"':''}>${fmtDate(k.bit)}</td><td>${fmt(k.ucret)}</td><td class="${k.indirim>0?'loss':'neutral'}">${k.indirim>0?'-'+fmt(k.indirim):'—'}</td><td class="profit">${fmt(k.net)}</td><td>${isG?'<span class="status s-gecikme">Gecikmiş</span>':k.durum==='aktif'?'<span class="status s-kirada">Aktif</span>':'<span class="status s-mevcut">Teslim</span>'}</td></tr>`;
       }).join('')}</tbody>
     </table></div>`:'<div class="empty"><div class="empty-text">Kiralama yok</div></div>'}`;
   openModal('modal-oyun-detay');
@@ -2014,7 +2083,7 @@ function renderMusteriler(){
     const kayip=getMusteriKayipDurum(m.id);
     return `<tr>
       <td style="color:var(--text3)">${i+1}</td>
-      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}${kayip?` <span style="font-size:10px;color:${kayip.risk==='yuksek'?'#ff4757':'#ffa502'};font-weight:600">${kayip.label}</span>`:''}</td>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}${kayip?` <span style="font-size:10px;color:${kayip.risk==='yuksek'?'#ff4757':'#ffa502'};font-weight:600">${kayip.label}</span>`:''} ${(()=>{const s=getGuvenSkoru(m.id);const r=s>=80?'#00e676':s>=50?'#ffc107':'#ff5252';return `<span style="font-size:10px;color:${r};font-weight:700;margin-left:4px">🛡️${s}</span>`})()}</td>
       <td>${m.tel}</td><td style="color:var(--text2)">${m.email||'-'}</td>
       <td style="text-align:center">${kiralar.length}</td>
       <td style="text-align:center">${aktif.length?`<span class="badge">${aktif.length}</span>`:'-'}</td>
@@ -2145,14 +2214,50 @@ function showMusteriDetay(id){
     aylikHarcama[ay]=(aylikHarcama[ay]||0)+k.net;
   });
 
-  let skor=100;
-  skor -= toplamGecikme*15;
-  skor -= toplamIndirim>0?5:0;
-  skor += kiralar.length>=5?10:0;
-  skor += toplamHarcama>=2000?10:0;
-  skor = Math.max(0,Math.min(100,skor));
-  const skorRenk=skor>=80?'var(--success)':skor>=50?'var(--warning)':'var(--danger)';
-  const skorLabel=skor>=80?'✅ Güvenilir':skor>=50?'⚠️ Orta':'🚨 Riskli';
+  // Güven puanı ayarlarını oku (varsayılan değerlerle)
+  const ga = D.guvenAyarlar || {};
+  const PA = {
+    gecikme:     ga.gecikme     ?? -15,
+    erkenIade:   ga.erkenIade   ?? 5,
+    zamanindaIade: ga.zamanindaIade ?? 3,
+    uzatma:      ga.uzatma      ?? -3,
+    sadikMusteri: ga.sadikMusteri ?? 10,
+    yuksekHarcama: ga.yuksekHarcama ?? 10,
+    harcamaSinir: ga.harcamaSinir ?? 2000,
+    sadikSinir:  ga.sadikSinir  ?? 5,
+    indirimCeza: ga.indirimCeza ?? 0,
+  };
+  // Teslim edilen kiralamalar için zamanındalık hesapla
+  const teslimKiralar = kiralar.filter(k => k.durum==='teslim' && k.teslimTarih);
+  const erkenIadeSayisi = teslimKiralar.filter(k => k.teslimTarih <= k.bit).length;
+  const gecIadeSayisi = teslimKiralar.filter(k => k.teslimTarih > k.bit).length;
+  const uzatmaSayisi = kiralar.filter(k => k.uzatmaSayisi > 0 || k.notlar?.includes('uzatma')).length;
+  // karaListede zaten yukarıda tanımlı
+  let skor = 100;
+  if (karaListede) { skor = 0; }
+  else {
+    skor += PA.gecikme * toplamGecikme;
+    skor += PA.erkenIade * erkenIadeSayisi;
+    skor += PA.zamanindaIade * (teslimKiralar.length - erkenIadeSayisi - gecIadeSayisi);
+    skor += PA.uzatma * uzatmaSayisi;
+    skor += kiralar.length >= PA.sadikSinir ? PA.sadikMusteri : 0;
+    skor += toplamHarcama >= PA.harcamaSinir ? PA.yuksekHarcama : 0;
+    skor += PA.indirimCeza * (toplamIndirim > 0 ? 1 : 0);
+  }
+  skor = Math.max(0, Math.min(100, skor));
+  // Puan detay listesi
+  const puanDetay = [];
+  if (karaListede) puanDetay.push('🚫 Kara listede (0 puan)');
+  else {
+    if (toplamGecikme > 0) puanDetay.push(`⚠️ ${toplamGecikme} gecikme (${PA.gecikme * toplamGecikme > 0 ? '+' : ''}${PA.gecikme * toplamGecikme} puan)`);
+    if (erkenIadeSayisi > 0) puanDetay.push(`✅ ${erkenIadeSayisi}x erken iade (+${PA.erkenIade * erkenIadeSayisi} puan)`);
+    if (gecIadeSayisi > 0) puanDetay.push(`⏰ ${gecIadeSayisi}x geç iade`);
+    if (uzatmaSayisi > 0) puanDetay.push(`🔄 ${uzatmaSayisi}x uzatma (${PA.uzatma * uzatmaSayisi} puan)`);
+    if (kiralar.length >= PA.sadikSinir) puanDetay.push(`🏅 Sadık müşteri (+${PA.sadikMusteri} puan)`);
+    if (toplamHarcama >= PA.harcamaSinir) puanDetay.push(`💰 Yüksek harcama (+${PA.yuksekHarcama} puan)`);
+  }
+  const skorRenk = skor >= 80 ? 'var(--success)' : skor >= 50 ? 'var(--warning)' : 'var(--danger)';
+  const skorLabel = skor >= 80 ? '✅ Güvenilir' : skor >= 50 ? '⚠️ Orta' : '🚨 Riskli';
 
   const tel=(m.tel||'').replace(/[^0-9]/g,'').replace(/^0/,'');
   const waLink=tel?`https://wa.me/90${tel}`:'';
@@ -2202,7 +2307,7 @@ function showMusteriDetay(id){
         <div style="height:100%;border-radius:99px;width:${skor}%;background:${skor>=80?'linear-gradient(90deg,var(--success),#00e5a0)':skor>=50?'linear-gradient(90deg,var(--warning),#ffaa00)':'linear-gradient(90deg,var(--danger),#ff8c42)'};transition:width .5s"></div>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.8">
-        ${toplamGecikme>0?`⚠️ ${toplamGecikme} gecikme (-${toplamGecikme*15} puan) &nbsp;`:''}${kiralar.length>=5?'✅ Sadık müşteri (+10) &nbsp;':''}${toplamHarcama>=2000?'💰 Yüksek harcama (+10)':''}
+        ${puanDetay.length > 0 ? puanDetay.join(' &nbsp;·&nbsp; ') : '🆕 Henüz veri yok'}
       </div>
     </div>
 
@@ -2698,6 +2803,7 @@ function renderKiralamalar(){
 function teslimAl(id){
   const k=D.kiralamalar.find(x=>x.id===id);if(!k)return;
   k.durum='teslim';
+  k.teslimTarih=today(); // Teslim tarihi kaydet
   const o=D.oyunlar.find(x=>x.id===k.oyunId);
   if(o&&!D.kiralamalar.some(x=>x.id!==id&&x.oyunId===k.oyunId&&x.durum==='aktif')) o.durum='mevcut';
   save();renderKiralamalar();renderDashboard();updateStats();
@@ -4181,6 +4287,7 @@ function renderAyarlar(){
   if(g) g.value = getSablo('gecikme');
   if(y) y.value = getSablo('yaklasan');
   if(n) n.value = getSablo('genel');
+  renderGuvenAyarlar();
 }
 
 function saveAyarlar(){
@@ -4200,6 +4307,42 @@ function resetSablonlar(){
   localStorage.removeItem('sablo_genel');
   renderAyarlar();
   toast('Varsayılan şablonlar yüklendi','info');
+}
+
+function saveGuvenAyarlar(){
+  D.guvenAyarlar = {
+    gecikme:      parseInt(document.getElementById('pa-gecikme')?.value) || -15,
+    erkenIade:    parseInt(document.getElementById('pa-erken-iade')?.value) || 5,
+    uzatma:       parseInt(document.getElementById('pa-uzatma')?.value) || -3,
+    sadikMusteri: parseInt(document.getElementById('pa-sadik')?.value) || 10,
+    sadikSinir:   parseInt(document.getElementById('pa-sadik-sinir')?.value) || 5,
+    yuksekHarcama: parseInt(document.getElementById('pa-yuksek-harcama')?.value) || 10,
+    harcamaSinir: parseInt(document.getElementById('pa-harcama-sinir')?.value) || 2000,
+    indirimCeza:  parseInt(document.getElementById('pa-indirim-ceza')?.value) || 0,
+  };
+  save();
+  toast('Güven puanı ayarları kaydedildi ✅','success');
+}
+
+function resetGuvenAyarlar(){
+  if(!confirm('Güven puanı ayarları varsayılana dönecek?')) return;
+  delete D.guvenAyarlar;
+  save();
+  renderAyarlar();
+  toast('Varsayılan ayarlar yüklendi','info');
+}
+
+function renderGuvenAyarlar(){
+  const ga = D.guvenAyarlar || {};
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val; };
+  set('pa-gecikme',       ga.gecikme      ?? -15);
+  set('pa-erken-iade',    ga.erkenIade    ?? 5);
+  set('pa-uzatma',        ga.uzatma       ?? -3);
+  set('pa-sadik',         ga.sadikMusteri ?? 10);
+  set('pa-sadik-sinir',   ga.sadikSinir   ?? 5);
+  set('pa-yuksek-harcama',ga.yuksekHarcama?? 10);
+  set('pa-harcama-sinir', ga.harcamaSinir ?? 2000);
+  set('pa-indirim-ceza',  ga.indirimCeza  ?? 0);
 }
 
 
@@ -4365,6 +4508,23 @@ function renderNotifDurumu(){
 
 
 // ===== MUSTERI TIER / SEGMENT SISTEMI =====
+function getGuvenSkoru(musteriId){
+  const m = D.musteriler.find(x=>x.id===musteriId); if(!m) return 100;
+  const kiralar = D.kiralamalar.filter(k=>k.musteriId===musteriId);
+  const ga = D.guvenAyarlar||{};
+  const gecikme = kiralar.filter(k=>(k.durum==='aktif'&&k.bit<today())||(k.durum==='teslim'&&k.teslimTarih&&k.teslimTarih>k.bit)).length;
+  const erken = kiralar.filter(k=>k.durum==='teslim'&&k.teslimTarih&&k.teslimTarih<=k.bit).length;
+  const toplamH = kiralar.reduce((s,k)=>s+k.net,0);
+  const karaListede = (D.karaListe||[]).some(kl=>kl.musteriId===musteriId);
+  if(karaListede) return 0;
+  let s=100;
+  s += (ga.gecikme??-15)*gecikme;
+  s += (ga.erkenIade??5)*erken;
+  s += kiralar.length>=(ga.sadikSinir??5)?(ga.sadikMusteri??10):0;
+  s += toplamH>=(ga.harcamaSinir??2000)?(ga.yuksekHarcama??10):0;
+  return Math.max(0,Math.min(100,s));
+}
+
 function getMusteriTier(musteriId){
   var d3ay = new Date();
   d3ay.setMonth(d3ay.getMonth()-3);

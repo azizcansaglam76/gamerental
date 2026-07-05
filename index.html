@@ -312,6 +312,93 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
   </div>
 
+  <!-- TATİL MODU -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head">
+      <div class="section-title">🌴 Tatil Modu</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="tatil-durum-label" style="font-size:12px;color:var(--text3)">Kapalı</span>
+        <div id="tatil-toggle" onclick="toggleTatilModu()" style="width:44px;height:24px;border-radius:12px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;position:relative;transition:background .3s">
+          <div id="tatil-toggle-dot" style="width:18px;height:18px;border-radius:50%;background:var(--text3);position:absolute;top:2px;left:2px;transition:all .3s"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+        Tatil modu açıkken bota yazan veya yetkili talep eden müşterilere otomatik bildirim gider. İşlemler botla kesintisiz devam eder.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">📅 Dönüş Tarihi</label>
+          <input type="date" id="tatil-tarih" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">⏱ Onay süresi</label>
+          <input type="text" id="tatil-sure" value="1-2 saat" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">💬 Tatil Modu Mesajı</label>
+        <textarea id="tatil-mesaj" rows="8" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text1);font-size:13px;resize:vertical;line-height:1.6"></textarea>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Kullanılabilir değişkenler: <code>[İsim]</code> <code>[Tarih]</code> <code>[Süre]</code></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="saveTatilModu()">💾 Kaydet</button>
+        <button class="btn btn-outline" onclick="resetTatilMesaj()">↩️ Varsayılan Mesaj</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TİER SİSTEMİ AYARLARI -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🏅 Üyelik Tier Ayarları</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">
+        Üyelik eşiklerini ve indirim oranlarını buradan ayarlayabilirsin. Değişiklikler anında geçerli olur.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Eşik Tutarları (₺)</div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#94a3b8;display:block;margin-bottom:4px">🥈 Gümüş eşiği (₺)</label>
+          <input type="number" id="ta-gumus" value="750" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#fbbf24;display:block;margin-bottom:4px">🥇 Altın eşiği (₺)</label>
+          <input type="number" id="ta-altin" value="1500" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">💎 Platin eşiği (₺)</label>
+          <input type="number" id="ta-platin" value="3000" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#f59e0b;display:block;margin-bottom:4px">👑 Platin+ eşiği (₺)</label>
+          <input type="number" id="ta-platinplus" value="5000" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">İndirim Oranları (%)</div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#94a3b8;display:block;margin-bottom:4px">🥈 Gümüş indirimi (%)</label>
+          <input type="number" id="ta-gumus-indirim" value="5" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#fbbf24;display:block;margin-bottom:4px">🥇 Altın indirimi (%)</label>
+          <input type="number" id="ta-altin-indirim" value="10" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">💎 Platin indirimi (%)</label>
+          <input type="number" id="ta-platin-indirim" value="15" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#f59e0b;display:block;margin-bottom:4px">👑 Platin+ indirimi (%)</label>
+          <input type="number" id="ta-platinplus-indirim" value="20" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="saveTierAyarlar()">💾 Kaydet</button>
+        <button class="btn btn-outline" onclick="resetTierAyarlar()">↩️ Varsayılana Dön</button>
+      </div>
+    </div>
+  </div>
+
   <!-- GÜVEN PUANI AYARLARI -->
   <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">🛡️ Güven Puanı Ayarları</div></div>
@@ -628,11 +715,13 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   <div class="filter-bar" style="margin-bottom:12px">
     <button class="filter-btn active" id="mf-hepsi" onclick="setMusteriFiltre('hepsi',this)">👥 Hepsi</button>
     <button class="filter-btn" id="mf-platin" onclick="setMusteriFiltre('platin',this)" style="color:#a78bfa">💎 Platin</button>
+    <button class="filter-btn" id="mf-platinplus" onclick="setMusteriFiltre('platinplus',this)" style="color:#f59e0b">👑 Platin+</button>
     <button class="filter-btn" id="mf-altin" onclick="setMusteriFiltre('altin',this)" style="color:#fbbf24">🥇 Altın</button>
     <button class="filter-btn" id="mf-gumus" onclick="setMusteriFiltre('gumus',this)" style="color:#94a3b8">🥈 Gümüş</button>
     <button class="filter-btn" id="mf-bronz" onclick="setMusteriFiltre('bronz',this)" style="color:#cd7c54">🥉 Bronz</button>
     <button class="filter-btn" id="mf-aktif" onclick="setMusteriFiltre('aktif',this)" style="color:#00e676">🎮 Aktif Kiralama</button>
     <button class="filter-btn" id="mf-kayip" onclick="setMusteriFiltre('kayip',this)" style="color:#ff4757">⚠️ Kayıp Risk</button>
+    <button class="filter-btn" id="mf-onkayit" onclick="setMusteriFiltre('onkayit',this)" style="color:#fbbf24">⏳ Ön Kayıt</button>
     <span id="musteri-filtre-sayi" style="font-size:12px;color:var(--text3);margin-left:4px;align-self:center"></span>
     <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openDuyuruModal()">📣 Duyuru</button>
   </div>
@@ -2070,6 +2159,7 @@ function renderMusteriler(){
     if(_mf==='hepsi') return true;
     if(_mf==='aktif') return D.kiralamalar.some(k=>k.musteriId===m.id&&k.durum==='aktif');
     if(_mf==='kayip') return getMusteriKayipDurum(m.id)!==null;
+    if(_mf==='onkayit') return !!m.onKayit;
     return getMusteriTier(m.id).seviye===_mf;
   });
   const sayi=document.getElementById('musteri-filtre-sayi');
@@ -2083,7 +2173,7 @@ function renderMusteriler(){
     const kayip=getMusteriKayipDurum(m.id);
     return `<tr>
       <td style="color:var(--text3)">${i+1}</td>
-      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}${kayip?` <span style="font-size:10px;color:${kayip.risk==='yuksek'?'#ff4757':'#ffa502'};font-weight:600">${kayip.label}</span>`:''} ${(()=>{const s=getGuvenSkoru(m.id);const r=s>=80?'#00e676':s>=50?'#ffc107':'#ff5252';return `<span style="font-size:10px;color:${r};font-weight:700;margin-left:4px">🛡️${s}</span>`})()}</td>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${m.id})">${m.ad} ${m.soyad}</strong><br>${getTierBadgeHTML(m.id)}${kayip?` <span style="font-size:10px;color:${kayip.risk==='yuksek'?'#ff4757':'#ffa502'};font-weight:600">${kayip.label}</span>`:''} ${m.onKayit?'<span style="font-size:10px;color:#fbbf24;font-weight:700;background:rgba(251,191,36,.15);padding:1px 6px;border-radius:4px">⏳ Ön Kayıt</span>':''} ${(()=>{const s=getGuvenSkoru(m.id);const r=s>=80?'#00e676':s>=50?'#ffc107':'#ff5252';return `<span style="font-size:10px;color:${r};font-weight:700;margin-left:4px">🛡️${s}</span>`})()}</td>
       <td>${m.tel}</td><td style="color:var(--text2)">${m.email||'-'}</td>
       <td style="text-align:center">${kiralar.length}</td>
       <td style="text-align:center">${aktif.length?`<span class="badge">${aktif.length}</span>`:'-'}</td>
@@ -2119,6 +2209,17 @@ function editMusteri(id){
   document.getElementById('musteri-email').value=m.email||'';
   document.getElementById('musteri-adres').value=m.adres||'';
   document.getElementById('musteri-notlar').value=m.notlar||'';
+  // Ön kayıt uyarısı
+  const eskiOnkayitDiv = document.getElementById('onkayit-onayla-btn');
+  if(eskiOnkayitDiv) eskiOnkayitDiv.remove();
+  if(m.onKayit){
+    const div = document.createElement('div');
+    div.id = 'onkayit-onayla-btn';
+    div.style.cssText = 'background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap';
+    div.innerHTML = '<span style="font-size:13px;color:#fbbf24;font-weight:600">⏳ Ön kayıt onayı bekliyor</span><button class="btn btn-sm" style="background:#fbbf24;color:#000;font-weight:700" onclick="onkayitOnayla('+m.id+')">✅ Onayla & Aktif Et</button>';
+    const modalBody = document.querySelector('#modal-musteri .modal-body');
+    if(modalBody) modalBody.prepend(div);
+  }
   document.getElementById('modal-musteri-title').textContent='✏️ Müşteri Düzenle';
   // Harici harcamaları yükle
   document.getElementById('harici-harcama-bolum').style.display='none';
@@ -2165,6 +2266,16 @@ function hariciHarcamaSil(idx){
   save();
   renderHariciListe(m.hariciplHarcamalar);
   toast('Silindi');
+}
+
+function onkayitOnayla(id){
+  const m = D.musteriler.find(x=>x.id===id);
+  if(!m) return;
+  delete m.onKayit;
+  save();
+  closeModal('modal-musteri');
+  renderMusteriler();
+  toast('✅ Ön kayıt onaylandı! Müşteri aktif edildi.','success');
 }
 
 function saveMusteri(){
@@ -2500,7 +2611,7 @@ function calcKira(){
   // Müşteri tier hesabı
   const musteriId=parseInt(document.getElementById('kira-musteri').value);
   const musteriTier=musteriId?getMusteriTier(musteriId):{seviye:'bronz',indirim:0};
-  const platinMusteri=musteriTier.seviye==='platin';
+  const platinMusteri=musteriTier.seviye==='platin'||musteriTier.seviye==='platinplus';
   // Tier indirimini otomatik uygula
   const tierIndirimPct=musteriTier.indirim||0;
   const indirimPctEl=document.getElementById('kira-indirim-pct');
@@ -2703,7 +2814,7 @@ function editKiralama(id){
   const referansTarih=oyun?.cikis&&oyun.cikis<=today()?oyun.cikis:(ilkKiralama?ilkKiralama.bas:null);
   const eskiOyun=referansTarih&&new Date(referansTarih)<birAyOnce;
   const musteriTier=getMusteriTier(k.musteriId);
-  const platinMusteri=musteriTier.seviye==='platin';
+  const platinMusteri=musteriTier.seviye==='platin'||musteriTier.seviye==='platinplus';
   const gun=daysDiff(k.bas,k.bit)+1;
   if((eskiOyun||platinMusteri||hVal>0)&&gun>=10){
     hediyeEl.style.display='block';
@@ -3174,7 +3285,8 @@ function duyuruGrupDegis(){
     if(grup==='son1ay') return D.kiralamalar.some(k=>k.musteriId===m.id&&k.bas>=d1ayStr);
     if(grup==='son3ay') return D.kiralamalar.some(k=>k.musteriId===m.id&&k.bas>=d3ayStr);
     const toplam=D.kiralamalar.filter(k=>k.musteriId===m.id&&k.bas>=d3ayStr).reduce((s,k)=>s+k.net,0);
-    if(grup==='platin') return toplam>=3000;
+    if(grup==='platinplus') return toplam>=6000;
+    if(grup==='platin') return toplam>=3000&&toplam<6000;
     if(grup==='altin')  return toplam>=1500&&toplam<3000;
     if(grup==='gumus')  return toplam>=750&&toplam<1500;
     if(grup==='bronz')  return toplam<750&&D.kiralamalar.some(k=>k.musteriId===m.id);
@@ -4288,6 +4400,8 @@ function renderAyarlar(){
   if(y) y.value = getSablo('yaklasan');
   if(n) n.value = getSablo('genel');
   renderGuvenAyarlar();
+  renderTierAyarlar();
+  renderTatilModu();
 }
 
 function saveAyarlar(){
@@ -4307,6 +4421,96 @@ function resetSablonlar(){
   localStorage.removeItem('sablo_genel');
   renderAyarlar();
   toast('Varsayılan şablonlar yüklendi','info');
+}
+
+const TATIL_VARSAYILAN_MESAJ = `🌴 *Merhaba [İsim]!*
+
+Şu an seyahatteyim, *[Tarih]* tarihine kadar aktif olarak sohbete dahil olamıyorum.
+
+Tüm işlemlerinizi bot üzerinden kesintisiz yapabilirsiniz:
+• 🛒 Yeni kiralama → *5* yazın
+• 🔄 Süre uzatma → *2* yazın
+• 📦 İade → *3* yazın
+
+💳 Ödemenizi yaptıktan sonra dekontu gönderin.
+📲 Dekont onaylandıktan sonra PlayStation üzerindeki *Giriş QR kodunu* buraya gönderin, hesaba erişiminiz sağlanacaktır.
+
+⏱ İşlemler *[Süre]* içinde onaylanır 🙏`;
+
+function toggleTatilModu(){
+  const tatil = D.tatilModu || {};
+  tatil.aktif = !tatil.aktif;
+  D.tatilModu = tatil;
+  save();
+  renderTatilModu();
+  toast(tatil.aktif ? '🌴 Tatil modu açıldı' : '✅ Tatil modu kapatıldı', tatil.aktif ? 'warning' : 'success');
+}
+
+function saveTatilModu(){
+  if(!D.tatilModu) D.tatilModu = {};
+  D.tatilModu.tarih   = document.getElementById('tatil-tarih')?.value || '';
+  D.tatilModu.sure    = document.getElementById('tatil-sure')?.value || '1-2 saat';
+  D.tatilModu.mesaj   = document.getElementById('tatil-mesaj')?.value || TATIL_VARSAYILAN_MESAJ;
+  save();
+  toast('Tatil modu ayarları kaydedildi ✅','success');
+}
+
+function resetTatilMesaj(){
+  const el = document.getElementById('tatil-mesaj');
+  if(el) el.value = TATIL_VARSAYILAN_MESAJ;
+}
+
+function renderTatilModu(){
+  const tatil = D.tatilModu || {};
+  const aktif = !!tatil.aktif;
+  const toggle = document.getElementById('tatil-toggle');
+  const dot    = document.getElementById('tatil-toggle-dot');
+  const label  = document.getElementById('tatil-durum-label');
+  if(toggle) toggle.style.background = aktif ? 'var(--success)' : 'var(--surface3)';
+  if(dot)    { dot.style.left = aktif ? '24px' : '2px'; dot.style.background = aktif ? '#fff' : 'var(--text3)'; }
+  if(label)  { label.textContent = aktif ? '🟢 Açık' : 'Kapalı'; label.style.color = aktif ? 'var(--success)' : 'var(--text3)'; }
+  const tarihEl = document.getElementById('tatil-tarih');
+  const sureEl  = document.getElementById('tatil-sure');
+  const mesajEl = document.getElementById('tatil-mesaj');
+  if(tarihEl) tarihEl.value = tatil.tarih || '';
+  if(sureEl)  sureEl.value  = tatil.sure  || '1-2 saat';
+  if(mesajEl) mesajEl.value = tatil.mesaj || TATIL_VARSAYILAN_MESAJ;
+}
+
+function saveTierAyarlar(){
+  D.tierAyarlar = {
+    gumus:             parseInt(document.getElementById('ta-gumus')?.value) || 750,
+    altin:             parseInt(document.getElementById('ta-altin')?.value) || 1500,
+    platin:            parseInt(document.getElementById('ta-platin')?.value) || 3000,
+    platinplus:        parseInt(document.getElementById('ta-platinplus')?.value) || 5000,
+    gumusIndirim:      parseInt(document.getElementById('ta-gumus-indirim')?.value) || 5,
+    altinIndirim:      parseInt(document.getElementById('ta-altin-indirim')?.value) || 10,
+    platinIndirim:     parseInt(document.getElementById('ta-platin-indirim')?.value) || 15,
+    platinplusIndirim: parseInt(document.getElementById('ta-platinplus-indirim')?.value) || 20,
+  };
+  save();
+  toast('Tier ayarları kaydedildi ✅','success');
+}
+
+function resetTierAyarlar(){
+  if(!confirm('Tier ayarları varsayılana dönecek?')) return;
+  delete D.tierAyarlar;
+  save();
+  renderAyarlar();
+  toast('Varsayılan tier ayarları yüklendi','info');
+}
+
+function renderTierAyarlar(){
+  const ta = D.tierAyarlar || {};
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val; };
+  set('ta-gumus',             ta.gumus             ?? 750);
+  set('ta-altin',             ta.altin             ?? 1500);
+  set('ta-platin',            ta.platin            ?? 3000);
+  set('ta-platinplus',        ta.platinplus        ?? 5000);
+  set('ta-gumus-indirim',     ta.gumusIndirim      ?? 5);
+  set('ta-altin-indirim',     ta.altinIndirim      ?? 10);
+  set('ta-platin-indirim',    ta.platinIndirim     ?? 15);
+  set('ta-platinplus-indirim',ta.platinplusIndirim ?? 20);
 }
 
 function saveGuvenAyarlar(){
@@ -4538,10 +4742,14 @@ function getMusteriTier(musteriId){
       if(h.tarih >= d3ayStr) toplam += (h.tutar||0);
     });
   }
-  if(toplam>=3000) return {seviye:'platin',label:'\uD83D\uDC8E Platin',indirim:15,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam};
-  if(toplam>=1500) return {seviye:'altin', label:'\uD83E\uDD47 Alt\u0131n',indirim:10,renk:'#fbbf24',bg:'rgba(251,191,36,.15)', toplam:toplam};
-  if(toplam>=750)  return {seviye:'gumus', label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:5, renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam};
-  return {seviye:'bronz',label:'\uD83E\uDD49 Bronz',indirim:0,renk:'#cd7c54',bg:'rgba(205,124,84,.15)',toplam:toplam};
+  var ta=D.tierAyarlar||{};
+  var T={platinplus:ta.platinplus??5000,platin:ta.platin??3000,altin:ta.altin??1500,gumus:ta.gumus??750};
+  var I={platinplus:ta.platinplusIndirim??20,platin:ta.platinIndirim??15,altin:ta.altinIndirim??10,gumus:ta.gumusIndirim??5};
+  if(toplam>=T.platinplus) return {seviye:'platinplus',emoji:'👑',label:'👑 Platin+',indirim:I.platinplus,renk:'#f59e0b',bg:'rgba(245,158,11,.15)',toplam:toplam,sonraki:null,kalanTL:0,oncelikliRezervHakki:true};
+  if(toplam>=T.platin) return {seviye:'platin',emoji:'💎',label:'\uD83D\uDC8E Platin',indirim:I.platin,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam,sonraki:'Platin+ 👑',kalanTL:T.platinplus-toplam};
+  if(toplam>=T.altin) return {seviye:'altin',emoji:'🥇',label:'\uD83E\uDD47 Alt\u0131n',indirim:I.altin,renk:'#fbbf24',bg:'rgba(251,191,36,.15)',toplam:toplam,sonraki:'Platin 💎',kalanTL:T.platin-toplam};
+  if(toplam>=T.gumus) return {seviye:'gumus',emoji:'🥈',label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:I.gumus,renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam,sonraki:'Alt\u0131n 🥇',kalanTL:T.altin-toplam};
+  return {seviye:'bronz',emoji:'🥉',label:'\uD83E\uDD49 Bronz',indirim:0,renk:'#cd7c54',bg:'rgba(205,124,84,.15)',toplam:toplam,sonraki:'G\u00fcm\u00fc\u015f 🥈',kalanTL:T.gumus-toplam};
 }
 
 function getTierBadgeHTML(musteriId){
@@ -4551,10 +4759,12 @@ function getTierBadgeHTML(musteriId){
 
 function renderTierKarti(musteriId){
   var t = getMusteriTier(musteriId);
+  var ta2=D.tierAyarlar||{};
   var esikler = [
-    {max:750, label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f (%5)'},
-    {max:1500,label:'\uD83E\uDD47 Alt\u0131n (%10)'},
-    {max:3000,label:'\uD83D\uDC8E Platin (%15)'}
+    {max:ta2.gumus??750,  label:'🥈 Gümüş (%'+(ta2.gumusIndirim??5)+')'},
+    {max:ta2.altin??1500, label:'🥇 Altın (%'+(ta2.altinIndirim??10)+')'},
+    {max:ta2.platin??3000,label:'💎 Platin (%'+(ta2.platinIndirim??15)+')'},
+    {max:ta2.platinplus??5000,label:'👑 Platin+ (%'+(ta2.platinplusIndirim??20)+' + Öncelikli Rezerv)'}
   ];
   var sonraki = esikler.find(function(e){return t.toplam<e.max;});
   var html = '<div style="background:'+t.bg+';border:1px solid '+t.renk+'44;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">';

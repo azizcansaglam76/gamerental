@@ -2272,10 +2272,28 @@ function onkayitOnayla(id){
   const m = D.musteriler.find(x=>x.id===id);
   if(!m) return;
   delete m.onKayit;
+  // Numara 90 ile başlıyorsa normalize et — 905... → 05... değil, sadece kayıt için sorun yaratmaz
+  // Ama sistemdeki diğer numaralarla tutarlı olması için 90 prefixini kaldır
+  if(m.tel && m.tel.startsWith('90') && m.tel.length === 12){
+    m.tel = '0' + m.tel.slice(2); // 905321234567 → 05321234567
+  }
   save();
   closeModal('modal-musteri');
   renderMusteriler();
   toast('✅ Ön kayıt onaylandı! Müşteri aktif edildi.','success');
+  // Bottan bildirim gönder
+  const hedef = m.whatsappLid || (m.tel ? m.tel.replace(/[^0-9]/g,'').replace(/^0/,'') + '@c.us' : null);
+  if(hedef){
+    fetch('https://gamerental-bot-production.up.railway.app/api/duyuru-onay', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        tel: hedef,
+        ad: ((m.ad||'') + ' ' + (m.soyad||'')).trim(),
+        apiKey: 'admin'
+      })
+    }).then(r=>r.json()).then(r=>{ if(r.ok) toast('📨 Müşteriye bildirim gönderildi','success'); }).catch(()=>toast('⚠️ Bildirim gönderilemedi','warning'));
+  }
 }
 
 function saveMusteri(){

@@ -4835,7 +4835,8 @@ function getMusteriTier(musteriId){
   d3ay.setMonth(d3ay.getMonth()-3);
   var d3ayStr = d3ay.toISOString().slice(0,10);
   var kiralar = D.kiralamalar.filter(function(k){ return k.musteriId===musteriId && k.bas>=d3ayStr; });
-  var toplam = kiralar.reduce(function(s,k){return s+k.net;},0);
+  // Bakiyeden ödenen kiralamaları çift saymamak için hariç tut
+  var toplam = kiralar.reduce(function(s,k){ return s + (k.odemeTip==='bakiye' ? 0 : k.net); }, 0);
   // Harici harcamaları da dahil et (sadece son 3 ay)
   var musteri = D.musteriler.find(function(m){ return m.id===musteriId; });
   if(musteri && musteri.hariciplHarcamalar) {
@@ -4843,7 +4844,7 @@ function getMusteriTier(musteriId){
       if(h.tarih >= d3ayStr) toplam += (h.tutar||0);
     });
   }
-  // Bakiye yüklemelerini de dahil et (son 3 ay içindekiler)
+  // Bakiye yüklemelerini dahil et (sadece yüklemeler — pozitif işlemler, son 3 ay)
   if(musteri && musteri.bakiyeGecmis) {
     musteri.bakiyeGecmis.forEach(function(b){
       if(b.tutar > 0 && b.tarih >= d3ayStr) toplam += (b.tutar||0);

@@ -3014,8 +3014,38 @@ function renderKiralamalar(){
 
 function teslimAl(id){
   const k=D.kiralamalar.find(x=>x.id===id);if(!k)return;
+  const bugunT=today();
+  const erkenIade = bugunT < k.bit;
+
+  // Erken iade ödülü kontrolü
+  const oyunCikis = D.oyunlar.find(o=>o.id===k.oyunId)?.cikis;
+  const birAyOnce = new Date(); birAyOnce.setMonth(birAyOnce.getMonth()-1);
+  const yeniOyun = oyunCikis && new Date(oyunCikis) > birAyOnce;
+  const siradaVar = D.rezervasyonlar.filter(r=>r.oyunId===k.oyunId&&r.tip===k.tip&&r.durum==='bekliyor').length > 0;
+
+  let erkenOdul = 0;
+  if(erkenIade && yeniOyun && siradaVar){
+    const kalanGun = Math.round((new Date(k.bit)-new Date(bugunT))/86400000);
+    const toplamGun = Math.round((new Date(k.bit)-new Date(k.bas))/86400000) || 1;
+    const gunlukU = k.net / toplamGun;
+    erkenOdul = Math.round(kalanGun * gunlukU * 0.1);
+  }
+
+  // Erken iade ödülü varsa sor
+  if(erkenOdul > 0){
+    const m = D.musteriler.find(x=>x.id===k.musteriId);
+    const mAd = m ? ((m.ad||'')+' '+(m.soyad||'')).trim() : '?';
+    const oyunAd = D.oyunlar.find(o=>o.id===k.oyunId)?.ad||'Oyun';
+    if(confirm(`🎁 Erken İade Ödülü\n\n${mAd} oyunu erken iade ediyor.\nKalan süre için ${fmt(erkenOdul)} bakiye yüklensin mi?\n\n(${oyunAd} — Yeni oyun + Sıra mevcut)`)){
+      if(!m.bakiyeGecmis) m.bakiyeGecmis=[];
+      m.bakiye=(m.bakiye||0)+erkenOdul;
+      m.bakiyeGecmis.push({tarih:bugunT,tutar:erkenOdul,aciklama:'Erken iade ödülü — '+oyunAd});
+      toast(mAd+' — '+fmt(erkenOdul)+' bakiye yüklendi 💰','success');
+    }
+  }
+
   k.durum='teslim';
-  k.teslimTarih=today(); // Teslim tarihi kaydet
+  k.teslimTarih=bugunT;
   const o=D.oyunlar.find(x=>x.id===k.oyunId);
   if(o&&!D.kiralamalar.some(x=>x.id!==id&&x.oyunId===k.oyunId&&x.durum==='aktif')) o.durum='mevcut';
   save();renderKiralamalar();renderDashboard();updateStats();
@@ -3023,13 +3053,13 @@ function teslimAl(id){
   const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor');
   if(bekleyenler.length>0){
     const ilk=bekleyenler[0];
-    const m=D.musteriler.find(x=>x.id===ilk.musteriId);
-    const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'?';
-    const tel=m&&m.tel?' ('+m.tel+')':'';
+    const m2=D.musteriler.find(x=>x.id===ilk.musteriId);
+    const ad=m2?((m2.ad||'')+' '+(m2.soyad||'')).trim():'?';
+    const tel2=m2&&m2.tel?' ('+m2.tel+')':'';
     setTimeout(function(){
-      toast('🔔 '+o?.ad+' için '+bekleyenler.length+' kişi bekliyor! Sıradaki: '+ad+tel,'warning');
+      toast('🔔 '+o?.ad+' için '+bekleyenler.length+' kişi bekliyor! Sıradaki: '+ad+tel2,'warning');
     },400);
-  } else {
+  } else if(erkenOdul===0) {
     toast('İade alındı ✅','success');
   }
 }

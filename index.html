@@ -4882,14 +4882,32 @@ function storeEmoji(store) {
   const m = {'tr':'🇹🇷','hint':'🇮🇳','us':'🇺🇸','eu':'🇪🇺','uk':'🇬🇧','jp':'🇯🇵','other':'🌍'};
   return m[store] || '';
 }
+function storeLabel(store) {
+  const m = {'tr':'TR','hint':'Hint','us':'US','eu':'EU','uk':'UK','jp':'JP','other':'Diğer'};
+  return m[store] || store || '';
+}
+function storeRenk(store) {
+  const m = {'tr':'#E30A17','hint':'#FF9933','us':'#3C3B6E','eu':'#003399','uk':'#012169','jp':'#BC002D','other':'#555'};
+  return m[store] || '#555';
+}
 function surumLabel(surum) {
   const m = {'standard':'Standard','deluxe':'Deluxe','ultimate':'Ultimate','gold':'Gold','complete':'Complete','goty':'GOTY','digital':'Digital','other':'Özel'};
   return m[surum] || surum || '';
 }
+function surumRenk(surum) {
+  const m = {'ultimate':'#f59e0b','deluxe':'#8b5cf6','gold':'#d97706','complete':'#059669','goty':'#dc2626','digital':'#0ea5e9','standard':'#6b7280'};
+  return m[surum] || '#6b7280';
+}
 function oyunStoreBadge(o) {
   let html = '';
-  if(o.store) html += `<span style="font-size:13px;margin-right:2px" title="${o.store}">${storeEmoji(o.store)}</span>`;
-  if(o.surum) html += `<span style="font-size:10px;color:var(--accent2);font-weight:600;background:rgba(123,47,255,.15);padding:1px 5px;border-radius:4px;margin-left:2px">${surumLabel(o.surum)}</span>`;
+  if(o.store) {
+    const renk = storeRenk(o.store);
+    html += `<span style="display:inline-flex;align-items:center;gap:3px;background:${renk};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:4px;letter-spacing:.3px">${storeEmoji(o.store)} ${storeLabel(o.store)}</span>`;
+  }
+  if(o.surum) {
+    const renk = surumRenk(o.surum);
+    html += `<span style="display:inline-flex;align-items:center;background:${renk};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:3px;letter-spacing:.3px">${surumLabel(o.surum)}</span>`;
+  }
   return html;
 }
 

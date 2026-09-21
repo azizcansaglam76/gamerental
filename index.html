@@ -1042,6 +1042,27 @@ tr.overdue td{background:rgba(255,71,87,.05);}
       <div class="form-grid">
         <div class="form-group full"><label>Oyun Adı *</label><input type="text" id="oyun-ad" placeholder="Örn: GTA VI"></div>
         <div class="form-group"><label>Platform *</label><select id="oyun-platform"><option>PS5</option><option>PS4</option><option>PS4/PS5</option></select></div>
+        <div class="form-group"><label>🏪 Store (Hesap Bölgesi)</label><select id="oyun-store">
+          <option value="">— Belirtilmemiş —</option>
+          <option value="tr">🇹🇷 TR (Türkiye)</option>
+          <option value="hint">🇮🇳 Hint (Hindistan)</option>
+          <option value="us">🇺🇸 US (Amerika)</option>
+          <option value="eu">🇪🇺 EU (Avrupa)</option>
+          <option value="uk">🇬🇧 UK (İngiltere)</option>
+          <option value="jp">🇯🇵 JP (Japonya)</option>
+          <option value="other">🌍 Diğer</option>
+        </select></div>
+        <div class="form-group"><label>📦 Sürüm</label><select id="oyun-surum">
+          <option value="">— Standart —</option>
+          <option value="standard">Standard Edition</option>
+          <option value="deluxe">Deluxe Edition</option>
+          <option value="ultimate">Ultimate Edition</option>
+          <option value="gold">Gold Edition</option>
+          <option value="complete">Complete Edition</option>
+          <option value="goty">Game of the Year Edition</option>
+          <option value="digital">Digital Edition</option>
+          <option value="other">Diğer</option>
+        </select></div>
         <div class="form-group"><label>Tür</label><select id="oyun-tur"><option>Aksiyon</option><option>Spor</option><option>RPG</option><option>FPS</option><option>Yarış</option><option>Macera</option><option>Dövüş</option><option>Korku</option><option>Strateji</option><option>Diğer</option></select></div>
         <div class="form-group"><label>Çıkış Tarihi</label><input type="date" id="oyun-cikis"></div>
         <div class="form-group"><label>Alış Fiyatı (₺)</label><input type="number" id="oyun-alis" placeholder="0" min="0"></div>
@@ -1648,7 +1669,7 @@ function renderDashboard(){
     const tel=(m?.tel||'').replace(/[^0-9]/g,'');
     const waLink=tel?'https://wa.me/90'+tel.replace(/^0/,'')+'?text='+whatsappMsg:'#';
     return '<tr class="overdue">'+
-      '<td><strong>'+(o?.ad||'-')+'</strong><br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
+      '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
       '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
       '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
       '<td style="color:var(--danger);font-weight:600">'+fmtDate(k.bit)+'</td>'+
@@ -1675,7 +1696,7 @@ function renderDashboard(){
       const msg=encodeURIComponent(buildWaMsg('yaklasan',{isim:(m?.ad||''),oyun:(o?.ad||'')}));
       const waLink=tel?'https://wa.me/90'+tel+'?text='+msg:'';
       return '<tr style="background:rgba(255,71,87,.06)">'+
-        '<td><strong>'+(o?.ad||'-')+'</strong><br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
+        '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
         '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
         '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
         '<td><span class="rt-badge '+(k.tip==='primary'?'rt-primary':'rt-secondary')+'">'+k.tip+'</span></td>'+
@@ -1906,9 +1927,10 @@ function oyunKartHTML(o){
     const kSecler = kKiralar.filter(function(k){ return k.tip==='secondary'; });
     const kopyaAdi = kopya.not || ('Kopya ' + (ki+1));
     const kKiradaMi = kKiralar.length > 0;
+    const kopyaStoreBadge = (kopya.store ? storeEmoji(kopya.store) : '') + (kopya.surum ? ' <span style=\"font-size:9px;color:var(--accent2);background:rgba(123,47,255,.15);padding:1px 4px;border-radius:3px\">' + surumLabel(kopya.surum) + '</span>' : '');
     kopyalarHTML += '<div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      + '<span style="font-size:11px;color:var(--text3)">📀 <strong style="color:var(--text2)">' + kopyaAdi + '</strong> '+(kopya.ciftPrimary?'<span style=\"color:var(--accent);font-size:10px\">[2P]</span>':'')+' <span style=\"color:var(--text3);font-size:10px\">('+fmt(kopya.alis||0)+')</span>'+(kKiradaMi?' <span style=\"color:var(--warning);font-size:10px;font-weight:700\">• KİRADA</span>':' <span style=\"color:var(--success);font-size:10px\">• Müsait</span>')+'</span>'
+      + '<span style="font-size:11px;color:var(--text3)">📀 <strong style="color:var(--text2)">' + kopyaAdi + '</strong> ' + kopyaStoreBadge + ' '+(kopya.ciftPrimary?'<span style=\"color:var(--accent);font-size:10px\">[2P]</span>':'')+' <span style=\"color:var(--text3);font-size:10px\">('+fmt(kopya.alis||0)+')</span>'+(kKiradaMi?' <span style=\"color:var(--warning);font-size:10px;font-weight:700\">• KİRADA</span>':' <span style=\"color:var(--success);font-size:10px\">• Müsait</span>')+'</span>'
       + '<div style="display:flex;gap:4px">'
       + '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();openKopyaModal('+o.id+','+(ki)+')">✏️</button>'
       + '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:2px 7px" onclick="event.stopPropagation();deleteKopya('+o.id+','+(ki)+')">🗑</button>'
@@ -1935,7 +1957,7 @@ function oyunKartHTML(o){
     <div class="game-card-header">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <div class="game-title">${o.ad}</div>${ciftBadge}${deaktifBadge}
+          <div class="game-title">${o.ad}</div>${ciftBadge}${deaktifBadge}${oyunStoreBadge(o)}
         </div>
         <div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
           <span class="tag ${o.platform==='PS5'?'tag-ps5':'tag-ps4'}">${o.platform||'PS5'}</span>
@@ -2021,6 +2043,8 @@ function openOyunModal(){
   document.getElementById('oyun-eid').value='';
   ['oyun-ad','oyun-alis','oyun-gunluk-pri','oyun-gunluk-sec','oyun-haftalik-pri','oyun-haftalik-sec','oyun-notlar','oyun-cikis'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('oyun-platform').value='PS5';
+  document.getElementById('oyun-store').value='';
+  document.getElementById('oyun-surum').value='';
   document.getElementById('oyun-tur').value='Aksiyon';
   document.getElementById('oyun-cift-primary').checked=false;
   document.getElementById('modal-oyun-title').textContent='🎮 Yeni Oyun Ekle';
@@ -2036,6 +2060,8 @@ function editOyun(id){
   document.getElementById('oyun-eid').value=id;
   document.getElementById('oyun-ad').value=o.ad;
   document.getElementById('oyun-platform').value=o.platform;
+  document.getElementById('oyun-store').value=o.store||'';
+  document.getElementById('oyun-surum').value=o.surum||'';
   document.getElementById('oyun-tur').value=o.tur;
   document.getElementById('oyun-cikis').value=o.cikis||'';
   document.getElementById('oyun-alis').value=o.alis||'';
@@ -2059,6 +2085,8 @@ function saveOyun(){
   const eid=parseInt(document.getElementById('oyun-eid').value);
   const obj={
     ad, platform:document.getElementById('oyun-platform').value,
+    store:document.getElementById('oyun-store').value||null,
+    surum:document.getElementById('oyun-surum').value||null,
     tur:document.getElementById('oyun-tur').value,
     cikis:document.getElementById('oyun-cikis').value||null,
     alis:parseFloat(document.getElementById('oyun-alis').value)||0,
@@ -4229,12 +4257,16 @@ function openKopyaModal(oyunId, kopyaIdx) {
     document.getElementById('kopya-idx').value = kopyaIdx;
     const kopya = o.kopyalar[kopyaIdx];
     document.getElementById('kopya-not').value = kopya.not || '';
+    if(document.getElementById('kopya-store')) document.getElementById('kopya-store').value = kopya.store||'';
+    if(document.getElementById('kopya-surum')) document.getElementById('kopya-surum').value = kopya.surum||'';
     document.getElementById('kopya-alis').value = kopya.alis || '';
     document.getElementById('kopya-cift-primary').checked = kopya.ciftPrimary || false;
     document.getElementById('kopya-satildi').checked = kopya.satildi || false;
   } else {
     document.getElementById('kopya-idx').value = '';
     document.getElementById('kopya-not').value = '';
+    if(document.getElementById('kopya-store')) document.getElementById('kopya-store').value='';
+    if(document.getElementById('kopya-surum')) document.getElementById('kopya-surum').value='';
     document.getElementById('kopya-alis').value = '';
     document.getElementById('kopya-cift-primary').checked = false;
   }
@@ -4246,6 +4278,8 @@ function saveKopya() {
   const oyunId = parseInt(document.getElementById('kopya-oyun-id').value);
   const kopyaIdxVal = document.getElementById('kopya-idx').value;
   const not = document.getElementById('kopya-not').value.trim();
+  const kopyaStore = document.getElementById('kopya-store')?.value||null;
+  const kopyaSurum = document.getElementById('kopya-surum')?.value||null;
   const alis = parseFloat(document.getElementById('kopya-alis').value) || 0;
   const ciftPrimary = document.getElementById('kopya-cift-primary').checked;
   const satildi = document.getElementById('kopya-satildi').checked;
@@ -4265,7 +4299,7 @@ function saveKopya() {
     toast('Kopya güncellendi ✅', 'success');
   } else {
     if(o.kopyalar.length >= 4) { toast('En fazla 4 kopya eklenebilir', 'error'); return; }
-    o.kopyalar.push({ not, alis, ciftPrimary, satildi: false });
+    o.kopyalar.push({ not, alis, ciftPrimary, satildi: false, store: kopyaStore||null, surum: kopyaSurum||null });
     // Yeni kopya maliyetini ana oyuna ekle
     o.alis = (o.alis || 0) + alis;
     toast('Kopya eklendi ✅', 'success');
@@ -4843,6 +4877,22 @@ function renderNotifDurumu(){
 
 
 // ===== MUSTERI TIER / SEGMENT SISTEMI =====
+// Store emoji helper
+function storeEmoji(store) {
+  const m = {'tr':'🇹🇷','hint':'🇮🇳','us':'🇺🇸','eu':'🇪🇺','uk':'🇬🇧','jp':'🇯🇵','other':'🌍'};
+  return m[store] || '';
+}
+function surumLabel(surum) {
+  const m = {'standard':'Standard','deluxe':'Deluxe','ultimate':'Ultimate','gold':'Gold','complete':'Complete','goty':'GOTY','digital':'Digital','other':'Özel'};
+  return m[surum] || surum || '';
+}
+function oyunStoreBadge(o) {
+  let html = '';
+  if(o.store) html += `<span style="font-size:13px;margin-right:2px" title="${o.store}">${storeEmoji(o.store)}</span>`;
+  if(o.surum) html += `<span style="font-size:10px;color:var(--accent2);font-weight:600;background:rgba(123,47,255,.15);padding:1px 5px;border-radius:4px;margin-left:2px">${surumLabel(o.surum)}</span>`;
+  return html;
+}
+
 function getGuvenSkoru(musteriId){
   const m = D.musteriler.find(x=>x.id===musteriId); if(!m) return 100;
   const kiralar = D.kiralamalar.filter(k=>k.musteriId===musteriId);
@@ -5244,6 +5294,32 @@ if('serviceWorker' in navigator){
         <div class="form-group full">
           <label>Kopya Notu (opsiyonel)</label>
           <input type="text" id="kopya-not" placeholder="Örn: 2. Hesap, Yedek Kopya...">
+        </div>
+        <div class="form-group">
+          <label>🏪 Store (Hesap Bölgesi)</label>
+          <select id="kopya-store">
+            <option value="">— Belirtilmemiş —</option>
+            <option value="tr">🇹🇷 TR (Türkiye)</option>
+            <option value="hint">🇮🇳 Hint (Hindistan)</option>
+            <option value="us">🇺🇸 US (Amerika)</option>
+            <option value="eu">🇪🇺 EU (Avrupa)</option>
+            <option value="uk">🇬🇧 UK (İngiltere)</option>
+            <option value="jp">🇯🇵 JP (Japonya)</option>
+            <option value="other">🌍 Diğer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>📦 Sürüm</label>
+          <select id="kopya-surum">
+            <option value="">— Standart —</option>
+            <option value="standard">Standard Edition</option>
+            <option value="deluxe">Deluxe Edition</option>
+            <option value="ultimate">Ultimate Edition</option>
+            <option value="gold">Gold Edition</option>
+            <option value="complete">Complete Edition</option>
+            <option value="goty">Game of the Year Edition</option>
+            <option value="digital">Digital Edition</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Alış Fiyatı (₺) *</label>

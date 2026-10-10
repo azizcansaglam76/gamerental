@@ -1188,7 +1188,8 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="form-group"><label>İndirim (%)</label><input type="number" id="kira-indirim-pct" placeholder="0" min="0" max="100" oninput="calcIndirim()"></div>
         <div class="form-group"><label>İndirim (₺)</label><input type="number" id="kira-indirim-tl" placeholder="0" min="0" oninput="calcIndirimTL()"></div>
         <div class="form-group"><label>Net Ücret (₺)</label><input type="number" id="kira-net" placeholder="0" min="0" style="border-color:var(--success);color:var(--success);font-weight:700"></div>
-        <div class="form-group"><label>Ön Ödeme (₺)</label><input type="number" id="kira-on-odeme" placeholder="0" min="0"></div>
+        <div class="form-group"><label>Ön Ödeme (₺)</label><input type="number" id="kira-on-odeme" placeholder="0" min="0" oninput="onOdemeBilgiGuncelle()"></div>
+        <div id="kira-onodeme-bilgi" style="display:none;grid-column:1/-1;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.3);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.6"></div>
         <div class="form-group full"><label>Notlar</label><textarea id="kira-notlar" placeholder="..."></textarea></div>
         <div id="kira-bakiye-bolum" style="display:none;grid-column:1/-1;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.3);border-radius:10px;padding:10px 14px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:normal">
@@ -1869,7 +1870,7 @@ function renderDashboard(){
   const ayGelir=D.kiralamalar.filter(k=>k.bas.startsWith(thisMonth)).reduce((s,k)=>s+k.net,0);
   const primK=aktifler.filter(k=>k.tip==='primary').length;
   const secK=aktifler.filter(k=>k.tip==='secondary').length;
-  const rezervSayisi=D.rezervasyonlar.filter(r=>r.durum!=='iptal').length;
+  const rezervSayisi=D.rezervasyonlar.filter(r=>r.durum==='bekliyor').length;
 
   document.getElementById('d-toplam').textContent=D.oyunlar.length;
   document.getElementById('d-musait').textContent=D.oyunlar.filter(o=>!o.durum||o.durum==='mevcut').length;
@@ -2085,7 +2086,7 @@ function renderOyunlar(){
     const deaktifAktif=son&&daysDiff(son.tarih,now)<182;
     if(f==='mevcut') return !belirlenecek&&(!o.durum||o.durum==='mevcut');
     if(f==='kirada') return o.durum==='kirada';
-    if(f==='rezerv') return belirlenecek||D.rezervasyonlar.some(r=>r.oyunId===o.id&&r.durum!=='iptal');
+    if(f==='rezerv') return belirlenecek||D.rezervasyonlar.some(r=>r.oyunId===o.id&&r.durum==='bekliyor');
     if(f==='deaktif') return !!deaktifAktif;
     if(f==='PS5') return o.platform.includes('PS5');
     if(f==='PS4') return o.platform.includes('PS4');
@@ -2107,7 +2108,7 @@ function oyunKartHTML(o){
   const secKiralar=aktifKira.filter(k=>k.tip==='secondary');
   const net=(o.toplamGelir||0)-(o.alis||0)-(D.ekMaliyetler.filter(m=>m.oyunId===o.id).reduce((s,m)=>s+m.tutar,0));
   const netClass=net>0?'profit':net<0?'loss':'neutral';
-  const rezervler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum!=='iptal');
+  const rezervler=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
 
   const sonDeaktif=o.deaktifGecmisi.length>0?o.deaktifGecmisi[o.deaktifGecmisi.length-1]:null;
   const ALTI_AY_GUN=182;
@@ -2604,6 +2605,8 @@ function saveMusteri(){
 
 function deleteMusteri(id){
   if(D.kiralamalar.some(k=>k.musteriId===id&&k.durum==='aktif')){toast('Aktif kiralaması var','error');return;}
+  const depozitolu=D.rezervasyonlar.filter(r=>r.musteriId===id&&r.durum==='bekliyor'&&r.onOdeme>0);
+  if(depozitolu.length){ toast(`Bu müşterinin bekleme listesinde ${fmt(depozitolu.reduce((t,r)=>t+r.onOdeme,0))} ön ödemesi var. Önce bekleme kaydını iptal et (bakiye/iade seç).`,'error'); return; }
   const gecmis=D.kiralamalar.filter(k=>k.musteriId===id).length;
   if(!confirm('Müşteriyi sil?'+(gecmis?`\n\n⚠️ Bu müşterinin ${gecmis} kiralama geçmişi var. Silinirse geçmiş kayıtlarda adı görünmez.`:'')))return;
   D.musteriler=D.musteriler.filter(m=>m.id!==id);
@@ -2790,7 +2793,9 @@ function openKiralamaModal(){
   document.getElementById('kira-musteri-secili').textContent='';
   if(document.getElementById('kira-gun-sayi')) document.getElementById('kira-gun-sayi').value='';
   if(document.getElementById('kira-musteri-dropdown')) document.getElementById('kira-musteri-dropdown').style.display='none';
-  if(!window._aktifRezervId) window._aktifRezervId = null; // sadece rezervden gelmediyse sıfırla
+  // Önceki (kaydedilmeden kapatılan) bekleme listesi bağlantısı yeni kiralamaya taşınmasın
+  window._aktifRezervId=null; window._kiraRezervId=null; _onOdemeOtomatik=null;
+  const _ob=document.getElementById('kira-onodeme-bilgi'); if(_ob) _ob.style.display='none';
   document.getElementById('kira-oyun').innerHTML='<option value="">-- Oyun --</option>'+
     D.oyunlar.filter(o=>o.durum!=='deaktif').map(o=>{
       const henuzCikmadi = o.cikis && o.cikis > today();
@@ -2863,6 +2868,7 @@ function updateHediyeOptions(){
 }
 
 function calcKira(){
+  kiraRezervGuncelle();
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
   const oyun=D.oyunlar.find(o=>o.id===oyunId);
   let bas=document.getElementById('kira-bas').value;
@@ -2979,6 +2985,52 @@ function calcKira(){
   }
 }
 
+// ===== BEKLEME LİSTESİ ÖN ÖDEMESİ =====
+// Bekleme listesindeki müşteri kiralanınca ön ödemesi forma otomatik gelir, kalan tutar gösterilir,
+// kayıt bekleme listesinden "kiralandı" olarak düşer (eskiden sadece silinip ön ödeme unutuluyordu).
+let _onOdemeOtomatik=null; // otomatik doldurulan değer — kullanıcı elle değiştirdiyse dokunulmaz
+function kiraRezervBul(){
+  if(document.getElementById('kira-eid').value) return null; // düzenleme modunda yok
+  const mId=parseInt(document.getElementById('kira-musteri').value);
+  const oId=parseInt(document.getElementById('kira-oyun').value);
+  const tip=document.getElementById('kira-tip').value;
+  if(!mId||!oId) return null;
+  if(window._aktifRezervId){
+    const r=D.rezervasyonlar.find(x=>x.id===window._aktifRezervId&&x.durum==='bekliyor');
+    if(r&&r.musteriId===mId&&r.oyunId===oId) return r;
+  }
+  // Oyun kartından / normal formdan kiralansa da müşterinin bu oyun için bekleme kaydı varsa bulunur
+  const adaylar=D.rezervasyonlar.filter(r=>r.durum==='bekliyor'&&r.musteriId===mId&&r.oyunId===oId);
+  return adaylar.find(r=>r.tip===tip&&r.onOdeme>0)||adaylar.find(r=>r.onOdeme>0)||adaylar.find(r=>r.tip===tip)||adaylar[0]||null;
+}
+function kiraRezervGuncelle(){
+  const inp=document.getElementById('kira-on-odeme'); if(!inp) return;
+  const r=kiraRezervBul();
+  window._kiraRezervId=r?r.id:null;
+  const dep=r&&r.onOdeme>0?r.onOdeme:0;
+  const mevcut=inp.value===''?null:parseFloat(inp.value);
+  if(dep>0&&(mevcut===null||mevcut===_onOdemeOtomatik)){ inp.value=dep; _onOdemeOtomatik=dep; }
+  else if(!dep&&_onOdemeOtomatik!==null&&mevcut===_onOdemeOtomatik){ inp.value=''; _onOdemeOtomatik=null; }
+  onOdemeBilgiGuncelle();
+}
+function onOdemeBilgiGuncelle(){
+  const el=document.getElementById('kira-onodeme-bilgi'); if(!el) return;
+  const r=window._kiraRezervId?D.rezervasyonlar.find(x=>x.id===window._kiraRezervId):null;
+  if(!r){ el.style.display='none'; return; }
+  const dep=r.onOdeme>0?r.onOdeme:0;
+  const net=parseFloat(document.getElementById('kira-net').value)||0;
+  let h='⏳ Bu müşteri bu oyun için bekleme listesinde ('+(r.tip==='primary'?'🔵 Primary':'🟣 Secondary')+') — kiralama başlayınca listeden düşülecek.';
+  if(dep>0){
+    h='💰 Bekleme listesi ön ödemesi: <strong>'+fmt(dep)+'</strong>'+(r.onOdemeOnaylandi?' ✓':' <span style="color:var(--danger);font-weight:700">(henüz onaylanmadı — paranın geldiğini kontrol et!)</span>');
+    if(net>0){
+      if(net>dep) h+='<br>➡️ Kiralama tutarı '+fmt(net)+' · <strong style="color:var(--warning)">Kalan tahsil edilecek: '+fmt(net-dep)+'</strong>';
+      else if(net<dep) h+='<br>➡️ Kiralama tutarı '+fmt(net)+' · <strong style="color:var(--success)">Fazla ödeme: '+fmt(dep-net)+'</strong> (kaydederken bakiyeye aktarılabilir)';
+      else h+='<br>➡️ Kiralama tutarının tamamı ödenmiş ✅';
+    }
+  }
+  el.innerHTML=h; el.style.display='block';
+}
+
 function calcIndirim(){
   const brut=parseFloat(document.getElementById('kira-ucret').value)||0;
   const pct=parseFloat(document.getElementById('kira-indirim-pct').value)||0;
@@ -2989,6 +3041,7 @@ function calcIndirim(){
   document.getElementById('ko-brut').textContent=fmt(brut);
   document.getElementById('ko-ind').textContent=fmt(indTL);
   document.getElementById('ko-net').textContent=fmt(net);
+  onOdemeBilgiGuncelle();
 }
 
 function calcIndirimTL(){
@@ -3001,6 +3054,7 @@ function calcIndirimTL(){
   document.getElementById('ko-brut').textContent=fmt(brut);
   document.getElementById('ko-ind').textContent=fmt(indTL);
   document.getElementById('ko-net').textContent=fmt(net);
+  onOdemeBilgiGuncelle();
 }
 
 function saveKiralama(){
@@ -3086,16 +3140,28 @@ function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme
     }
     D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:kIdx,odemeTip});
     oyun.durum='kirada';oyun.kiralamaSayisi++;oyun.toplamGelir+=net;
-    // Rezervasyondan geldiyse iptal et (tek seferlik)
-    if(window._aktifRezervId){
-      const rv=D.rezervasyonlar.find(x=>x.id===window._aktifRezervId);
-      if(rv){
-        rv.durum='iptal';
-        D.rezervasyonlar.forEach(x=>{if(x.oyunId===rv.oyunId&&x.tip===rv.tip&&x.durum==='bekliyor')x.atla=false;});
+    // Bekleme listesinden geldiyse: kaydı "kiralandı" yap, ön ödemeyi kiralamaya bağla
+    const rezervId=window._kiraRezervId||window._aktifRezervId;
+    const rv=rezervId?D.rezervasyonlar.find(x=>x.id===rezervId&&x.durum==='bekliyor'):null;
+    if(rv){
+      const yeniKira=D.kiralamalar[D.kiralamalar.length-1];
+      rv.durum='kiralandi'; rv.kiraId=yeniKira.id; rv.kiralamaTarih=today();
+      if(rv.onOdeme>0){
+        yeniKira.rezervId=rv.id; yeniKira.rezervOnOdeme=rv.onOdeme;
+        const fazla=rv.onOdeme-net;
+        const mF=D.musteriler.find(x=>x.id===musteriId);
+        if(fazla>0&&mF&&confirm(`💰 Ön ödeme (${fmt(rv.onOdeme)}) kiralama tutarından (${fmt(net)}) fazla.\n\nAradaki ${fmt(fazla)} müşterinin bakiyesine aktarılsın mı?`)){
+          if(!mF.bakiyeGecmis) mF.bakiyeGecmis=[];
+          mF.bakiye=(mF.bakiye||0)+fazla;
+          mF.bakiyeGecmis.push({tarih:today(),tutar:fazla,aciklama:'Bekleme ön ödemesi fazlası — '+(oyun.ad||''),tip:'depozito'});
+        }
       }
-      window._aktifRezervId=null;
-      renderRezervasyonlar();
+      // Aynı müşterinin bu oyun için ön ödemesiz diğer bekleme kayıtları da kapanır
+      D.rezervasyonlar.forEach(x=>{ if(x!==rv&&x.musteriId===musteriId&&x.oyunId===oyunId&&x.durum==='bekliyor'&&!(x.onOdeme>0)){ x.durum='kiralandi'; x.kiraId=yeniKira.id; x.kiralamaTarih=today(); } });
+      D.rezervasyonlar.forEach(x=>{if(x.oyunId===rv.oyunId&&x.tip===rv.tip&&x.durum==='bekliyor')x.atla=false;});
     }
+    window._aktifRezervId=null; window._kiraRezervId=null; _onOdemeOtomatik=null;
+    renderRezervasyonlar();
     save();closeModal('modal-kiralama');renderKiralamalar();renderDashboard();updateStats();
     const hediyeMesaj=hediyeGun>0?` 🎁 +${hediyeGun} gün hediye!`:'';
     toast(`Kiralama başlatıldı! ${tip==='primary'?'🔵 Primary':'🟣 Secondary'}${hediyeMesaj}`,'success');
@@ -3487,7 +3553,9 @@ function renderRezervasyonlar(){
   const gruplar={};
   aktif.forEach(r=>{if(!gruplar[r.oyunId])gruplar[r.oyunId]=[];gruplar[r.oyunId].push(r);});
   uyariEl.style.display='block';
-  uyariEl.innerHTML='⏳ Toplam <strong>'+aktif.length+' kişi</strong> '+Object.keys(gruplar).length+' oyun için bekliyor';
+  const depToplam=aktif.filter(r=>r.onOdeme>0);
+  uyariEl.innerHTML='⏳ Toplam <strong>'+aktif.length+' kişi</strong> '+Object.keys(gruplar).length+' oyun için bekliyor'+
+    (depToplam.length?' &nbsp;·&nbsp; 💰 <strong>'+depToplam.length+'</strong> kişiden toplam <strong>'+fmt(depToplam.reduce((t,r)=>t+r.onOdeme,0))+'</strong> ön ödeme alındı'+(depToplam.some(r=>!r.onOdemeOnaylandi)?' <span style="color:var(--danger)">('+depToplam.filter(r=>!r.onOdemeOnaylandi).length+' onay bekliyor)</span>':''):'');
   container.innerHTML=Object.entries(gruplar).map(function(entry){
     const oyunId=parseInt(entry[0]), rezervler=entry[1];
     const o=D.oyunlar.find(x=>x.id===oyunId);
@@ -3604,8 +3672,8 @@ function rezervErtele(id){
 
 function rezervKirala(id){
   const r=D.rezervasyonlar.find(x=>x.id===id);if(!r)return;
-  window._aktifRezervId=id;
   openKiralamaModal();
+  window._aktifRezervId=id; // openKiralamaModal sıfırladığı için sonra ayarlanır
   setTimeout(()=>{
     const m=D.musteriler.find(x=>x.id===r.musteriId);
     if(m){
@@ -3827,8 +3895,31 @@ function rezervGeriAl(id){
 }
 
 function rezervIptal(id){
+  const r=D.rezervasyonlar.find(x=>x.id===id); if(!r) return;
+  if(r.onOdeme>0){
+    // Ön ödemeli kayıt: para izsiz kaybolmasın — ne yapıldığı kaydedilir, kayıt geçmişte kalır
+    const m=D.musteriler.find(x=>x.id===r.musteriId);
+    const o=D.oyunlar.find(x=>x.id===r.oyunId);
+    const ad=m?((m.ad||'')+' '+(m.soyad||'')).trim():'Müşteri';
+    const secim=prompt(`💰 ${ad} — ${o?.ad||'Oyun'}\nBu bekleme kaydı için ${fmt(r.onOdeme)} ön ödeme var${r.onOdemeOnaylandi?'':' (onaylanmamış)'}.\n\nNe yapılsın?\n1 = Müşterinin bakiyesine aktar\n2 = Parası iade edildi (elden / havale)\n3 = Ödeme hiç gelmedi\n\n1, 2 veya 3 yazın:`, '1');
+    if(secim===null) return;
+    const s=String(secim).trim();
+    if(s==='1'){
+      if(!m){ toast('Müşteri bulunamadı, bakiyeye aktarılamadı','error'); return; }
+      if(!m.bakiyeGecmis) m.bakiyeGecmis=[];
+      m.bakiye=(m.bakiye||0)+r.onOdeme;
+      m.bakiyeGecmis.push({tarih:today(),tutar:r.onOdeme,aciklama:'Bekleme listesi ön ödemesi — '+(o?.ad||''),tip:'depozito'});
+      r.onOdemeDurum='bakiyeye';
+    } else if(s==='2'){ r.onOdemeDurum='iade_edildi'; }
+    else if(s==='3'){ r.onOdemeDurum='gelmedi'; }
+    else { toast('Geçersiz seçim, işlem yapılmadı','error'); return; }
+    r.durum='iptal'; r.iptalTarih=today();
+    save();renderRezervasyonlar();updateStats();
+    toast(s==='1'?`İptal edildi · ${fmt(r.onOdeme)} bakiyeye aktarıldı 💰`:'İptal edildi (ön ödeme durumu kaydedildi)','success');
+    return;
+  }
   if(!confirm('Rezervasyonu iptal et?'))return;
-  D.rezervasyonlar=D.rezervasyonlar.filter(r=>r.id!==id);
+  D.rezervasyonlar=D.rezervasyonlar.filter(x=>x.id!==id);
   save();renderRezervasyonlar();updateStats();toast('İptal edildi','info');
 }
 
@@ -4320,7 +4411,7 @@ function updateStats(){
   const ayPS=D.kiralamalar.filter(k=>k.bas.startsWith(thisMonth)).reduce((s,k)=>s+k.net,0);
   const ayEk=D.ekGelirler.filter(g=>g.tarih.startsWith(thisMonth)).reduce((s,g)=>s+g.tutar,0);
   document.getElementById('hs-gelir').textContent=fmt(ayPS+ayEk);
-  document.getElementById('hs-rezerv').textContent=D.rezervasyonlar.filter(r=>r.durum!=='iptal').length;
+  document.getElementById('hs-rezerv').textContent=D.rezervasyonlar.filter(r=>r.durum==='bekliyor').length;
   document.getElementById('badge-gecikme').textContent=aktifler.filter(k=>k.bit<now).length;
   document.getElementById('badge-gecikme').style.display=aktifler.some(k=>k.bit<now)?'':'none';
   document.getElementById('badge-kl').textContent=D.karaListe.length;
@@ -5238,7 +5329,7 @@ function getMusteriTier(musteriId){
   if(musteri && musteri.bakiyeGecmis) {
     musteri.bakiyeGecmis.forEach(function(b){
       // Sadece gerçek para yüklemeleri sayılır (erken iade ödülü / silinen kiralama iadesi hariç)
-      const odul = b.tip==='odul' || b.tip==='iade' || /^Erken iade ödülü|^Silinen kiralama iadesi/.test(b.aciklama||'');
+      const odul = b.tip==='odul' || b.tip==='iade' || b.tip==='depozito' || /^Erken iade ödülü|^Silinen kiralama iadesi|^Bekleme/.test(b.aciklama||'');
       if(b.tutar > 0 && !odul && b.tarih >= d3ayStr) toplam += (b.tutar||0);
     });
   }

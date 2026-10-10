@@ -377,6 +377,14 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   </div>
 
   <div class="two-col">
+    <div class="section" id="d-kapanis-section" style="display:none;border:1px solid rgba(139,92,246,.45);background:rgba(139,92,246,.05)">
+      <div class="section-head"><div class="section-title" style="color:#a78bfa">🔒 Kapatılmamış Hesaplar <span id="d-kapanis-sayi" style="white-space:nowrap;font-size:12px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);padding:2px 10px;border-radius:20px;margin-left:6px"></span></div>
+        <div style="font-size:11px;color:var(--text3);margin-left:auto">İade alınan ama şifresi değiştirilmemiş / çıkışı yapılmamış hesaplar</div></div>
+      <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
+        <thead><tr><th>Oyun / Hesap</th><th>Son kiralayan</th><th>Tip</th><th>İade</th><th>Adım</th><th>İşlem</th></tr></thead>
+        <tbody id="d-kapanis-tbl"></tbody>
+      </table></div></div>
+    </div>
     <div class="section">
       <div class="section-head"><div class="section-title">⏰ Gecikmiş İadeler</div><button class="btn btn-sm" style="margin-left:auto;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);font-size:11px" onclick="topluHatirlat('gecikme')">🤖 Hepsine hatırlat</button></div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
@@ -490,8 +498,8 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   </div>
   <div class="filter-bar" style="margin-bottom:12px">
     <button class="filter-btn active" id="mf-hepsi" onclick="setMusteriFiltre('hepsi',this)">👥 Hepsi</button>
-    <button class="filter-btn" id="mf-platin" onclick="setMusteriFiltre('platin',this)" style="color:#a78bfa">💎 Platin</button>
-    <button class="filter-btn" id="mf-platinplus" onclick="setMusteriFiltre('platinplus',this)" style="color:#f59e0b">👑 Platin+</button>
+    <button class="filter-btn" id="mf-platin" onclick="setMusteriFiltre('platin',this)" style="color:#a78bfa">🏆 Platin</button>
+    <button class="filter-btn" id="mf-platinplus" onclick="setMusteriFiltre('platinplus',this)" style="color:#38bdf8">💎 Elmas</button>
     <button class="filter-btn" id="mf-altin" onclick="setMusteriFiltre('altin',this)" style="color:#fbbf24">🥇 Altın</button>
     <button class="filter-btn" id="mf-gumus" onclick="setMusteriFiltre('gumus',this)" style="color:#94a3b8">🥈 Gümüş</button>
     <button class="filter-btn" id="mf-bronz" onclick="setMusteriFiltre('bronz',this)" style="color:#cd7c54">🥉 Bronz</button>
@@ -821,6 +829,10 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 <!-- BÜYÜME: LANSMAN + GERİ KAZANIM -->
 <div class="page" id="page-buyume">
   <div class="section">
+    <div class="section-head"><div class="section-title">🏷️ Kampanyalar — tarihli indirim ve paket kiralama</div></div>
+    <div class="section-body" id="kampanya-panel" style="padding:14px 16px"></div>
+  </div>
+  <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">🗓 Lansman Takvimi — çıkacak ve yeni çıkan oyunlar</div></div>
     <div class="section-body" id="lansman-panel" style="padding:14px 16px"></div>
   </div>
@@ -929,11 +941,11 @@ tr.overdue td{background:rgba(255,71,87,.05);}
           <input type="number" id="ta-altin" value="1500" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">💎 Platin eşiği (₺)</label>
+          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">🏆 Platin eşiği (₺)</label>
           <input type="number" id="ta-platin" value="3000" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:#f59e0b;display:block;margin-bottom:4px">👑 Platin+ eşiği (₺)</label>
+          <label style="font-size:12px;font-weight:600;color:#38bdf8;display:block;margin-bottom:4px">💎 Elmas eşiği (₺)</label>
           <input type="number" id="ta-platinplus" value="5000" min="100" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
         <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:8px">İndirim Oranları (%)</div>
@@ -946,11 +958,11 @@ tr.overdue td{background:rgba(255,71,87,.05);}
           <input type="number" id="ta-altin-indirim" value="10" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">💎 Platin indirimi (%)</label>
+          <label style="font-size:12px;font-weight:600;color:#a78bfa;display:block;margin-bottom:4px">🏆 Platin indirimi (%)</label>
           <input type="number" id="ta-platin-indirim" value="15" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:#f59e0b;display:block;margin-bottom:4px">👑 Platin+ indirimi (%)</label>
+          <label style="font-size:12px;font-weight:600;color:#38bdf8;display:block;margin-bottom:4px">💎 Elmas indirimi (%)</label>
           <input type="number" id="ta-platinplus-indirim" value="20" min="0" max="50" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-size:13px">
         </div>
       </div>
@@ -1028,6 +1040,32 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <strong>Mobilde en iyi sonuç için</strong> uygulamayı ana ekrana ekleyin.
       </p>
       <div id="notif-durum" style="background:var(--surface3);border-radius:10px;padding:14px 16px;font-size:13px">Yükleniyor...</div>
+    </div>
+  </div>
+
+  <!-- HESAP KAPANIŞ LİSTESİ -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🔒 İade Sonrası Hesap Kontrol Listesi</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Her iadeden sonra bu adımlar sorulur; tamamlanmayanlar Dashboard'da görünür. Her satır bir adım. <strong>Şifreler sisteme yazılmaz</strong>, sadece hesabın adı tutulur.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+        <div><label>Primary kiralamalar</label><textarea id="kapanis-primary" rows="4" style="width:100%;box-sizing:border-box"></textarea></div>
+        <div><label>Secondary kiralamalar</label><textarea id="kapanis-secondary" rows="4" style="width:100%;box-sizing:border-box"></textarea></div>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="saveKapanisAyarlar()">💾 Kaydet</button>
+    </div>
+  </div>
+
+  <!-- SABAH ÖZETİ -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">☀️ Sabah Özeti (WhatsApp)</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Bot her sabah sana tek mesajla günün özetini atar: bugün bitenler, gecikenler, onay bekleyen dekontlar, dünkü gelir, kapatılmamış hesaplar. İstediğin an bota <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">#ozet</code> yazarak da alabilirsin.</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400;margin:0;font-size:13px"><input type="checkbox" id="sabah-aktif"> Her sabah gönder</label>
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400;margin:0;font-size:13px">Saat <input type="number" id="sabah-saat" min="6" max="14" style="width:70px"> :00</label>
+        <button class="btn btn-primary btn-sm" onclick="saveSabahAyar()">💾 Kaydet</button>
+      </div>
     </div>
   </div>
 
@@ -1139,6 +1177,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 <div id="kapak-sonuclar" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:8px;background:var(--surface3);border-radius:8px;border:1px solid var(--border)"></div>
 <input type="text" id="oyun-kapak" placeholder="https://... (URL manuel de girilebilir)" oninput="onizleKapak()" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px">
 <div id="oyun-kapak-onizleme" style="margin-top:8px;display:none;align-items:center;gap:10px"><img id="oyun-kapak-img" style="width:100px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><span style="font-size:11px;color:var(--success)">✓ Önizleme</span><button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('oyun-kapak').value='';document.getElementById('oyun-kapak-onizleme').style.display='none'">✕ Kaldır</button></div></div>
+        <div class="form-group full"><label>🔑 Ana PSN hesabı</label><input type="text" id="oyun-hesap" maxlength="60" placeholder="Hesap adı veya e-postası — şifre YAZMAYIN" autocomplete="off"></div>
         <div class="form-group full"><label>Notlar</label><textarea id="oyun-notlar" placeholder="Notlar..."></textarea></div>
       </div>
     </div>
@@ -1306,8 +1345,8 @@ tr.overdue td{background:rgba(255,71,87,.05);}
             <option value="aktif">🎮 Aktif Kiralaması Olanlar</option>
             <option value="son1ay">📅 Son 1 Ayda Kiralama Yapanlar</option>
             <option value="son3ay">📅 Son 3 Ayda Kiralama Yapanlar</option>
-            <option value="platinplus">👑 Platin+ Üyeler</option>
-            <option value="platin">💎 Platin Üyeler</option>
+            <option value="platinplus">💎 Elmas Üyeler</option>
+            <option value="platin">🏆 Platin Üyeler</option>
             <option value="altin">🥇 Altın Üyeler</option>
             <option value="gumus">🥈 Gümüş Üyeler</option>
             <option value="bronz">🥉 Bronz Üyeler</option>
@@ -1547,7 +1586,7 @@ document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-ove
 //   değişiklik yaptıysa, iki taraftaki değişiklikler kayıt bazında (id ile) birleştirilir.
 // - onSnapshot ile bottan/başka cihazdan gelen değişiklikler canlı olarak ekrana yansır.
 const LS_KEY='psv4';
-const DIZI_ALANLAR={oyunlar:'o',musteriler:'m',kiralamalar:'k',rezervasyonlar:'r',ekMaliyetler:'mal',karaListe:'kl',ekGelirler:'eg'};
+const DIZI_ALANLAR={oyunlar:'o',musteriler:'m',kiralamalar:'k',rezervasyonlar:'r',ekMaliyetler:'mal',karaListe:'kl',ekGelirler:'eg',kampanyalar:'kmp'};
 const TEMIZLENMEYEN_ALANLAR=['tatilModu','ayarlar']; // serbest metin şablonları — HTML temizliği uygulanmaz
 let _base=null;            // Firestore'daki son bilinen veri (stable JSON) — birleştirme tabanı
 let _yuklendi=false;       // Firestore'dan başarıyla yüklendi mi?
@@ -1889,6 +1928,7 @@ function periodRange(){
 // =================== DASHBOARD ===================
 function renderDashboard(){
   const now=today();
+  try{ renderKapanislar(); }catch(e){ console.warn('kapanış',e); }
   const aktifler=D.kiralamalar.filter(k=>k.durum==='aktif');
   const gecikme=aktifler.filter(k=>k.bit<now);
   const thisMonth=now.slice(0,7);
@@ -1926,7 +1966,7 @@ function renderDashboard(){
     const tel=(m?.tel||'').replace(/[^0-9]/g,'');
     const waLink=tel?'https://wa.me/90'+tel.replace(/^0/,'')+'?text='+whatsappMsg:'#';
     return '<tr class="overdue">'+
-      '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
+      '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span>'+((o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):'')+'</td>'+
       '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
       '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
       '<td style="color:var(--danger);font-weight:600">'+fmtDate(k.bit)+'</td>'+
@@ -1953,7 +1993,7 @@ function renderDashboard(){
       const msg=encodeURIComponent(buildWaMsg('yaklasan',{isim:(m?.ad||''),oyun:(o?.ad||'')}));
       const waLink=tel?'https://wa.me/90'+tel+'?text='+msg:'';
       return '<tr style="background:rgba(255,71,87,.06)">'+
-        '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span></td>'+
+        '<td><strong>'+(o?.ad||'-')+'</strong>'+(o?oyunStoreBadge(o):'')+' <br><span style="font-size:10px;color:var(--text2)">'+(o?.platform||'')+'</span>'+((o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):'')+'</td>'+
         '<td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay('+k.musteriId+')">'+(m?.ad||'')+' '+(m?.soyad||'')+'</span></td>'+
         '<td style="font-size:12px">'+(m?.tel||'—')+'</td>'+
         '<td><span class="rt-badge '+(k.tip==='primary'?'rt-primary':'rt-secondary')+'">'+k.tip+'</span></td>'+
@@ -2237,7 +2277,7 @@ function oyunKartHTML(o){
       ${kopyalarHTML}
       ${yaklasanlar.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,193,7,.2);margin-bottom:4px;font-size:12px;color:#ffc107;background:rgba(255,193,7,.08);border-radius:6px;padding:6px 8px">🔔 <strong>${yaklasanlar.length} kiralama</strong> yarın bitiyor!</div>`:""}${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
       <div class="game-stats">
-        <div class="game-row"><span class="game-row-lbl">Günlük</span><span class="game-row-val">${fmt(o.gunluk)}</span></div>
+        <div class="game-row"><span class="game-row-lbl">Günlük</span><span class="game-row-val">${(()=>{const kp=oyunKampanyasi(o);return kp?`<s style="color:var(--text3);font-size:11px">${fmt(o.gunlukPri||o.gunluk)}</s> ${fmt(kampanyaliFiyat(o,'primary'))} <span title="${esc(kp.ad)}" style="background:#f97316;color:#fff;border-radius:4px;font-size:10px;padding:1px 5px">🏷️ %${kp.oran}</span>`:fmt(o.gunluk);})()}</span></div>
         <div class="game-row"><span class="game-row-lbl">Toplam Gelir</span><span class="game-row-val profit">${fmt(o.toplamGelir||0)}</span></div>
         <div class="game-row"><span class="game-row-lbl">Net K/Z</span><span class="game-row-val ${netClass}">${net>=0?'▲':'▼'} ${fmt(Math.abs(net))}</span></div>
       </div>
@@ -2298,7 +2338,7 @@ function hizliRezerv(oyunId){
 // =================== OYUN MODAL ===================
 function openOyunModal(){
   document.getElementById('oyun-eid').value='';
-  ['oyun-ad','oyun-alis','oyun-gunluk-pri','oyun-gunluk-sec','oyun-haftalik-pri','oyun-haftalik-sec','oyun-notlar','oyun-cikis'].forEach(id=>document.getElementById(id).value='');
+  ['oyun-ad','oyun-alis','oyun-gunluk-pri','oyun-gunluk-sec','oyun-haftalik-pri','oyun-haftalik-sec','oyun-notlar','oyun-cikis','oyun-hesap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('oyun-platform').value='PS5';
   document.getElementById('oyun-store').value='';
   document.getElementById('oyun-surum').value='';
@@ -2328,6 +2368,7 @@ function editOyun(id){
   document.getElementById('oyun-haftalik-sec').value=o.haftalikSec||'';
   document.getElementById('oyun-cift-primary').checked=!!o.ciftPrimary;
   document.getElementById('oyun-notlar').value=o.notlar||'';
+  document.getElementById('oyun-hesap').value=o.hesap||'';
   document.getElementById('oyun-kapak').value=o.kapak||'';
   onizleKapak();
   document.getElementById('oyun-kapak').value=o.kapak||'';
@@ -2355,6 +2396,7 @@ function saveOyun(){
     haftalik:parseFloat(document.getElementById('oyun-haftalik-pri').value)||(parseFloat(document.getElementById('oyun-gunluk-pri').value)||0)*7,
     ciftPrimary:document.getElementById('oyun-cift-primary').checked,
     notlar:document.getElementById('oyun-notlar').value,
+    hesap:document.getElementById('oyun-hesap').value.trim()||null,
     kapak:document.getElementById('oyun-kapak').value.trim()||null
   };
   if(eid){
@@ -2927,6 +2969,9 @@ function calcKira(){
   else if(sureTip==='haftalik') ucret=haftalikFiyat*Math.ceil(gun/7);
   // Secondary fallback %70 sadece pri/sec fiyat ayrımı yoksa
   if(tip==='secondary'&&!oyun.gunlukSec) ucret=Math.round(ucret*0.7);
+  // Planlı fiyat kampanyası (başlangıç tarihine göre)
+  const _kamp=oyunKampanyasi(oyun,bas);
+  if(_kamp) ucret=Math.round(ucret*(1-_kamp.oran/100));
   document.getElementById('kira-ucret').value=ucret;
   calcIndirim();
   document.getElementById('kira-ozet').style.display='block';
@@ -2947,8 +2992,11 @@ function calcKira(){
   // Tier indirimini otomatik uygula
   // Geri kazanım kampanyasından gelen kişiye özel indirim üyelik indiriminden yüksekse o uygulanır
   const _ozel=musteriId?aktifOzelIndirimSite(D.musteriler.find(m=>m.id===musteriId)):null;
-  const _ozelKullan=!!_ozel&&_ozel.oran>(musteriTier.indirim||0);
-  const tierIndirimPct=_ozelKullan?_ozel.oran:(musteriTier.indirim||0);
+  // Paket kampanyası: müşterinin 2 gün içinde başlamış başka aktif kiralaması varsa
+  const _paket=musteriId?paketUygunMu(musteriId,bas,null):null;
+  const _ozelKullan=!!_ozel&&_ozel.oran>(musteriTier.indirim||0)&&!(_paket&&_paket.oran>=_ozel.oran);
+  const _paketKullan=!!_paket&&_paket.oran>(musteriTier.indirim||0)&&!_ozelKullan;
+  const tierIndirimPct=_ozelKullan?_ozel.oran:_paketKullan?_paket.oran:(musteriTier.indirim||0);
   const indirimPctEl=document.getElementById('kira-indirim-pct');
   if(tierIndirimPct>0){
     indirimPctEl.value=tierIndirimPct;
@@ -2981,6 +3029,9 @@ function calcKira(){
     if(musteriId&&_ozelKullan){
       tierBilgiEl.style.display='block';
       tierBilgiEl.innerHTML=`🎁 Geri kazanım indirimi &mdash; <strong>%${_ozel.oran}</strong> uygulandı (${fmtDate(_ozel.bitis)} tarihine kadar geçerli)`;
+    } else if(musteriId&&_paketKullan){
+      tierBilgiEl.style.display='block';
+      tierBilgiEl.innerHTML=`📦 Paket kampanyası (${esc(_paket.ad)}) &mdash; <strong>%${_paket.oran}</strong> uygulandı`;
     } else if(musteriId&&musteriTier.seviye!=='bronz'){
       tierBilgiEl.style.display='block';
       tierBilgiEl.innerHTML=`${musteriTier.label} üye &mdash; <strong>%${musteriTier.indirim} indirim</strong> uygulandı ✨`;
@@ -2991,12 +3042,16 @@ function calcKira(){
     } else {
       tierBilgiEl.style.display='none';
     }
+    if(_kamp){
+      tierBilgiEl.style.display='block';
+      tierBilgiEl.innerHTML+=`${musteriId?'<br>':''}🏷️ ${esc(_kamp.ad)} &mdash; fiyata <strong>%${_kamp.oran}</strong> kampanya indirimi uygulandı`;
+    }
   }
   // Panel açma koşulu: eski oyun VEYA platin müşteri → 10+ günde aç
   const hediyeAc=(eskiOyun||platinMusteri)&&gun>=10;
   // Badge metni
   if(badge){
-    if(platinMusteri&&!eskiOyun) badge.textContent='💎 Platin Ayrıcalığı';
+    if(platinMusteri&&!eskiOyun) badge.textContent=musteriTier.seviye==='platinplus'?'💎 Elmas Ayrıcalığı':'🏆 Platin Ayrıcalığı';
     else badge.textContent='🕹️ Eski Oyun Kampanyası';
     badge.style.display=hediyeAc?'inline':'none';
   }
@@ -3178,7 +3233,13 @@ function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme
       const mOz=D.musteriler.find(x=>x.id===musteriId);
       const oz=aktifOzelIndirimSite(mOz);
       const uygulanan=ucret>0?Math.round(indirim/ucret*100):0;
-      if(oz&&uygulanan>=oz.oran){
+      // Planlı kampanyalar: hangi kampanyadan geldiği istatistik için saklanır
+      const yk0=D.kiralamalar[D.kiralamalar.length-1];
+      const fk=oyunKampanyasi(oyun,bas); if(fk) yk0.fiyatKampanyaId=fk.id;
+      const pk=paketUygunMu(musteriId,bas,yk0.id);
+      const paketIle=!!pk&&uygulanan>=pk.oran&&(!oz||pk.oran>=oz.oran);
+      if(paketIle) yk0.paketKampanyaId=pk.id;
+      if(oz&&uygulanan>=oz.oran&&!paketIle){
         oz.kullanildi=true; const yk=D.kiralamalar[D.kiralamalar.length-1]; oz.kiraId=yk.id;
         if(oz.kampanyaId) yk.kampanyaId=oz.kampanyaId;
       }
@@ -3322,7 +3383,7 @@ function renderKiralamalar(){
     const gun=daysDiff(k.bas,k.bit)+1-(k.hediyeGun||0); // bas-bit arası, hediye hariç göster
     return `<tr ${isG?'class="overdue"':''}>
       <td style="color:var(--text3);font-size:11px">#${k.id}</td>
-      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span></td>
+      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span>${(o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):''}</td>
       <td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${k.musteriId})">${m?.ad||''} ${m?.soyad||''}</span><br><span style="font-size:10px;color:var(--text2)">${m?.tel||''}</span></td>
       <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
       <td>${fmtDate(k.bas)}</td>
@@ -3402,7 +3463,9 @@ function teslimAl(id){
     k.net=(k.net||0)+gecikmeUcreti;
   }
   if(o&&!D.kiralamalar.some(x=>x.id!==id&&x.oyunId===k.oyunId&&x.durum==='aktif')) o.durum='mevcut';
+  kapanisBaslat(k); // hesap kapanış kontrol listesi
   save();renderKiralamalar();renderDashboard();updateStats();
+  setTimeout(()=>kapanisAc(k.id),150);
 
   // 4) Geri al butonlu bildirim
   toastAksiyon('İade alındı ✅'+(gecikmeUcreti>0?' · +'+fmt(gecikmeUcreti)+' gecikme ücreti':'')+(erkenOdul>0?' · '+fmt(erkenOdul)+' bakiye ödülü':''),'↩️ Geri al','iadeGeriAl()');
@@ -4758,7 +4821,9 @@ function calcUzatma(){
 
   // Ücret hesapla
   if(o){
-    const gunluk=k.tip==='primary'?(o.gunlukPri||o.gunluk||0):(o.gunlukSec||Math.round((o.gunlukPri||o.gunluk||0)*0.7));
+    const gunluk0=k.tip==='primary'?(o.gunlukPri||o.gunluk||0):(o.gunlukSec||Math.round((o.gunlukPri||o.gunluk||0)*0.7));
+    const kp=oyunKampanyasi(o,today()); // aktif fiyat kampanyası uzatmaya da uygulanır
+    const gunluk=kp?Math.max(1,Math.round(gunluk0*(1-kp.oran/100))):gunluk0;
     document.getElementById('uzatma-ucret').value=gunluk*gun;
   }
 }
@@ -4918,6 +4983,8 @@ function renderAyarlar(){
   renderTierAyarlar();
   renderTatilModu();
   renderBotAyarlar();
+  renderKapanisAyarlar();
+  renderSabahAyar();
   renderBulutYedekListe();
 }
 
@@ -5380,9 +5447,9 @@ function getMusteriTier(musteriId){
   var ta=D.tierAyarlar||{};
   var T={platinplus:ta.platinplus??5000,platin:ta.platin??3000,altin:ta.altin??1500,gumus:ta.gumus??750};
   var I={platinplus:ta.platinplusIndirim??20,platin:ta.platinIndirim??15,altin:ta.altinIndirim??10,gumus:ta.gumusIndirim??5};
-  if(toplam>=T.platinplus) return {seviye:'platinplus',emoji:'👑',label:'👑 Platin+',indirim:I.platinplus,renk:'#f59e0b',bg:'rgba(245,158,11,.15)',toplam:toplam,sonraki:null,kalanTL:0,oncelikliRezervHakki:true};
-  if(toplam>=T.platin) return {seviye:'platin',emoji:'💎',label:'\uD83D\uDC8E Platin',indirim:I.platin,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam,sonraki:'Platin+ 👑',kalanTL:T.platinplus-toplam};
-  if(toplam>=T.altin) return {seviye:'altin',emoji:'🥇',label:'\uD83E\uDD47 Alt\u0131n',indirim:I.altin,renk:'#fbbf24',bg:'rgba(251,191,36,.15)',toplam:toplam,sonraki:'Platin 💎',kalanTL:T.platin-toplam};
+  if(toplam>=T.platinplus) return {seviye:'platinplus',emoji:'💎',label:'💎 Elmas',indirim:I.platinplus,renk:'#38bdf8',bg:'rgba(56,189,248,.15)',toplam:toplam,sonraki:null,kalanTL:0,oncelikliRezervHakki:true};
+  if(toplam>=T.platin) return {seviye:'platin',emoji:'🏆',label:'🏆 Platin',indirim:I.platin,renk:'#a78bfa',bg:'rgba(167,139,250,.15)',toplam:toplam,sonraki:'Elmas 💎',kalanTL:T.platinplus-toplam};
+  if(toplam>=T.altin) return {seviye:'altin',emoji:'🥇',label:'\uD83E\uDD47 Alt\u0131n',indirim:I.altin,renk:'#fbbf24',bg:'rgba(251,191,36,.15)',toplam:toplam,sonraki:'Platin 🏆',kalanTL:T.platin-toplam};
   if(toplam>=T.gumus) return {seviye:'gumus',emoji:'🥈',label:'\uD83E\uDD48 G\u00fcm\u00fc\u015f',indirim:I.gumus,renk:'#94a3b8',bg:'rgba(148,163,184,.15)',toplam:toplam,sonraki:'Alt\u0131n 🥇',kalanTL:T.altin-toplam};
   return {seviye:'bronz',emoji:'🥉',label:'\uD83E\uDD49 Bronz',indirim:0,renk:'#cd7c54',bg:'rgba(205,124,84,.15)',toplam:toplam,sonraki:'G\u00fcm\u00fc\u015f 🥈',kalanTL:T.gumus-toplam};
 }
@@ -5398,8 +5465,8 @@ function renderTierKarti(musteriId){
   var esikler = [
     {max:ta2.gumus??750,  label:'🥈 Gümüş (%'+(ta2.gumusIndirim??5)+')'},
     {max:ta2.altin??1500, label:'🥇 Altın (%'+(ta2.altinIndirim??10)+')'},
-    {max:ta2.platin??3000,label:'💎 Platin (%'+(ta2.platinIndirim??15)+')'},
-    {max:ta2.platinplus??5000,label:'👑 Platin+ (%'+(ta2.platinplusIndirim??20)+' + Öncelikli Rezerv)'}
+    {max:ta2.platin??3000,label:'🏆 Platin (%'+(ta2.platinIndirim??15)+')'},
+    {max:ta2.platinplus??5000,label:'💎 Elmas (%'+(ta2.platinplusIndirim??20)+' + Sırada Öncelik)'}
   ];
   var sonraki = esikler.find(function(e){return t.toplam<e.max;});
   var html = '<div style="background:'+t.bg+';border:1px solid '+t.renk+'44;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">';
@@ -5727,7 +5794,7 @@ function ulasilabilirMi(m){ return !!(m.whatsappLid||(m.tel&&m.tel.replace(/[^0-
 function karaListedeMi(id){ return (D.karaListe||[]).some(k=>k.musteriId===id); }
 function sablonDoldur(s, v){ return s.replace(/\{(\w+)\}/g,(t,k)=>v[k]!==undefined?v[k]:t); }
 
-function renderBuyume(){ renderLansman(); renderGeriKazanim(); }
+function renderBuyume(){ renderKampanyalar(); renderLansman(); renderGeriKazanim(); }
 
 // ---------- LANSMAN ----------
 function lansmanKitle(o){
@@ -6008,6 +6075,226 @@ function renderGkSonuclar(){
       <td style="text-align:center"><b style="color:${donen.length?'var(--success)':'var(--text3)'}">${donen.length}</b> <span style="font-size:11px;color:var(--text3)">(%${Math.round(donen.length/k.sayi*100)})</span></td>
       <td style="text-align:center">${k.oran?kullanan:'—'}</td><td style="text-align:right" class="profit">${fmt(gelir)}</td></tr>`;
   }).join('')+'</tbody></table></div>';
+}
+
+// ══════════════════════════════════════════
+// 🏷️ PLANLI KAMPANYALAR (tarihli indirim + paket kiralama)
+// Fiyatlar kalıcı değişmez: kampanya tarihleri arasında indirim hesaplanarak uygulanır,
+// bitiş tarihinde kendiliğinden biter. Bot da aynı kuralları uygular.
+// ══════════════════════════════════════════
+function kampanyaListesi(){ if(!Array.isArray(D.kampanyalar)) D.kampanyalar=[]; return D.kampanyalar; }
+function kampanyaAktifMi(k,tarih){ tarih=tarih||today(); return !k.iptal&&k.baslangic<=tarih&&tarih<=k.bitis; }
+function kampanyaKapsar(k,o,tarih){
+  if(!o) return false;
+  const kp=k.kapsam||{tip:'hepsi'};
+  if(kp.tip==='secili') return (kp.oyunIds||[]).includes(o.id);
+  if(kp.tip==='eski') return !!o.cikis&&daysDiff(o.cikis,tarih||today())>=(kp.gun||120);
+  if(kp.tip==='platform') return (o.platform||'').includes(kp.platform||'');
+  return true;
+}
+// Oyuna o tarihte uygulanan en yüksek fiyat indirimi
+function oyunKampanyasi(o,tarih){
+  tarih=tarih||today();
+  return kampanyaListesi().filter(k=>k.tur==='indirim'&&kampanyaAktifMi(k,tarih)&&kampanyaKapsar(k,o,tarih)).sort((a,b)=>b.oran-a.oran)[0]||null;
+}
+function kampanyaliFiyat(o,tip,tarih){
+  const pri=o.gunlukPri||o.gunluk||0;
+  const taban=tip==='primary'?pri:(o.gunlukSec||Math.round(pri*0.7));
+  const k=oyunKampanyasi(o,tarih);
+  return k?Math.max(1,Math.round(taban*(1-k.oran/100))):taban;
+}
+function aktifPaketKampanyasi(tarih){ return kampanyaListesi().filter(k=>k.tur==='paket'&&kampanyaAktifMi(k,tarih)).sort((a,b)=>b.oran-a.oran)[0]||null; }
+// Paket: müşterinin son 2 gün içinde başlamış (veya aynı gün) başka aktif kiralaması varsa bu kiralama paket sayılır
+function paketUygunMu(musteriId,bas,haricId){
+  const p=aktifPaketKampanyasi(bas); if(!p||!musteriId) return null;
+  const digerleri=D.kiralamalar.filter(k=>k.musteriId===musteriId&&k.durum==='aktif'&&k.id!==haricId&&k.bas>=addDays(bas||today(),-2));
+  return digerleri.length>=(p.minOyun||2)-1?p:null;
+}
+
+function renderKampanyalar(){
+  const el=document.getElementById('kampanya-panel'); if(!el) return;
+  const now=today();
+  const liste=kampanyaListesi().slice().sort((a,b)=>b.baslangic.localeCompare(a.baslangic));
+  const durum=k=>k.iptal?'<span style="color:var(--text3)">İptal</span>':now<k.baslangic?'<span style="color:var(--accent)">⏳ Planlı</span>':now>k.bitis?'<span style="color:var(--text3)">Bitti</span>':'<span style="color:var(--success);font-weight:700">● Aktif</span>';
+  const kapsamYazi=k=>k.tur==='paket'?`${k.minOyun||2}+ oyun birlikte`:({hepsi:'Tüm oyunlar',eski:`Çıkışı ${k.kapsam?.gun||120}+ gün olan oyunlar`,platform:(k.kapsam?.platform||'')+' oyunları',secili:(k.kapsam?.oyunIds||[]).length+' seçili oyun'})[k.kapsam?.tip||'hepsi'];
+  const istat=k=>{
+    const ks=D.kiralamalar.filter(r=>r.fiyatKampanyaId===k.id||r.paketKampanyaId===k.id);
+    return {sayi:ks.length,gelir:ks.reduce((t,r)=>t+(r.net||0),0)};
+  };
+  const oyunSecenek=D.oyunlar.slice().sort((a,b)=>a.ad.localeCompare(b.ad,'tr')).map(o=>`<label style="display:flex;gap:6px;align-items:center;font-size:12px;text-transform:none;letter-spacing:0;font-weight:400;margin:0;padding:3px 0"><input type="checkbox" class="kp-oyun" value="${o.id}"> ${esc(o.ad)} <span style="color:var(--text3)">${esc(o.platform||'')}</span></label>`).join('');
+  const inp='padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border);font-family:inherit';
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <div style="font-weight:700;margin-bottom:10px">➕ Yeni kampanya</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--text3)">Ad</label><input id="kp-ad" placeholder="Örn: Kasım indirimi" style="width:100%;box-sizing:border-box;${inp}"></div>
+        <div><label style="font-size:11px;color:var(--text3)">Tür</label><select id="kp-tur" onchange="kampanyaFormGuncelle()" style="width:100%;${inp}"><option value="indirim">🏷️ Fiyat indirimi</option><option value="paket">📦 Paket kiralama</option></select></div>
+        <div><label style="font-size:11px;color:var(--text3)">İndirim %</label><input id="kp-oran" type="number" min="1" max="70" value="15" style="width:100%;box-sizing:border-box;${inp}"></div>
+        <div><label style="font-size:11px;color:var(--text3)">Başlangıç</label><input id="kp-bas" type="date" value="${now}" style="width:100%;box-sizing:border-box;${inp}"></div>
+        <div><label style="font-size:11px;color:var(--text3)">Bitiş</label><input id="kp-bit" type="date" value="${addDays(now,13)}" style="width:100%;box-sizing:border-box;${inp}"></div>
+        <div id="kp-paket-alan" style="display:none;grid-column:1/-1"><label style="font-size:11px;color:var(--text3)">Kaç oyun birlikte kiralanınca</label><input id="kp-min" type="number" min="2" max="5" value="2" style="width:100px;${inp}">
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Müşteri 2 gün içinde başlayan ikinci (ve sonraki) kiralamasında bu indirimi alır. Üyelik indiriminden yüksekse o uygulanır.</div></div>
+        <div id="kp-kapsam-alan" style="grid-column:1/-1"><label style="font-size:11px;color:var(--text3)">Hangi oyunlar</label>
+          <select id="kp-kapsam" onchange="kampanyaFormGuncelle()" style="width:100%;${inp}"><option value="eski">Eski oyunlar (çıkışı X günden eski)</option><option value="hepsi">Tüm oyunlar</option><option value="platform">Platform</option><option value="secili">Seçtiğim oyunlar</option></select>
+          <div id="kp-eski" style="margin-top:6px"><input id="kp-gun" type="number" min="30" value="120" style="width:90px;${inp}"> <span style="font-size:12px;color:var(--text3)">gün ve daha eski — <span id="kp-eski-sayi"></span></span></div>
+          <div id="kp-platform" style="display:none;margin-top:6px"><select id="kp-plat" style="${inp}"><option>PS5</option><option>PS4</option></select></div>
+          <div id="kp-secili" style="display:none;margin-top:6px;max-height:160px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px 10px">${oyunSecenek}</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="kampanyaKaydet()">💾 Kampanyayı oluştur</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">Fiyatlar kalıcı değişmez; kampanya tarihleri arasında sitede ve botta indirimli fiyat kullanılır, bitiş tarihinde kendiliğinden biter.</div>
+    </div>
+    <div>
+      ${liste.length?`<div class="tbl-wrap"><table><thead><tr><th>Kampanya</th><th>Tarih</th><th>Kapsam</th><th style="text-align:center">Kiralama</th><th style="text-align:right">Gelir</th><th></th></tr></thead><tbody>${liste.map(k=>{const s=istat(k);return `<tr>
+        <td><strong>${esc(k.ad)}</strong><br><span style="font-size:11px">${k.tur==='paket'?'📦':'🏷️'} %${k.oran} · ${durum(k)}</span></td>
+        <td style="font-size:12px">${fmtDate(k.baslangic)}<br>${fmtDate(k.bitis)}</td>
+        <td style="font-size:12px">${esc(kapsamYazi(k))}</td>
+        <td style="text-align:center">${s.sayi}</td><td style="text-align:right" class="profit">${fmt(s.gelir)}</td>
+        <td style="white-space:nowrap">${!k.iptal&&now<=k.bitis?`<button class="btn btn-sm btn-outline" title="Müşterilere duyur" onclick="kampanyaDuyur(${k.id})">📣</button><button class="btn btn-sm btn-danger" title="Kampanyayı bitir" onclick="kampanyaBitir(${k.id})">⏹</button>`:''}</td></tr>`;}).join('')}</tbody></table></div>`
+      :'<div class="empty" style="padding:20px"><div class="empty-text">Henüz planlı kampanya yok</div></div>'}
+    </div>
+  </div>`;
+  kampanyaFormGuncelle();
+}
+function kampanyaFormGuncelle(){
+  const tur=document.getElementById('kp-tur')?.value, kap=document.getElementById('kp-kapsam')?.value;
+  if(!tur) return;
+  document.getElementById('kp-paket-alan').style.display=tur==='paket'?'block':'none';
+  document.getElementById('kp-kapsam-alan').style.display=tur==='paket'?'none':'block';
+  document.getElementById('kp-eski').style.display=kap==='eski'?'block':'none';
+  document.getElementById('kp-platform').style.display=kap==='platform'?'block':'none';
+  document.getElementById('kp-secili').style.display=kap==='secili'?'block':'none';
+  const gun=parseInt(document.getElementById('kp-gun').value)||120;
+  const n=D.oyunlar.filter(o=>o.cikis&&daysDiff(o.cikis,today())>=gun).length;
+  const el=document.getElementById('kp-eski-sayi'); if(el) el.textContent=n+' oyun kapsanıyor';
+}
+function kampanyaKaydet(){
+  const g=id=>document.getElementById(id);
+  const ad=g('kp-ad').value.trim()||'Kampanya', tur=g('kp-tur').value, oran=Math.min(70,Math.max(1,parseInt(g('kp-oran').value)||0));
+  const baslangic=g('kp-bas').value, bitis=g('kp-bit').value;
+  if(!baslangic||!bitis||bitis<baslangic){ toast('Tarihleri kontrol et','error'); return; }
+  const k={id:(kampanyaListesi().reduce((m,x)=>Math.max(m,x.id||0),0))+1,ad,tur,oran,baslangic,bitis,olusturma:today()};
+  if(tur==='paket') k.minOyun=Math.max(2,parseInt(g('kp-min').value)||2);
+  else {
+    const t=g('kp-kapsam').value; k.kapsam={tip:t};
+    if(t==='eski') k.kapsam.gun=Math.max(30,parseInt(g('kp-gun').value)||120);
+    if(t==='platform') k.kapsam.platform=g('kp-plat').value;
+    if(t==='secili'){ k.kapsam.oyunIds=[...document.querySelectorAll('.kp-oyun:checked')].map(c=>parseInt(c.value)); if(!k.kapsam.oyunIds.length){ toast('Oyun seçmedin','error'); return; } }
+  }
+  kampanyaListesi().push(k); save(); renderKampanyalar(); renderOyunlar(); toast(`🏷️ "${ad}" kampanyası ${baslangic<=today()?'başladı':'planlandı'}`,'success');
+}
+function kampanyaBitir(id){
+  const k=kampanyaListesi().find(x=>x.id===id); if(!k) return;
+  if(!confirm(`"${k.ad}" kampanyası bugün itibarıyla bitirilsin mi?`)) return;
+  if(k.baslangic>=today()) k.iptal=true; else k.bitis=addDays(today(),-1);
+  save(); renderKampanyalar(); renderOyunlar(); toast('Kampanya bitirildi','info');
+}
+function kampanyaDuyur(id){
+  const k=kampanyaListesi().find(x=>x.id===id); if(!k) return;
+  const kapsamOyun=k.tur==='indirim'?D.oyunlar.filter(o=>kampanyaKapsar(k,o,k.baslangic>today()?k.baslangic:today())):[];
+  const ornek=kapsamOyun.slice().sort((a,b)=>(b.kiralamaSayisi||0)-(a.kiralamaSayisi||0)).slice(0,5).map(o=>'• '+o.ad).join('\n');
+  const metin = k.tur==='paket'
+    ? `🎉 Merhaba {isim}!\n\n📦 *Paket kampanyası:* ${fmtDate(k.baslangic)} – ${fmtDate(k.bitis)} arasında ${k.minOyun||2} oyunu birlikte kiralayana ikinci oyunda *%${k.oran} indirim*!\n\nKiralamak için *5* yazman yeterli 🎮`
+    : `🎉 Merhaba {isim}!\n\n🏷️ *${k.ad}:* ${fmtDate(k.baslangic)} – ${fmtDate(k.bitis)} arasında ${kapsamOyun.length>8?'seçili oyunlarda':'şu oyunlarda'} *%${k.oran} indirim*!\n\n${ornek}${kapsamOyun.length>5?'\n• ...ve daha fazlası':''}\n\nKiralamak için *5* yazman yeterli 🎮`;
+  openDuyuruModal();
+  setTimeout(()=>{ document.getElementById('duyuru-grup').value='son3ay'; duyuruGrupDegis(); document.getElementById('duyuru-mesaj').value=metin; duyuruOnizle(); },50);
+}
+
+// ══════════════════════════════════════════
+// 🔒 HESAP KAYDI + İADE KONTROL LİSTESİ
+// ══════════════════════════════════════════
+const KAPANIS_VARSAYILAN = {
+  primary: ['Müşteri konsolda "Çevrimdışı Oynama"yı kapattı', 'Hesap şifresi değiştirildi', 'Tüm cihazlardan çıkış yapıldı'],
+  secondary: ['Hesap şifresi değiştirildi', 'Tüm cihazlardan çıkış yapıldı']
+};
+function kapanisAdimlari(tip){ const a=ayarGet('kapanisAdimlari',null); return (a&&Array.isArray(a[tip])&&a[tip].length)?a[tip]:KAPANIS_VARSAYILAN[tip]; }
+// Kiralamanın verildiği PSN hesabı: ana hesap için oyunun "hesap" alanı, kopyalar için kopya notu
+function kiraHesabi(k){
+  const o=D.oyunlar.find(x=>x.id===k.oyunId); if(!o) return '';
+  if(k.kopyaIdx>0){ const kp=(o.kopyalar||[])[k.kopyaIdx-1]; return (kp&&(kp.hesap||kp.not))||('Kopya '+(k.kopyaIdx+1)); }
+  return o.hesap||'Ana hesap';
+}
+function hesapEtiketi(k){ const h=kiraHesabi(k); return h?'<span style="font-size:10px;color:#a78bfa;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);padding:1px 6px;border-radius:4px;white-space:nowrap">🔑 '+esc(h)+'</span>':''; }
+// Bot ile yapılan primary iadede müşterinin "Çevrimdışı Oynama'yı kapattım" onayı
+function musteriOnayRozet(k,uzun){
+  if(!k.kapanis||k.tip!=='primary'||k.kapanis.kaynak!=='bot') return '';
+  return k.kapanis.musteriCevrimdisi
+    ? `<span style="font-size:10px;color:var(--success);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:1px 6px;border-radius:4px;${uzun?'display:inline-block;white-space:normal':'white-space:nowrap'}">👤 ${uzun?'Müşteri Çevrimdışı Oynama\'yı kapattığını onayladı':'müşteri onayladı'} ✓</span>`
+    : `<span style="font-size:10px;color:var(--warning);background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.3);padding:1px 6px;border-radius:4px;${uzun?'display:inline-block;white-space:normal':'white-space:nowrap'}">⏳ ${uzun?'Müşteri çevrimdışı oynamayı kapattığını henüz onaylamadı — şifreyi değiştirmeden önce bekle':'müşteri onaylamadı'}</span>`;
+}
+function kapanisBaslat(k){ k.kapanis={gerekli:true,tarih:today(),adimlar:{},tamam:false}; }
+function kapanisAc(kiraId){
+  const k=D.kiralamalar.find(x=>x.id===kiraId); if(!k) return;
+  if(!k.kapanis) kapanisBaslat(k);
+  const o=D.oyunlar.find(x=>x.id===k.oyunId), m=D.musteriler.find(x=>x.id===k.musteriId);
+  const adimlar=kapanisAdimlari(k.tip);
+  document.getElementById('kapanis-overlay')?.remove();
+  const ov=document.createElement('div'); ov.id='kapanis-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML=`<div style="background:var(--surface1,#16161e);border:1px solid var(--border);border-radius:14px;max-width:460px;width:100%;padding:18px">
+    <div style="font-weight:700;font-size:15px">🔒 Hesap kapanışı</div>
+    <div style="font-size:13px;color:var(--text2);margin:6px 0 12px;line-height:1.6">🎮 <b>${esc(o?.ad||'')}</b> (${k.tip==='primary'?'Primary':'Secondary'})<br>🔑 Hesap: <b>${esc(kiraHesabi(k))}</b><br>👤 ${esc(m?((m.ad||'')+' '+(m.soyad||'')).trim():'')} · iade ${fmtDate(k.teslimTarih||today())}</div>
+    ${musteriOnayRozet(k,true)?`<div style="margin:-4px 0 10px;line-height:1.8">${musteriOnayRozet(k,true)}</div>`:''}
+    ${adimlar.map((a,i)=>`<label style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px">
+      <input type="checkbox" class="kapanis-cb" data-a="${esc(a)}" ${k.kapanis.adimlar[a]?'checked':''} style="width:18px;height:18px"> ${esc(a)}</label>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('kapanis-overlay').remove()">Sonra yaparım</button>
+      <button class="btn btn-success" style="flex:1" onclick="kapanisKaydet(${k.id})">💾 Kaydet</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">Tamamlanmayan kapanışlar Dashboard'da "Kapatılmamış hesaplar" bölümünde görünür.</div></div>`;
+  document.body.appendChild(ov);
+}
+function kapanisKaydet(kiraId){
+  const k=D.kiralamalar.find(x=>x.id===kiraId); if(!k) return;
+  if(!k.kapanis) kapanisBaslat(k);
+  document.querySelectorAll('.kapanis-cb').forEach(cb=>{ k.kapanis.adimlar[cb.dataset.a]=cb.checked; });
+  const adimlar=kapanisAdimlari(k.tip);
+  k.kapanis.tamam=adimlar.every(a=>k.kapanis.adimlar[a]);
+  if(k.kapanis.tamam) k.kapanis.tamamTarih=today();
+  save(); document.getElementById('kapanis-overlay')?.remove(); renderDashboard();
+  toast(k.kapanis.tamam?'🔒 Hesap kapanışı tamamlandı':'Kaydedildi — eksik adımlar Dashboard\'da hatırlatılacak', k.kapanis.tamam?'success':'info');
+}
+function acikKapanislar(){ return D.kiralamalar.filter(k=>k.durum==='teslim'&&k.kapanis&&k.kapanis.gerekli&&!k.kapanis.tamam).sort((a,b)=>(a.teslimTarih||'').localeCompare(b.teslimTarih||'')); }
+function renderKapanislar(){
+  const sec=document.getElementById('d-kapanis-section'), tbl=document.getElementById('d-kapanis-tbl'); if(!sec||!tbl) return;
+  const list=acikKapanislar();
+  sec.style.display=list.length?'':'none';
+  const sayi=document.getElementById('d-kapanis-sayi'); if(sayi) sayi.textContent=list.length?list.length+' hesap':'';
+  tbl.innerHTML=list.map(k=>{
+    const o=D.oyunlar.find(x=>x.id===k.oyunId), m=D.musteriler.find(x=>x.id===k.musteriId);
+    const adim=kapanisAdimlari(k.tip), yapilan=adim.filter(a=>k.kapanis.adimlar[a]).length;
+    const gecen=daysDiff(k.teslimTarih||k.kapanis.tarih,today());
+    return `<tr><td><strong>${esc(o?.ad||'-')}</strong> ${hesapEtiketi(k)} ${musteriOnayRozet(k)}</td><td>${esc(m?((m.ad||'')+' '+(m.soyad||'')).trim():'')}</td>
+      <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
+      <td style="${gecen>=1?'color:var(--danger);font-weight:600':''}">${fmtDate(k.teslimTarih)}${gecen>=1?` (${gecen}g)`:''}</td>
+      <td>${yapilan}/${adim.length}</td>
+      <td><button class="btn btn-success btn-sm" onclick="kapanisAc(${k.id})">🔒 Tamamla</button></td></tr>`;
+  }).join('');
+}
+function renderKapanisAyarlar(){
+  const p=document.getElementById('kapanis-primary'), s=document.getElementById('kapanis-secondary');
+  if(p) p.value=kapanisAdimlari('primary').join('\n');
+  if(s) s.value=kapanisAdimlari('secondary').join('\n');
+}
+function saveKapanisAyarlar(){
+  const satir=id=>(document.getElementById(id)?.value||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,8);
+  ayarSet('kapanisAdimlari',{primary:satir('kapanis-primary'),secondary:satir('kapanis-secondary')});
+  toast('Kontrol listesi kaydedildi ✅','success');
+}
+
+// ══════════════════════════════════════════
+// ☀️ SABAH ÖZETİ AYARI (bot her sabah işletmeciye WhatsApp özeti atar)
+// ══════════════════════════════════════════
+function renderSabahAyar(){
+  const a=ayarGet('sabahOzeti',{aktif:true,saat:10})||{};
+  const c=document.getElementById('sabah-aktif'), s=document.getElementById('sabah-saat');
+  if(c) c.checked=a.aktif!==false;
+  if(s) s.value=a.saat??10;
+}
+function saveSabahAyar(){
+  ayarSet('sabahOzeti',{aktif:document.getElementById('sabah-aktif').checked,saat:Math.min(14,Math.max(6,parseInt(document.getElementById('sabah-saat').value)||10))});
+  toast('Sabah özeti ayarı kaydedildi ✅','success');
 }
 
 // ===== TOPLU WHATSAPP =====
@@ -6321,8 +6608,8 @@ if('serviceWorker' in navigator){
       <input type="hidden" id="kopya-idx">
       <div class="form-grid">
         <div class="form-group full">
-          <label>Kopya Notu (opsiyonel)</label>
-          <input type="text" id="kopya-not" placeholder="Örn: 2. Hesap, Yedek Kopya...">
+          <label>🔑 Hesap adı / not</label>
+          <input type="text" id="kopya-not" placeholder="Örn: 2. Hesap veya hesabın e-postası — şifre YAZMAYIN" autocomplete="off">
         </div>
         <div class="form-group">
           <label>🏪 Store (Hesap Bölgesi)</label>
@@ -6828,7 +7115,8 @@ function renderTakvim(){
           <label>Segment Filtresi</label>
           <select id="twa-seg-filtre" class="form-input" onchange="renderTopluWaMusteri()">
             <option value="hepsi">Hepsi</option>
-            <option value="platin">💎 Platin</option>
+            <option value="platinplus">💎 Elmas</option>
+            <option value="platin">🏆 Platin</option>
             <option value="altin">🥇 Altın</option>
             <option value="gumus">🥈 Gümüş</option>
             <option value="bronz">🥉 Bronz</option>

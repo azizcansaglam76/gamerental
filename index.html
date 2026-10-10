@@ -337,6 +337,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   <button class="nav-btn" onclick="nav('ekgelir',this)">💵 Ek Gelir</button>
   <button class="nav-btn" onclick="nav('takvim',this)">📅 Takvim</button>
   <button class="nav-btn" onclick="nav('raporlar',this)">📈 Raporlar</button>
+  <button class="nav-btn" onclick="nav('buyume',this)">🚀 Büyüme</button>
 
   <button class="nav-btn" onclick="nav('ayarlar',this)">⚙️ Ayarlar</button>
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto;padding-right:4px">
@@ -817,6 +818,18 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 </div>
 
 <!-- AYARLAR -->
+<!-- BÜYÜME: LANSMAN + GERİ KAZANIM -->
+<div class="page" id="page-buyume">
+  <div class="section">
+    <div class="section-head"><div class="section-title">🗓 Lansman Takvimi — çıkacak ve yeni çıkan oyunlar</div></div>
+    <div class="section-body" id="lansman-panel" style="padding:14px 16px"></div>
+  </div>
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">💌 Geri Kazanım — uzun süredir kiralamayan müşteriler</div></div>
+    <div class="section-body" id="gk-panel" style="padding:14px 16px"></div>
+  </div>
+</div>
+
 <div class="page" id="page-ayarlar">
   <div class="section">
     <div class="section-head"><div class="section-title">💬 WhatsApp Mesaj Şablonları</div></div>
@@ -1839,6 +1852,7 @@ function renderPage(p){
   else if(p==='ekgelir') renderEkGelir();
   else if(p==='raporlar') renderRaporlar();
   else if(p==='takvim') renderTakvim();
+  else if(p==='buyume') renderBuyume();
 }
 
 function setFilter(type,val,btn){
@@ -2931,7 +2945,10 @@ function calcKira(){
   const musteriTier=musteriId?getMusteriTier(musteriId):{seviye:'bronz',indirim:0};
   const platinMusteri=musteriTier.seviye==='platin'||musteriTier.seviye==='platinplus';
   // Tier indirimini otomatik uygula
-  const tierIndirimPct=musteriTier.indirim||0;
+  // Geri kazanım kampanyasından gelen kişiye özel indirim üyelik indiriminden yüksekse o uygulanır
+  const _ozel=musteriId?aktifOzelIndirimSite(D.musteriler.find(m=>m.id===musteriId)):null;
+  const _ozelKullan=!!_ozel&&_ozel.oran>(musteriTier.indirim||0);
+  const tierIndirimPct=_ozelKullan?_ozel.oran:(musteriTier.indirim||0);
   const indirimPctEl=document.getElementById('kira-indirim-pct');
   if(tierIndirimPct>0){
     indirimPctEl.value=tierIndirimPct;
@@ -2960,7 +2977,11 @@ function calcKira(){
   }
   const tierBilgiEl=document.getElementById('kira-tier-bilgi');
   if(tierBilgiEl){
-    if(musteriId&&musteriTier.seviye!=='bronz'){
+    tierBilgiEl.style.color='';
+    if(musteriId&&_ozelKullan){
+      tierBilgiEl.style.display='block';
+      tierBilgiEl.innerHTML=`🎁 Geri kazanım indirimi &mdash; <strong>%${_ozel.oran}</strong> uygulandı (${fmtDate(_ozel.bitis)} tarihine kadar geçerli)`;
+    } else if(musteriId&&musteriTier.seviye!=='bronz'){
       tierBilgiEl.style.display='block';
       tierBilgiEl.innerHTML=`${musteriTier.label} üye &mdash; <strong>%${musteriTier.indirim} indirim</strong> uygulandı ✨`;
     } else if(musteriId){
@@ -3152,6 +3173,16 @@ function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme
     }
     D.kiralamalar.push({id:D.nextId.k++,oyunId,musteriId,tip,bas,bit,ucret,indirim,net,onOdeme,hediyeGun,notlar,durum:'aktif',kopyaIdx:kIdx,odemeTip});
     oyun.durum='kirada';oyun.kiralamaSayisi++;oyun.toplamGelir+=net;
+    // Geri kazanım indirimi uygulandıysa "kullanıldı" olarak işaretle (kampanya sonuçlarında sayılır)
+    {
+      const mOz=D.musteriler.find(x=>x.id===musteriId);
+      const oz=aktifOzelIndirimSite(mOz);
+      const uygulanan=ucret>0?Math.round(indirim/ucret*100):0;
+      if(oz&&uygulanan>=oz.oran){
+        oz.kullanildi=true; const yk=D.kiralamalar[D.kiralamalar.length-1]; oz.kiraId=yk.id;
+        if(oz.kampanyaId) yk.kampanyaId=oz.kampanyaId;
+      }
+    }
     // Bekleme listesinden geldiyse: kaydı "kiralandı" yap, ön ödemeyi kiralamaya bağla
     const rezervId=window._kiraRezervId||window._aktifRezervId;
     const rv=rezervId?D.rezervasyonlar.find(x=>x.id===rezervId&&x.durum==='bekliyor'):null;
@@ -5673,6 +5704,310 @@ function raporPDF(){
   const w=window.open('','_blank');
   if(!w){ toast('Açılır pencere engellendi — tarayıcıda bu siteye izin ver','error'); return; }
   w.document.open(); w.document.write(html); w.document.close();
+}
+
+// ══════════════════════════════════════════
+// 🚀 BÜYÜME: LANSMAN TAKVİMİ + GERİ KAZANIM
+// ══════════════════════════════════════════
+const LANSMAN_SABLON = {
+  once: '🎮 Merhaba {isim}!\n\n*{oyun}* {tarih} tarihinde çıkıyor 🔥\n\nİlk oynayanlardan olmak için şimdiden sıraya girebilirsin — *8* yazman yeterli.\n\n🔵 Primary: {pri}/gün · 🟣 Secondary: {sec}/gün',
+  cikti: '🚀 Merhaba {isim}!\n\n*{oyun}* çıktı ve kiralamaya hazır! 🎉\n\n🔵 Primary: {pri}/gün · 🟣 Secondary: {sec}/gün\n\nKiralamak için *5* yazabilirsin 🎮'
+};
+const GERI_KAZANIM_SABLON = '👋 Merhaba {isim}!\n\nUzun zamandır görüşemedik 🎮 En son *{sonOyun}* oynamıştın.\n\nBunu da seveceğini düşündük: *{oneri}* 🔥{indirim}\n\nKiralamak için *5* yazman yeterli.';
+const GK_GUNLUK_LIMIT = 30;
+
+function aktifOzelIndirimSite(m){
+  const oz=m&&m.ozelIndirim;
+  if(!oz||oz.kullanildi||!(oz.oran>0)) return null;
+  if(oz.bitis&&oz.bitis<today()) return null;
+  return oz;
+}
+function musteriSohbet(m){ return { chatId: m.whatsappLid||'', tel: m.tel||'', ad: (m.ad||m.soyad||'').trim() }; }
+function ulasilabilirMi(m){ return !!(m.whatsappLid||(m.tel&&m.tel.replace(/[^0-9]/g,'').length>=10)); }
+function karaListedeMi(id){ return (D.karaListe||[]).some(k=>k.musteriId===id); }
+function sablonDoldur(s, v){ return s.replace(/\{(\w+)\}/g,(t,k)=>v[k]!==undefined?v[k]:t); }
+
+function renderBuyume(){ renderLansman(); renderGeriKazanim(); }
+
+// ---------- LANSMAN ----------
+function lansmanKitle(o){
+  const now=today(), b180=addDays(now,-179);
+  const bekleyenIds=new Set(D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor').map(r=>r.musteriId));
+  const kiralayanIds=new Set(D.kiralamalar.filter(k=>k.oyunId===o.id).map(k=>k.musteriId));
+  const cikisMap={}; D.oyunlar.forEach(x=>cikisMap[x.id]=x);
+  const ilgili=[];
+  D.musteriler.forEach(m=>{
+    if(bekleyenIds.has(m.id)||kiralayanIds.has(m.id)||karaListedeMi(m.id)||m.onKayit||!ulasilabilirMi(m)) return;
+    const ks=D.kiralamalar.filter(k=>k.musteriId===m.id&&k.bas>=b180);
+    if(!ks.length) return;
+    const ayniTur=o.tur&&o.tur!=='Diğer'&&ks.some(k=>cikisMap[k.oyunId]?.tur===o.tur);
+    const yeniMeraklisi=ks.filter(k=>{const x=cikisMap[k.oyunId];return x&&x.cikis&&k.bas>=x.cikis&&daysDiff(x.cikis,k.bas)<=30;}).length>=2;
+    if(ayniTur||yeniMeraklisi) ilgili.push({m,neden:yeniMeraklisi&&ayniTur?'yeni çıkan + aynı tür':yeniMeraklisi?'yeni çıkanları kiralıyor':'aynı türü seviyor'});
+  });
+  const bekleme=[...bekleyenIds].map(id=>D.musteriler.find(m=>m.id===id)).filter(m=>m&&ulasilabilirMi(m)&&!karaListedeMi(m.id)).map(m=>({m,neden:'bekleme listesinde'}));
+  return {ilgili,bekleme};
+}
+function lansmanFiyatOnerisi(o){
+  const now=today(); if(!o.cikis) return null;
+  const gecen=daysDiff(o.cikis,now);
+  const pri=o.gunlukPri||o.gunluk||0, sec=o.gunlukSec||Math.round(pri*0.7);
+  if(gecen<0) return {tip:'bilgi',metin:'Lansman fiyatı'};
+  if(gecen<30) return {tip:'bilgi',metin:`Lansman dönemi · ${30-gecen} gün sonra fiyat değerlendirmesi`};
+  const a=oyunAnaliz(o);
+  if(a.bekleyen>0||a.dolulukMax>=0.8) return {tip:'koru',metin:`Talep yüksek (doluluk %${Math.round(a.dolulukMax*100)}) — fiyatı koru`};
+  if(o._kampanyaFiyat) return {tip:'bilgi',metin:'Kampanyada'};
+  const yuvarla=x=>Math.max(5,Math.round(x/5)*5);
+  if(a.dolulukMax<0.6) return {tip:'dusur',metin:`Doluluk %${Math.round(a.dolulukMax*100)} — fiyat düşürülebilir`,pri:yuvarla(pri*0.8),sec:yuvarla(sec*0.8)};
+  return {tip:'bilgi',metin:`Doluluk %${Math.round(a.dolulukMax*100)} — normal`};
+}
+function lansmanFiyatUygula(oyunId){
+  const o=D.oyunlar.find(x=>x.id===oyunId); if(!o) return;
+  const f=lansmanFiyatOnerisi(o); if(!f||f.tip!=='dusur') return;
+  const eskiP=o.gunlukPri||o.gunluk||0, eskiS=o.gunlukSec||0;
+  if(!confirm(`${o.ad}\n\nGünlük fiyat:\n🔵 Primary ${fmt(eskiP)} → ${fmt(f.pri)}\n🟣 Secondary ${fmt(eskiS)} → ${fmt(f.sec)}\n\nKalıcı olarak uygulansın mı? (Haftalık fiyatlar da aynı oranda düşer)`)) return;
+  const oran=eskiP?f.pri/eskiP:0.8;
+  if(!o.fiyatGecmisi) o.fiyatGecmisi=[];
+  o.fiyatGecmisi.push({tarih:today(),neden:'lansman sonrası',eski:{gunlukPri:eskiP,gunlukSec:eskiS,haftalikPri:o.haftalikPri||0,haftalikSec:o.haftalikSec||0}});
+  o.gunlukPri=f.pri; o.gunluk=f.pri; if(eskiS) o.gunlukSec=f.sec;
+  if(o.haftalikPri) o.haftalikPri=Math.round(o.haftalikPri*oran/5)*5;
+  if(o.haftalikSec) o.haftalikSec=Math.round(o.haftalikSec*oran/5)*5;
+  if(o.haftalik) o.haftalik=o.haftalikPri||Math.round(o.haftalik*oran/5)*5;
+  save(); renderLansman(); toast(`${o.ad} fiyatı güncellendi`,'success');
+}
+function renderLansman(){
+  const el=document.getElementById('lansman-panel'); if(!el) return;
+  const now=today();
+  const liste=D.oyunlar.filter(o=>o.cikis&&o.cikis>=addDays(now,-45)).sort((a,b)=>a.cikis.localeCompare(b.cikis));
+  if(!liste.length){ el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-text">Önümüzdeki dönemde çıkacak / yeni çıkmış oyun yok. Oyunlar sekmesinden çıkış tarihi girerek ekleyebilirsin.</div></div>'; return; }
+  el.innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Oyun</th><th>Çıkış</th><th style="text-align:center">Bekleyen</th><th style="text-align:center">Hesap</th><th style="text-align:center">İlgilenebilecek</th><th>Fiyat</th><th></th></tr></thead><tbody>'+
+  liste.map(o=>{
+    const kalan=daysDiff(now,o.cikis);
+    const rz=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
+    const p=rz.filter(r=>r.tip==='primary').length, s=rz.filter(r=>r.tip==='secondary').length;
+    const dep=rz.reduce((t,r)=>t+(r.onOdeme>0?r.onOdeme:0),0);
+    const ortGun=rz.length?rz.reduce((t,r)=>t+(r.tahminiGun||10),0)/rz.length:10;
+    const devir=Math.max(1,30/ortGun);
+    const mevcut=1+(o.kopyalar||[]).filter(k=>!k.satildi).length;
+    const gerekli=Math.max(Math.ceil(p/((o.ciftPrimary?2:1)*devir)),Math.ceil(s/devir),1);
+    const kitle=lansmanKitle(o);
+    const f=lansmanFiyatOnerisi(o);
+    const pri=o.gunlukPri||o.gunluk||0, sec=o.gunlukSec||Math.round(pri*0.7);
+    const son=(o.lansmanDuyurulari||[]).slice(-1)[0];
+    const durum = kalan>0 ? `<span style="color:var(--accent)">${kalan} gün kaldı</span>` : kalan===0 ? '<span style="color:var(--success);font-weight:700">🎉 Bugün çıkıyor</span>' : `<span style="color:var(--text3)">${-kalan} gün önce çıktı</span>`;
+    return `<tr>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showOyunDetay(${o.id})">${esc(o.ad)}</strong><br><span style="font-size:10px;color:var(--text3)">${esc(o.platform||'')}${o.tur?' · '+esc(o.tur):''}</span></td>
+      <td>${fmtDate(o.cikis)}<br><span style="font-size:11px">${durum}</span></td>
+      <td style="text-align:center">🔵${p} 🟣${s}${dep?`<br><span style="font-size:10px;color:var(--success)">💰 ${fmt(dep)}</span>`:''}</td>
+      <td style="text-align:center"><strong style="color:${gerekli>mevcut?'var(--warning)':'var(--success)'}">${mevcut}/${gerekli}</strong><br><span style="font-size:10px;color:var(--text3)">${gerekli>mevcut?(gerekli-mevcut)+' kopya eksik':'yeterli'}</span></td>
+      <td style="text-align:center">${kitle.ilgili.length} kişi</td>
+      <td style="font-size:12px">🔵${fmt(pri)} 🟣${fmt(sec)}<br><span style="font-size:11px;color:${f?.tip==='dusur'?'var(--warning)':f?.tip==='koru'?'var(--success)':'var(--text3)'}">${f?esc(f.metin):''}</span>${f?.tip==='dusur'?`<br><button class="btn btn-warning btn-sm" style="font-size:10px;padding:2px 8px;margin-top:3px" onclick="lansmanFiyatUygula(${o.id})">🔵${fmt(f.pri)} 🟣${fmt(f.sec)} yap</button>`:''}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="lansmanDuyuruAc(${o.id})">📣 ${kalan>0?'Ön duyuru':'Çıktı duyurusu'}</button>${son?`<br><span style="font-size:10px;color:var(--text3)">son: ${fmtDate(son.tarih)} · ${son.kisi} kişi</span>`:''}</td>
+    </tr>`;
+  }).join('')+'</tbody></table></div>'+
+  '<div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6">ℹ️ <b>Hesap</b>: mevcut / ilk ay için önerilen (bekleme listesi ve tahmini kiralama süresine göre). <b>İlgilenebilecek</b>: son 6 ayda aynı türde oyun kiralayan veya yeni çıkan oyunları ilk ayında kiralamayı seven, bu oyunu henüz kiralamamış müşteriler. Bekleme listesindekilere oyun çıkınca bot zaten "Sıran geldi" mesajı gönderir.</div>';
+}
+function lansmanDuyuruAc(oyunId){
+  const o=D.oyunlar.find(x=>x.id===oyunId); if(!o) return;
+  const kalan=daysDiff(today(),o.cikis);
+  const tur=kalan>0?'once':'cikti';
+  const k=lansmanKitle(o);
+  const pri=o.gunlukPri||o.gunluk||0, sec=o.gunlukSec||Math.round(pri*0.7);
+  window._lansman={oyunId,tur,kitle:[...k.ilgili.map(x=>({...x,grup:'ilgili'})),...k.bekleme.map(x=>({...x,grup:'bekleme'}))],
+    vars:{oyun:o.ad,tarih:fmtDate(o.cikis),pri:fmt(pri),sec:fmt(sec)}};
+  document.getElementById('lansman-duyuru-overlay')?.remove();
+  const ov=document.createElement('div'); ov.id='lansman-duyuru-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML=`<div style="background:var(--surface1,#16161e);border:1px solid var(--border);border-radius:14px;max-width:640px;width:100%;max-height:90vh;display:flex;flex-direction:column">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700">📣 ${esc(o.ad)} — ${tur==='once'?'Ön duyuru':'Çıktı duyurusu'}</div>
+    <div style="padding:14px 18px;overflow:auto;flex:1">
+      <label style="font-size:12px;color:var(--text3)">Mesaj ({isim}, {oyun}, {tarih}, {pri}, {sec} otomatik doldurulur)</label>
+      <textarea id="ld-mesaj" rows="7" oninput="lansmanOnizle()" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);font-family:inherit;font-size:13px">${esc(LANSMAN_SABLON[tur])}</textarea>
+      <div id="ld-onizle" style="white-space:pre-wrap;font-size:12px;background:rgba(0,198,255,.06);border:1px solid rgba(0,198,255,.2);border-radius:8px;padding:10px;margin-top:8px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:12px 0 6px;flex-wrap:wrap">
+        <strong style="font-size:13px">Alıcılar</strong><span id="ld-sayi" style="font-size:12px;color:var(--text3)"></span>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="lansmanSec('ilgili')">İlgilenebilecekler</button>
+        <button class="btn btn-outline btn-sm" onclick="lansmanSec('hepsi')">Hepsi</button>
+        <button class="btn btn-outline btn-sm" onclick="lansmanSec('hic')">Hiçbiri</button>
+      </div>
+      <div style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px">${window._lansman.kitle.map((x,i)=>`
+        <label style="display:flex;gap:8px;align-items:center;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;margin:0">
+          <input type="checkbox" class="ld-cb" data-i="${i}" ${x.grup==='ilgili'?'checked':''} onchange="lansmanSayi()">
+          <span style="flex:1">${esc(((x.m.ad||'')+' '+(x.m.soyad||'')).trim())}</span>
+          <span style="font-size:11px;color:${x.grup==='bekleme'?'var(--warning)':'var(--text3)'}">${esc(x.neden)}</span></label>`).join('')||'<div style="padding:10px;font-size:12px;color:var(--text3)">Uygun alıcı bulunamadı</div>'}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Mesajlar bot üzerinden 3,5 sn arayla gider. 40 kişiden fazlasını tek seferde göndermemen önerilir.</div>
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="document.getElementById('lansman-duyuru-overlay').remove()">İptal</button>
+      <button class="btn btn-primary" id="ld-gonder" onclick="lansmanGonder()">🤖 Bot ile gönder</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  lansmanOnizle(); lansmanSayi();
+}
+function lansmanSec(t){ document.querySelectorAll('.ld-cb').forEach(cb=>{ const x=window._lansman.kitle[cb.dataset.i]; cb.checked=t==='hepsi'||(t==='ilgili'&&x.grup==='ilgili'); }); lansmanSayi(); }
+function lansmanSayi(){ const n=document.querySelectorAll('.ld-cb:checked').length; const el=document.getElementById('ld-sayi'); if(el) el.textContent=n+' kişi seçili'+(n>40?' ⚠️ çok fazla':''); }
+function lansmanOnizle(){
+  const s=document.getElementById('ld-mesaj')?.value||''; const L=window._lansman; if(!L) return;
+  const ilk=L.kitle[0]?.m;
+  document.getElementById('ld-onizle').textContent=sablonDoldur(s,{...L.vars,isim:ilk?(ilk.ad||ilk.soyad||'').trim():'Ahmet'});
+}
+async function lansmanGonder(){
+  const L=window._lansman; if(!L) return;
+  const sablon=document.getElementById('ld-mesaj').value.trim(); if(!sablon){ toast('Mesaj boş','error'); return; }
+  const secili=[...document.querySelectorAll('.ld-cb:checked')].map(cb=>L.kitle[cb.dataset.i]);
+  if(!secili.length){ toast('Alıcı seçilmedi','warning'); return; }
+  if(!confirm(`${secili.length} kişiye bot ile mesaj gönderilsin mi?\n(Yaklaşık ${Math.ceil(secili.length*3.5/60)} dakika sürer)`)) return;
+  const alicilar=secili.map(x=>({...musteriSohbet(x.m),metin:sablonDoldur(sablon,{...L.vars,isim:(x.m.ad||x.m.soyad||'').trim()||'Değerli Müşterimiz'})}));
+  const btn=document.getElementById('ld-gonder'); btn.disabled=true; btn.textContent='⏳ Gönderiliyor...';
+  try{
+    const res=await botIstek('duyuru','/api/duyuru',{alicilar,aralikMs:3500,baslik:'Lansman duyurusu'});
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(d.hata||('HTTP '+res.status));
+    const o=D.oyunlar.find(x=>x.id===L.oyunId);
+    if(o){ if(!o.lansmanDuyurulari) o.lansmanDuyurulari=[]; o.lansmanDuyurulari.push({tarih:today(),tur:L.tur,kisi:secili.length}); }
+    save(); document.getElementById('lansman-duyuru-overlay').remove(); renderLansman();
+    toast(`🤖 ${secili.length} kişiye duyuru kuyruğa alındı — bitince WhatsApp'tan özet gelecek`,'success');
+  }catch(e){ toast('Bot hatası: '+e.message,'error'); btn.disabled=false; btn.textContent='🤖 Bot ile gönder'; }
+}
+
+// ---------- GERİ KAZANIM ----------
+function gkVeri(){ if(!D.geriKazanim) D.geriKazanim={kampanyalar:[]}; if(!D.geriKazanim.kampanyalar) D.geriKazanim.kampanyalar=[]; return D.geriKazanim; }
+function gkBugunGonderilen(){ return gkVeri().kampanyalar.filter(k=>k.tarih===today()).reduce((t,k)=>t+(k.sayi||0),0); }
+function gkOneriOyun(m, ks){
+  const now=today(), kiraladigi=new Set(ks.map(k=>k.oyunId));
+  const turSay={}; ks.forEach(k=>{const t=D.oyunlar.find(o=>o.id===k.oyunId)?.tur; if(t&&t!=='Diğer') turSay[t]=(turSay[t]||0)+1;});
+  const favTur=Object.entries(turSay).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const musaitMi=o=>['primary','secondary'].some(t=>D.kiralamalar.filter(k=>k.oyunId===o.id&&k.tip===t&&k.durum==='aktif').length<slotKapasiteSite(o,t));
+  const adaylar=D.oyunlar.filter(o=>!kiraladigi.has(o.id)&&(!o.cikis||o.cikis<=now));
+  const puan=o=>{ let p=0; if(favTur&&o.tur===favTur) p+=5; if(o.cikis&&daysDiff(o.cikis,now)<=60) p+=4; if(musaitMi(o)) p+=3;
+    p+=Math.min(3,D.kiralamalar.filter(k=>k.oyunId===o.id&&k.bas>=addDays(now,-90)).length/5); return p; };
+  return adaylar.sort((a,b)=>puan(b)-puan(a))[0]||null;
+}
+function gkAdaylar(esik){
+  const now=today(), g=gkVeri();
+  return D.musteriler.map(m=>{
+    if(m.onKayit||karaListedeMi(m.id)||!ulasilabilirMi(m)) return null;
+    const ks=D.kiralamalar.filter(k=>k.musteriId===m.id).sort((a,b)=>(a.bas||'').localeCompare(b.bas||''));
+    if(!ks.length||ks.some(k=>k.durum==='aktif')) return null;
+    if(D.rezervasyonlar.some(r=>r.musteriId===m.id&&r.durum==='bekliyor')) return null; // zaten bir oyunu bekliyor
+    const son=ks[ks.length-1]; const sonTarih=ks.map(k=>k.teslimTarih||k.bit).sort().pop();
+    const gecen=daysDiff(sonTarih,now);
+    if(gecen<esik) return null;
+    if(m.geriKazanim?.sonTarih&&daysDiff(m.geriKazanim.sonTarih,now)<30) return null; // son 30 günde mesaj atıldı
+    const toplam=ks.reduce((t,k)=>t+(k.net||0),0);
+    return {m,ks,gecen,toplam,sayi:ks.length,sonOyun:D.oyunlar.find(o=>o.id===son.oyunId)?.ad||'oyun',oneri:gkOneriOyun(m,ks)};
+  }).filter(Boolean);
+}
+function renderGeriKazanim(){
+  const el=document.getElementById('gk-panel'); if(!el) return;
+  const esik=parseInt(document.getElementById('gk-esik')?.value||'60');
+  const sirala=document.getElementById('gk-sirala')?.value||'deger';
+  const list=gkAdaylar(esik).sort((a,b)=>sirala==='deger'?b.toplam-a.toplam:sirala==='sayi'?b.sayi-a.sayi:a.gecen-b.gecen);
+  window._gkListe=list;
+  const kalanHak=Math.max(0,GK_GUNLUK_LIMIT-gkBugunGonderilen());
+  const oncekiSecili=new Set([...document.querySelectorAll('.gk-cb:checked')].map(cb=>parseInt(cb.dataset.id)));
+  const sablon=document.getElementById('gk-mesaj')?.value||GERI_KAZANIM_SABLON;
+  const oran=document.getElementById('gk-oran')?.value??'10';
+  const gun=document.getElementById('gk-gun')?.value??'14';
+  el.innerHTML=`
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+    <div><label style="font-size:11px;color:var(--text3);display:block">En son kiralamadan bu yana</label>
+      <select id="gk-esik" onchange="renderGeriKazanim()" style="padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border)">
+        ${[30,60,90,180].map(g=>`<option value="${g}" ${g===esik?'selected':''}>${g}+ gün</option>`).join('')}</select></div>
+    <div><label style="font-size:11px;color:var(--text3);display:block">Sırala</label>
+      <select id="gk-sirala" onchange="renderGeriKazanim()" style="padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border)">
+        <option value="deger" ${sirala==='deger'?'selected':''}>💰 En çok harcayan</option>
+        <option value="sayi" ${sirala==='sayi'?'selected':''}>🎮 En çok kiralayan</option>
+        <option value="yakin" ${sirala==='yakin'?'selected':''}>🕐 En yakın zamanda giden</option></select></div>
+    <div style="font-size:12px;color:var(--text3);margin-left:auto">${list.length} aday · bugün kalan gönderim hakkı: <b style="color:${kalanHak?'var(--success)':'var(--danger)'}">${kalanHak}/${GK_GUNLUK_LIMIT}</b></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+    <div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="gkIlkSec(${Math.min(20,kalanHak)})">İlk ${Math.min(20,kalanHak)} kişiyi seç</button>
+        <button class="btn btn-outline btn-sm" onclick="document.querySelectorAll('.gk-cb').forEach(c=>c.checked=false);gkGuncelle()">Temizle</button>
+        <span id="gk-secili" style="font-size:12px;color:var(--text3);align-self:center"></span>
+      </div>
+      <div style="max-height:380px;overflow:auto;border:1px solid var(--border);border-radius:10px">
+      ${list.map(a=>`<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;margin:0">
+        <input type="checkbox" class="gk-cb" data-id="${a.m.id}" ${oncekiSecili.has(a.m.id)?'checked':''} onchange="gkGuncelle()" style="margin-top:3px">
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${esc(((a.m.ad||'')+' '+(a.m.soyad||'')).trim())} ${getTierBadgeHTML(a.m.id)}</div>
+        <div style="font-size:11px;color:var(--text3)">${a.gecen} gündür yok · ${a.sayi} kiralama · ${fmt(a.toplam)} · son: ${esc(a.sonOyun)}</div>
+        <div style="font-size:11px;color:var(--accent)">💡 Öneri: ${a.oneri?esc(a.oneri.ad):'—'}</div></div></label>`).join('')||'<div style="padding:14px;font-size:12px;color:var(--text3)">Bu kriterde aday yok 👍</div>'}
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div><label style="font-size:11px;color:var(--text3);display:block">🎁 Özel indirim (%) — 0 = yok</label>
+          <input id="gk-oran" type="number" min="0" max="50" value="${esc(oran)}" oninput="gkGuncelle()" style="width:120px;padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border)"></div>
+        <div><label style="font-size:11px;color:var(--text3);display:block">Geçerlilik (gün)</label>
+          <input id="gk-gun" type="number" min="1" max="60" value="${esc(gun)}" oninput="gkGuncelle()" style="width:100px;padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border)"></div>
+      </div>
+      <label style="font-size:11px;color:var(--text3)">Mesaj — {isim}, {sonOyun}, {oneri}, {indirim} kişiye göre doldurulur</label>
+      <textarea id="gk-mesaj" rows="8" oninput="gkGuncelle()" style="width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);font-family:inherit;font-size:13px">${esc(sablon)}</textarea>
+      <div style="font-size:11px;color:var(--text3);margin:8px 0 4px">Önizleme (ilk seçili kişi):</div>
+      <div id="gk-onizle" style="white-space:pre-wrap;font-size:12px;background:rgba(0,198,255,.06);border:1px solid rgba(0,198,255,.2);border-radius:8px;padding:10px;min-height:60px"></div>
+      <button class="btn btn-primary" id="gk-gonder" style="width:100%;margin-top:10px" onclick="gkGonder()">🤖 Seçilenlere gönder</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">Mesajlar bot üzerinden 3,5 sn arayla gider. Günde en fazla ${GK_GUNLUK_LIMIT} kişi (WhatsApp kısıtlamasına karşı). İndirim, müşteri bir sonraki kiralamasında sitede ve botta otomatik uygulanır; aynı kişiye 30 gün içinde tekrar mesaj önerilmez.</div>
+    </div>
+  </div>
+  <div id="gk-sonuclar" style="margin-top:18px"></div>`;
+  gkGuncelle(); renderGkSonuclar();
+}
+function gkIlkSec(n){ const cbs=[...document.querySelectorAll('.gk-cb')]; cbs.forEach((c,i)=>c.checked=i<n); gkGuncelle(); }
+function gkMesaj(a, sablon, oran, gun){
+  const bitis=addDays(today(),gun);
+  return sablonDoldur(sablon,{isim:(a.m.ad||a.m.soyad||'').trim()||'Değerli Müşterimiz',sonOyun:a.sonOyun,oneri:a.oneri?a.oneri.ad:'yeni oyunlarımız',
+    indirim: oran>0?`\n\n🎁 Sana özel *%${oran} indirim* — ${fmtDate(bitis)} tarihine kadar geçerli.`:''});
+}
+function gkGuncelle(){
+  const secili=[...document.querySelectorAll('.gk-cb:checked')];
+  const kalanHak=Math.max(0,GK_GUNLUK_LIMIT-gkBugunGonderilen());
+  const el=document.getElementById('gk-secili'); if(el) el.innerHTML=secili.length+' seçili'+(secili.length>kalanHak?` <b style="color:var(--danger)">(bugünkü hakkın ${kalanHak})</b>`:'');
+  const a=(window._gkListe||[]).find(x=>x.m.id===parseInt(secili[0]?.dataset.id))||(window._gkListe||[])[0];
+  const on=document.getElementById('gk-onizle');
+  if(on) on.textContent=a?gkMesaj(a,document.getElementById('gk-mesaj').value,Math.max(0,parseInt(document.getElementById('gk-oran').value)||0),Math.max(1,parseInt(document.getElementById('gk-gun').value)||14)):'—';
+}
+async function gkGonder(){
+  const sablon=document.getElementById('gk-mesaj').value.trim();
+  const oran=Math.min(50,Math.max(0,parseInt(document.getElementById('gk-oran').value)||0));
+  const gun=Math.min(60,Math.max(1,parseInt(document.getElementById('gk-gun').value)||14));
+  const ids=[...document.querySelectorAll('.gk-cb:checked')].map(cb=>parseInt(cb.dataset.id));
+  const secili=(window._gkListe||[]).filter(a=>ids.includes(a.m.id));
+  if(!sablon){ toast('Mesaj boş','error'); return; }
+  if(!secili.length){ toast('Kimse seçilmedi','warning'); return; }
+  const kalanHak=GK_GUNLUK_LIMIT-gkBugunGonderilen();
+  if(secili.length>kalanHak){ toast(`Bugün en fazla ${Math.max(0,kalanHak)} kişiye daha gönderebilirsin`,'error'); return; }
+  if(!confirm(`${secili.length} kişiye geri kazanım mesajı gönderilsin mi?\n${oran>0?`🎁 %${oran} indirim, ${gun} gün geçerli`:'İndirimsiz'}\n(Yaklaşık ${Math.ceil(secili.length*3.5/60)} dakika sürer)`)) return;
+  const btn=document.getElementById('gk-gonder'); btn.disabled=true; btn.textContent='⏳ Gönderiliyor...';
+  try{
+    const alicilar=secili.map(a=>({...musteriSohbet(a.m),metin:gkMesaj(a,sablon,oran,gun)}));
+    const res=await botIstek('duyuru','/api/duyuru',{alicilar,aralikMs:3500,baslik:'Geri kazanım'});
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(d.hata||('HTTP '+res.status));
+    const g=gkVeri(); const kid=(g.kampanyalar.reduce((m,k)=>Math.max(m,k.id||0),0))+1;
+    g.kampanyalar.push({id:kid,tarih:today(),oran,gun,sayi:secili.length,musteriIds:secili.map(a=>a.m.id)});
+    secili.forEach(a=>{
+      a.m.geriKazanim={sonTarih:today(),kampanyaId:kid};
+      if(oran>0) a.m.ozelIndirim={oran,bitis:addDays(today(),gun),kaynak:'geri-kazanim',kampanyaId:kid,kullanildi:false};
+    });
+    save(); renderGeriKazanim();
+    toast(`🤖 ${secili.length} kişiye mesaj kuyruğa alındı`,'success');
+  }catch(e){ toast('Bot hatası: '+e.message,'error'); btn.disabled=false; btn.textContent='🤖 Seçilenlere gönder'; }
+}
+function renderGkSonuclar(){
+  const el=document.getElementById('gk-sonuclar'); if(!el) return;
+  const ks=gkVeri().kampanyalar.slice().sort((a,b)=>b.id-a.id);
+  if(!ks.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:8px">📊 Gönderilen kampanyaların sonuçları (30 gün içinde)</div><div class="tbl-wrap"><table><thead><tr><th>Tarih</th><th style="text-align:center">Kişi</th><th style="text-align:center">İndirim</th><th style="text-align:center">Geri dönen</th><th style="text-align:center">İndirimi kullanan</th><th style="text-align:right">Getirdiği gelir</th></tr></thead><tbody>'+
+  ks.map(k=>{
+    const bit=addDays(k.tarih,30);
+    const donen=k.musteriIds.filter(id=>D.kiralamalar.some(r=>r.musteriId===id&&r.bas>=k.tarih&&r.bas<=bit));
+    const gelir=D.kiralamalar.filter(r=>k.musteriIds.includes(r.musteriId)&&r.bas>=k.tarih&&r.bas<=bit).reduce((t,r)=>t+(r.net||0),0);
+    const kullanan=D.kiralamalar.filter(r=>r.kampanyaId===k.id).length;
+    return `<tr><td>${fmtDate(k.tarih)}${today()<=bit?' <span style="font-size:10px;color:var(--warning)">devam ediyor</span>':''}</td><td style="text-align:center">${k.sayi}</td><td style="text-align:center">${k.oran?'%'+k.oran+' / '+k.gun+'g':'—'}</td>
+      <td style="text-align:center"><b style="color:${donen.length?'var(--success)':'var(--text3)'}">${donen.length}</b> <span style="font-size:11px;color:var(--text3)">(%${Math.round(donen.length/k.sayi*100)})</span></td>
+      <td style="text-align:center">${k.oran?kullanan:'—'}</td><td style="text-align:right" class="profit">${fmt(gelir)}</td></tr>`;
+  }).join('')+'</tbody></table></div>';
 }
 
 // ===== TOPLU WHATSAPP =====

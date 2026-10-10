@@ -377,7 +377,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
 
   <div class="two-col">
     <div class="section">
-      <div class="section-head"><div class="section-title">⏰ Gecikmiş İadeler</div></div>
+      <div class="section-head"><div class="section-title">⏰ Gecikmiş İadeler</div><button class="btn btn-sm" style="margin-left:auto;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);font-size:11px" onclick="topluHatirlat('gecikme')">🤖 Hepsine hatırlat</button></div>
       <div class="section-body" style="padding:0"><div class="tbl-wrap"><table>
         <thead><tr><th>Oyun</th><th>Müşteri</th><th>Tel</th><th>Teslim</th><th>Gecikme</th><th>Ekstra Ücret</th><th>İşlem</th></tr></thead>
         <tbody id="d-gecikme-tbl"></tbody>
@@ -389,6 +389,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
           <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4757;animation:pulse-red 1.2s infinite"></span>
           Bugün Biten Kiralamalar
           <span id="d-bugun-sayi" style="font-size:12px;background:rgba(255,71,87,.25);color:#ff4757;border:1px solid rgba(255,71,87,.5);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+          <button class="btn btn-sm" style="margin-left:auto;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);font-size:11px" onclick="topluHatirlat('bugun')">🤖 Hepsine hatırlat</button>
         </div>
         <div style="font-size:11px;color:rgba(255,71,87,.7);margin-top:2px">⚠️ Bu kiralamaların bugün iade edilmesi veya uzatılması gerekiyor</div>
       </div>
@@ -402,6 +403,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
         <div class="section-title" style="color:#ffc107;display:flex;align-items:center;gap:8px">
           🔔 Yarın Biten Kiralamalar
           <span id="d-yarin-sayi" style="font-size:12px;background:rgba(255,193,7,.2);color:#ffc107;border:1px solid rgba(255,193,7,.4);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+          <button class="btn btn-sm" style="margin-left:auto;background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3);font-size:11px" onclick="topluHatirlat('yarin')">🤖 Hepsine hatırlat</button>
         </div>
         <div style="font-size:11px;color:rgba(255,193,7,.7);margin-top:2px">📅 Müşterilerle yarın için iletişime geçmeyi unutma</div>
       </div>
@@ -659,6 +661,10 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     <button class="period-btn active" onclick="setPeriod('aylik',this)">Aylık</button>
     <button class="period-btn" onclick="setPeriod('yillik',this)">Yıllık</button>
     <button class="period-btn" onclick="setPeriod('ozel',this)">Özel Aralık</button>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-sm" onclick="raporExcel()" style="background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.35)" title="Seçili dönemin raporunu Excel olarak indir">📥 Excel</button>
+      <button class="btn btn-sm" onclick="raporPDF()" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)" title="Yazdırılabilir rapor — PDF olarak kaydedebilirsin">🖨️ PDF</button>
+    </div>
     <div class="date-range-inputs" id="ozel-range" style="display:none">
       <input type="date" id="rep-baslangic">
       <span style="color:var(--text2)">—</span>
@@ -772,6 +778,11 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
     <div class="section-body" id="rep-karlilik" style="padding:16px"></div>
   </div>
+
+<div class="section" style="margin-top:16px">
+  <div class="section-head"><div class="section-title">🛒 Satın Alma Önerileri — hangi oyuna kopya almalı?</div></div>
+  <div class="section-body" id="satin-alma-onerileri" style="padding:14px 16px"></div>
+</div>
 
 <div class="section" style="margin-top:16px">
   <div class="section-head">
@@ -1910,7 +1921,7 @@ function renderDashboard(){
       '<td><div class="action-btns">'+
         '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
         '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
-        (tel?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+'</div></td>'+
+        (tel?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+botBtn(k)+'</div></td>'+
     '</tr>';
   }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Gecikmiş iade yok ✅</td></tr>';
 
@@ -1936,7 +1947,7 @@ function renderDashboard(){
         '<td><div class="action-btns">'+
           '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
           '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
-          (waLink?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+
+          (waLink?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+botBtn(k)+
         '</div></td>'+
       '</tr>';
     }).join('') : '';
@@ -1965,7 +1976,7 @@ function renderDashboard(){
         '<td><div class="action-btns">'+
           '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
           '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
-          (waLink?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+
+          (waLink?'<a href="'+waLink+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+botBtn(k)+
         '</div></td>'+
       '</tr>';
     }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Yarın biten kiralama yok 👍</td></tr>';
@@ -2665,6 +2676,7 @@ function showMusteriDetay(id){
       ${aktifKira?`<button class="btn btn-success btn-sm" onclick="closeModal('modal-musteri-detay');teslimAl(${aktifKira.id})">✅ İade Al</button>`:''}
       <button class="btn btn-primary btn-sm" onclick="closeModal('modal-musteri-detay');openKiralamaModal();setTimeout(()=>{document.getElementById('kira-musteri').value=${id};const m=D.musteriler.find(x=>x.id===${id});if(m){document.getElementById('kira-musteri-ara').value=(m.ad+' '+(m.soyad||'')).trim();document.getElementById('kira-musteri-secili').innerHTML='<span style=\\'color:var(--success)\\'>✓ '+(m.ad+' '+(m.soyad||'')).trim()+'</span>';}calcKira();},150)">🎮 Kirala</button>
       <button class="btn btn-outline btn-sm" onclick="closeModal('modal-musteri-detay');editMusteri(${id})">✏️ Düzenle</button>
+      <button class="btn btn-sm" onclick="durumLinkiAc(${id})" style="background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.35)">🔗 Durum Linki</button>
       ${!karaListede?`<button class="btn btn-danger btn-sm" onclick="closeModal('modal-musteri-detay');openKaraListeEkle(${id})">⛔ Kara Listeye Al</button>`:''}
     </div>
 
@@ -3297,7 +3309,7 @@ function renderKiralamalar(){
         const _wa=_tel?'https://wa.me/90'+_tel.replace(/^0/,'')+'?text='+_msg:'';
         return '<button class="btn btn-success btn-sm" onclick="teslimAl('+k.id+')">✅ İade</button>'+
                '<button class="btn btn-warning btn-sm" onclick="openUzatmaModal('+k.id+')">🔄 Uzat</button>'+
-               (isG&&_wa?'<a href="'+_wa+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'');
+               (isG&&_wa?'<a href="'+_wa+'" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WA</a>':'')+botBtn(k);
       })():''}<button class="btn btn-outline btn-sm" onclick="editKiralama(${k.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteKira(${k.id})">🗑</button></div></td>
     </tr>`;
   }).join('');
@@ -4095,6 +4107,7 @@ function renderRaporlar(){
   renderPeriodChart(periodKiralar,s,e);
   renderMusRapor();
   renderKarlilikGrafigi();
+  renderSatinAlmaOnerileri();
 }
 
 function openMaliyetForOyun(id){
@@ -5390,6 +5403,276 @@ function renderTierKarti(musteriId){
     html += '</div>';
   }
   return html;
+}
+
+// ══════════════════════════════════════════
+// 🤖 BOT HATIRLATSIN — tek tık / toplu
+// ══════════════════════════════════════════
+function botBtn(k){
+  const bugun = k.sonHatirlatma===today();
+  return '<button class="btn btn-sm" title="'+(bugun?'Bugün bot hatırlattı — tekrar gönder':'Bot WhatsApp\'tan hatırlatsın')+'" '+
+    'style="background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.3)" '+
+    'onclick="botHatirlat(['+k.id+'])">🤖'+(bugun?' ✓':'')+'</button>';
+}
+async function botHatirlat(ids, sessiz){
+  ids=(ids||[]).filter(Boolean);
+  if(!ids.length) return;
+  if(!sessiz&&ids.length===1){
+    const k=D.kiralamalar.find(x=>x.id===ids[0]);
+    const m=k&&D.musteriler.find(x=>x.id===k.musteriId);
+    const o=k&&D.oyunlar.find(x=>x.id===k.oyunId);
+    if(k&&k.sonHatirlatma===today()&&!confirm(`${m?.ad||'Müşteri'} için bugün zaten hatırlatma gönderildi. Tekrar gönderilsin mi?`)) return;
+    if(!k||!(m)) { toast('Kiralama/müşteri bulunamadı','error'); return; }
+    toast(`🤖 ${m.ad||''} — ${o?.ad||''} için hatırlatma gönderiliyor...`,'info');
+  }
+  try{
+    const res=await botIstek('duyuru','/api/hatirlat',{kiraIds:ids});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.hata||('HTTP '+res.status));
+    const atlanan=new Set((data.atlanan||[]).map(a=>a.id));
+    ids.forEach(id=>{ if(atlanan.has(id)) return; const k=D.kiralamalar.find(x=>x.id===id); if(k) k.sonHatirlatma=today(); });
+    save(); yenidenCiz();
+    toast(`🤖 ${data.toplam} hatırlatma kuyruğa alındı`+(atlanan.size?` · ${atlanan.size} atlandı (${(data.atlanan||[]).map(a=>a.hata).filter((v,i,a)=>a.indexOf(v)===i).join(', ')})`:''),'success');
+  }catch(e){
+    toast('Bot hatası: '+e.message+' — Ayarlar → Bot Bağlantısı\'nı kontrol et','error');
+  }
+}
+function topluHatirlat(tur){
+  const now=today(), yarin=addDays(now,1);
+  const aktif=D.kiralamalar.filter(k=>k.durum==='aktif');
+  const liste = tur==='gecikme' ? aktif.filter(k=>k.bit<now) : tur==='bugun' ? aktif.filter(k=>k.bit===now) : aktif.filter(k=>k.bit===yarin);
+  const etiket = {gecikme:'gecikmiş',bugun:'bugün biten',yarin:'yarın biten'}[tur];
+  if(!liste.length){ toast(`Hatırlatılacak ${etiket} kiralama yok`,'info'); return; }
+  const gonderilmis=liste.filter(k=>k.sonHatirlatma===now);
+  const gonderilecek=liste.filter(k=>k.sonHatirlatma!==now);
+  if(!gonderilecek.length){ toast(`Tüm ${etiket} kiralamalara bugün zaten hatırlatma gönderildi ✓`,'info'); return; }
+  if(!confirm(`🤖 ${gonderilecek.length} ${etiket} kiralama için bot WhatsApp'tan hatırlatma göndersin mi?`+
+    (gonderilmis.length?`\n\n(${gonderilmis.length} tanesine bugün zaten gönderildi, onlar atlanacak)`:'')+
+    `\n\nMesajlar 1-2 saniye arayla gönderilir.`)) return;
+  botHatirlat(gonderilecek.map(k=>k.id), true);
+}
+
+// ══════════════════════════════════════════
+// 🔗 MÜŞTERİ DURUM SAYFASI LİNKİ
+// ══════════════════════════════════════════
+function rastgeleToken(){
+  const b=new Uint8Array(12); crypto.getRandomValues(b);
+  return btoa(String.fromCharCode.apply(null,b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function durumLinkiAl(m, yenile){
+  if(!m.durumToken||yenile){ m.durumToken=rastgeleToken(); save(); }
+  return botAyar().onayUrl.replace(/\/+$/,'')+'/d/'+m.durumToken;
+}
+function durumLinkiAc(musteriId, yenile){
+  const m=D.musteriler.find(x=>x.id===musteriId); if(!m) return;
+  if(yenile&&!confirm('Link yenilensin mi? Eski link artık çalışmaz.')) return;
+  const link=durumLinkiAl(m, yenile);
+  const tel=(m.tel||'').replace(/[^0-9]/g,'').replace(/^90/,'').replace(/^0/,'');
+  const mesaj=`Merhaba ${m.ad||''}! 👋\nKiralama sürenizi, bekleme listesindeki sıranızı ve üyelik seviyenizi bu linkten görebilirsiniz:\n${link}\n\nBu link size özeldir 🤖`;
+  document.getElementById('durum-link-overlay')?.remove();
+  const ov=document.createElement('div');
+  ov.id='durum-link-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  ov.innerHTML=`<div style="background:var(--surface1,#16161e);border:1px solid var(--border);border-radius:14px;max-width:520px;width:100%;padding:18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">🔗 ${esc((m.ad||'')+' '+(m.soyad||''))} — Durum Sayfası</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Müşteri bu linkten kalan süresini, sıra numarasını, üyelik seviyesini ve bakiyesini görür. Bot da müşteri <b>1</b> yazınca bu linki gönderir.</div>
+    <input id="durum-link-input" readonly value="${esc(link)}" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);font-size:12px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('durum-link-input').value).then(()=>toast('Link kopyalandı','success'))">📋 Kopyala</button>
+      ${tel?`<a class="btn btn-sm" target="_blank" href="https://wa.me/90${tel}?text=${encodeURIComponent(mesaj)}" style="background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3);text-decoration:none">💬 WhatsApp'tan gönder</a>`:''}
+      <a class="btn btn-outline btn-sm" target="_blank" href="${esc(link)}" style="text-decoration:none">👁 Önizle</a>
+      <button class="btn btn-outline btn-sm" onclick="durumLinkiAc(${m.id},true)">🔄 Linki yenile</button>
+      <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="document.getElementById('durum-link-overlay').remove()">Kapat</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+}
+
+// ══════════════════════════════════════════
+// 🛒 SATIN ALMA ÖNERİLERİ — hangi oyuna kopya almalı?
+// Son 90 günün doluluğu, bekleme listesi ve gerçekleşen günlük gelirden tahmin
+// ══════════════════════════════════════════
+function slotKapasiteSite(o,tip){
+  const kop=(o.kopyalar||[]).filter(k=>!k.satildi);
+  return tip==='primary' ? (o.ciftPrimary?2:1)+kop.reduce((t,k)=>t+(k.ciftPrimary?2:1),0) : 1+kop.length;
+}
+function oyunAnaliz(o){
+  const now=today(), bas180=addDays(now,-179);
+  // Pencere: son 90 gün — oyun daha yeni çıktıysa çıkış tarihinden itibaren (yeni oyunların doluluğu düşük görünmesin)
+  const bas90=(o.cikis&&o.cikis>addDays(now,-89)&&o.cikis<=now)?o.cikis:addDays(now,-89);
+  const pencereGun=daysDiff(bas90,now)+1;
+  const ks=D.kiralamalar.filter(k=>k.oyunId===o.id);
+  const sonuc={};
+  ['primary','secondary'].forEach(tip=>{
+    let doluGun=0, gelir=0, gelirGun=0;
+    ks.filter(k=>k.tip===tip).forEach(k=>{
+      let bitis = k.durum==='teslim' ? ((k.teslimTarih&&k.teslimTarih>=k.bas)?k.teslimTarih:k.bit) : (k.bit<now?now:k.bit);
+      const s=k.bas>bas90?k.bas:bas90, e=bitis<now?bitis:now;
+      if(e>=s) doluGun+=daysDiff(s,e)+1;
+      if(k.bas>=bas180){ gelir+=(k.net||0); gelirGun+=Math.max(1,daysDiff(k.bas,k.bit)+1); }
+    });
+    const kap=slotKapasiteSite(o,tip);
+    const liste=gunlukFiyatSite(o,tip);
+    const bekleyenSay=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.tip===tip&&r.durum==='bekliyor').length;
+    const bosSlot=Math.max(0,kap-ks.filter(k=>k.tip===tip&&k.durum==='aktif').length);
+    sonuc[tip]={
+      doluluk:Math.min(1,doluGun/(kap*pencereGun)),
+      bekleyen:bekleyenSay,
+      fazlaTalep:Math.max(0,bekleyenSay-bosSlot), // şu an boş slot varsa bekleyenler zaten oraya geçebilir
+      gunlukFiyat: gelirGun>0 ? gelir/gelirGun : liste,
+      kapasite:kap
+    };
+  });
+  // Ek kopyanın beklenen doluluğu: talep varsa yüksek, yoksa mevcut doluluğun bir kısmı
+  const beklenen=t=>{ const x=sonuc[t]; return x.fazlaTalep>=2?0.85 : x.fazlaTalep===1?0.65 : x.doluluk>=0.8?x.doluluk*0.8 : x.doluluk*0.5; };
+  const kopyaGunlukGelir = sonuc.primary.gunlukFiyat*beklenen('primary') + sonuc.secondary.gunlukFiyat*beklenen('secondary');
+  const kop=(o.kopyalar||[]).filter(k=>k.alis>0);
+  const kopyaMaliyet = kop.length ? Math.round(kop.reduce((t,k)=>t+k.alis,0)/kop.length) : Math.round((o.alis||0)/Math.max(1,1+(o.kopyalar||[]).length));
+  const amorti = kopyaMaliyet>0&&kopyaGunlukGelir>0 ? Math.ceil(kopyaMaliyet/kopyaGunlukGelir) : null;
+  const bekleyen=sonuc.primary.fazlaTalep+sonuc.secondary.fazlaTalep; // boş slotla karşılanamayan talep
+  const dolulukMax=Math.max(sonuc.primary.doluluk,sonuc.secondary.doluluk);
+  let oneri='—', oneriRenk='var(--text3)', puan=bekleyen*3+dolulukMax*5-(amorti?Math.min(amorti,180)/30:3);
+  if((bekleyen>=2||dolulukMax>=0.85)&&(amorti===null||amorti<=60)){ oneri='🔥 Kopya al'; oneriRenk='var(--success)'; }
+  else if(bekleyen>=1||dolulukMax>=0.7){ oneri='👍 Değerlendir'; oneriRenk='var(--warning)'; }
+  else if(pencereGun>=30&&dolulukMax<0.15&&!bekleyen&&!(sonuc.primary.bekleyen+sonuc.secondary.bekleyen)&&(o.kopyalar||[]).some(k=>!k.satildi)){ oneri='💤 Kopya fazla'; oneriRenk='var(--danger)'; puan=-10; }
+  else if(pencereGun>=30&&dolulukMax<0.1&&!(sonuc.primary.bekleyen+sonuc.secondary.bekleyen)&&!(o.cikis&&o.cikis>now)){ oneri='💤 Az kiralanıyor'; oneriRenk='var(--text3)'; puan=-20; }
+  return {o,sonuc,kopyaGunlukGelir,kopyaMaliyet,amorti,bekleyen,dolulukMax,oneri,oneriRenk,puan,pencereGun};
+}
+function gunlukFiyatSite(o,tip){ const pri=o.gunlukPri||o.gunluk||0; return tip==='primary'?pri:(o.gunlukSec||Math.round(pri*0.7)); }
+function renderSatinAlmaOnerileri(){
+  const el=document.getElementById('satin-alma-onerileri'); if(!el) return;
+  const now=today();
+  const cikmis=D.oyunlar.filter(o=>!(o.cikis&&o.cikis>now));
+  const analiz=cikmis.map(oyunAnaliz);
+  const one=analiz.filter(a=>a.oneri.startsWith('🔥')||a.oneri.startsWith('👍')).sort((a,b)=>b.puan-a.puan);
+  const az=analiz.filter(a=>a.oneri.startsWith('💤')).sort((a,b)=>a.dolulukMax-b.dolulukMax);
+  const yuzde=x=>'%'+Math.round(x*100);
+  const renkD=x=>x>=0.85?'var(--success)':x>=0.6?'var(--warning)':'var(--text3)';
+  const satir=a=>`<tr>
+    <td><strong style="cursor:pointer;color:var(--accent)" onclick="showOyunDetay(${a.o.id})">${esc(a.o.ad)}</strong><br><span style="font-size:10px;color:var(--text3)">${esc(a.o.platform||'')} · ${a.sonuc.primary.kapasite}P/${a.sonuc.secondary.kapasite}S slot${a.pencereGun<90?' · son '+a.pencereGun+' gün (yeni)':''}</span></td>
+    <td style="text-align:center">${a.sonuc.primary.bekleyen?'🔵'+a.sonuc.primary.bekleyen:''} ${a.sonuc.secondary.bekleyen?'🟣'+a.sonuc.secondary.bekleyen:''}${!a.bekleyen?'—':''}</td>
+    <td style="text-align:center"><span style="color:${renkD(a.sonuc.primary.doluluk)}">🔵${yuzde(a.sonuc.primary.doluluk)}</span> <span style="color:${renkD(a.sonuc.secondary.doluluk)}">🟣${yuzde(a.sonuc.secondary.doluluk)}</span></td>
+    <td style="text-align:right">${fmt(a.kopyaGunlukGelir)}/gün</td>
+    <td style="text-align:right">${a.kopyaMaliyet?fmt(a.kopyaMaliyet):'?'}</td>
+    <td style="text-align:right">${a.amorti?'~'+a.amorti+' gün':'?'}</td>
+    <td><span style="font-weight:700;color:${a.oneriRenk}">${a.oneri}</span></td></tr>`;
+  // Çıkacak oyunlar: ön rezerv talebi → kaç hesap gerekir
+  const cikacak=D.oyunlar.filter(o=>o.cikis&&o.cikis>now).map(o=>{
+    const rz=D.rezervasyonlar.filter(r=>r.oyunId===o.id&&r.durum==='bekliyor');
+    const p=rz.filter(r=>r.tip==='primary'), s=rz.filter(r=>r.tip==='secondary');
+    const ortGun=rz.length?rz.reduce((t,r)=>t+(r.tahminiGun||10),0)/rz.length:10;
+    const devir=Math.max(1,30/ortGun); // ilk ayda bir slotun kaç müşteriye hizmet edeceği
+    const mevcut=1+(o.kopyalar||[]).filter(k=>!k.satildi).length;
+    const gerekli=Math.max(Math.ceil(p.length/((o.ciftPrimary?2:1)*devir)),Math.ceil(s.length/devir),rz.length?1:0);
+    return {o,p:p.length,s:s.length,gerekli,mevcut};
+  }).filter(x=>x.p+x.s>0).sort((a,b)=>(b.p+b.s)-(a.p+a.s));
+  el.innerHTML=
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">Son 90 günün doluluğu, bekleme listesi ve son 180 günde gerçekleşen günlük ücretlerden hesaplanır. <b>Amorti</b>: ek bir kopyanın (1 Primary + 1 Secondary slot) kendini kaç günde çıkaracağı tahmini. Kopya maliyeti, mevcut kopyaların alış fiyatından tahmin edilir. Boş slotu olan oyunlarda bekleyenler kopya ihtiyacı sayılmaz (önce boş slota geçerler).</div>`+
+    (one.length?`<div class="tbl-wrap"><table><thead><tr><th>Oyun</th><th style="text-align:center">Bekleyen</th><th style="text-align:center">Doluluk</th><th style="text-align:right">Ek kopya geliri</th><th style="text-align:right">Kopya maliyeti</th><th style="text-align:right">Amorti</th><th>Öneri</th></tr></thead><tbody>${one.slice(0,15).map(satir).join('')}</tbody></table></div>`
+      :'<div class="empty" style="padding:14px"><div class="empty-text">Şu an ek kopya gerektiren yoğun talep görünmüyor 👍</div></div>')+
+    (cikacak.length?`<div style="font-size:13px;font-weight:700;margin:16px 0 8px">🗓 Çıkacak oyunlar — ön rezervasyon talebi</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Oyun</th><th>Çıkış</th><th style="text-align:center">Bekleyen</th><th style="text-align:center">İlk ay için önerilen hesap</th></tr></thead><tbody>${cikacak.map(x=>`<tr><td><strong>${esc(x.o.ad)}</strong></td><td>${fmtDate(x.o.cikis)}</td><td style="text-align:center">🔵${x.p} 🟣${x.s}</td><td style="text-align:center"><strong style="color:${x.gerekli>x.mevcut?'var(--warning)':'var(--success)'}">${x.gerekli}</strong> <span style="font-size:11px;color:var(--text3)">(şu an ${x.mevcut})</span></td></tr>`).join('')}</tbody></table></div>`:'')+
+    (az.length?`<details style="margin-top:14px"><summary style="cursor:pointer;font-size:13px;font-weight:700">💤 Düşük kullanım (${az.length} oyun) — son 90 günde %15'in altında dolu, bekleyen yok</summary>
+      <div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>Oyun</th><th style="text-align:center">Bekleyen</th><th style="text-align:center">Doluluk (90g)</th><th style="text-align:right">Ek kopya geliri</th><th style="text-align:right">Kopya maliyeti</th><th style="text-align:right">Amorti</th><th>Durum</th></tr></thead><tbody>${az.map(satir).join('')}</tbody></table></div></details>`:'');
+}
+
+// ══════════════════════════════════════════
+// 📥 EXCEL / 🖨️ PDF RAPOR (seçili dönem)
+// ══════════════════════════════════════════
+function raporVerisi(){
+  const {s,e}=periodRange();
+  const kiralar=D.kiralamalar.filter(k=>k.bas>=s&&k.bas<=e).sort((a,b)=>a.bas.localeCompare(b.bas));
+  const ekGelir=(D.ekGelirler||[]).filter(g=>g.tarih>=s&&g.tarih<=e);
+  const ekMal=(D.ekMaliyetler||[]).filter(m=>m.tarih>=s&&m.tarih<=e);
+  const ad=id=>{const m=D.musteriler.find(x=>x.id===id);return m?((m.ad||'')+' '+(m.soyad||'')).trim():'?';};
+  const oyun=id=>D.oyunlar.find(x=>x.id===id)?.ad||'?';
+  const psGelir=kiralar.reduce((t,k)=>t+(k.net||0),0);
+  const brut=kiralar.reduce((t,k)=>t+(k.ucret||0),0);
+  const indirim=kiralar.reduce((t,k)=>t+(k.indirim||0),0);
+  const gecikme=kiralar.reduce((t,k)=>t+(k.gecikmeUcreti||0),0);
+  const uzatma=kiralar.reduce((t,k)=>t+(k.uzatmalar||[]).reduce((x,u)=>x+(u.ucret||0),0),0);
+  const egToplam=ekGelir.reduce((t,g)=>t+(g.tutar||0),0);
+  const emToplam=ekMal.reduce((t,m)=>t+(m.tutar||0),0);
+  const oyunBazli={};
+  kiralar.forEach(k=>{ const o=oyunBazli[k.oyunId]||(oyunBazli[k.oyunId]={oyun:oyun(k.oyunId),sayi:0,gelir:0,gun:0}); o.sayi++; o.gelir+=(k.net||0); o.gun+=Math.max(1,daysDiff(k.bas,k.bit)+1); });
+  const gunluk={};
+  kiralar.forEach(k=>{ gunluk[k.bas]=(gunluk[k.bas]||0)+(k.net||0); });
+  return {s,e,kiralar,ekGelir,ekMal,ad,oyun,psGelir,brut,indirim,gecikme,uzatma,egToplam,emToplam,
+    net:psGelir+egToplam-emToplam,
+    toplamYatirim:D.oyunlar.reduce((t,o)=>t+(o.alis||0),0)+(D.ekMaliyetler||[]).reduce((t,m)=>t+(m.tutar||0),0),
+    oyunBazli:Object.values(oyunBazli).sort((a,b)=>b.gelir-a.gelir),
+    gunluk:Object.entries(gunluk).sort()};
+}
+function excelYukle(){
+  if(window.XLSX) return Promise.resolve();
+  return new Promise((ok,hata)=>{ const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload=ok; sc.onerror=()=>hata(new Error('Excel kütüphanesi yüklenemedi')); document.head.appendChild(sc); });
+}
+async function raporExcel(){
+  try{ await excelYukle(); }catch(e){ toast(e.message,'error'); return; }
+  const r=raporVerisi();
+  const wb=XLSX.utils.book_new();
+  const ozet=[
+    ['GameRental — Dönem Raporu'],[],
+    ['Dönem', fmtDate(r.s)+' — '+fmtDate(r.e)],
+    ['Rapor tarihi', fmtDate(today())],[],
+    ['GELİRLER'],
+    ['Kiralama sayısı', r.kiralar.length],
+    ['Brüt kiralama tutarı', r.brut],
+    ['Verilen indirim', -r.indirim],
+    ['Net kiralama geliri', r.psGelir],
+    ['  · bunun uzatma geliri', r.uzatma],
+    ['  · bunun gecikme ücreti', r.gecikme],
+    ['Ek gelirler', r.egToplam],
+    ['TOPLAM GELİR', r.psGelir+r.egToplam],[],
+    ['GİDERLER (dönem içi)'],
+    ['DLC / ek maliyetler', r.emToplam],[],
+    ['DÖNEM NET (gelir − dönem gideri)', r.net],[],
+    ['Bilgi: Toplam oyun yatırımı (tüm zamanlar, alış + ek maliyet)', r.toplamYatirim],
+    ['Not: Oyun alışlarının tarihi tutulmadığı için alış bedelleri döneme dağıtılmaz.']
+  ];
+  const ws1=XLSX.utils.aoa_to_sheet(ozet); ws1['!cols']=[{wch:48},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Özet');
+  const ws2=XLSX.utils.json_to_sheet(r.kiralar.map(k=>({
+    'No':k.id,'Başlangıç':k.bas,'Bitiş':k.bit,'Teslim':k.teslimTarih||'','Müşteri':r.ad(k.musteriId),'Oyun':r.oyun(k.oyunId),
+    'Tip':k.tip==='primary'?'Primary':'Secondary','Gün':Math.max(1,daysDiff(k.bas,k.bit)+1),'Brüt':k.ucret||0,'İndirim':k.indirim||0,
+    'Net':k.net||0,'Gecikme ücreti':k.gecikmeUcreti||0,'Ön ödeme':k.onOdeme||0,'Ödeme':k.odemeTip==='bakiye'?'Bakiye':k.odemeTip==='onodeme'?'Ön ödeme':'Havale/Nakit',
+    'Durum':k.durum==='aktif'?'Aktif':'Teslim'})));
+  ws2['!cols']=[{wch:6},{wch:11},{wch:11},{wch:11},{wch:24},{wch:28},{wch:10},{wch:5},{wch:9},{wch:9},{wch:9},{wch:13},{wch:10},{wch:12},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Kiralamalar');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r.oyunBazli.map(o=>({'Oyun':o.oyun,'Kiralama':o.sayi,'Kiralanan gün':o.gun,'Gelir':o.gelir}))),'Oyun Bazlı');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r.gunluk.map(([t,g])=>({'Tarih':t,'Gelir':g}))),'Günlük Gelir');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r.ekGelir.map(g=>({'Tarih':g.tarih,'Açıklama':g.aciklama,'Kaynak':g.kaynak||'','Tutar':g.tutar}))),'Ek Gelirler');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r.ekMal.map(m=>({'Tarih':m.tarih,'Oyun':r.oyun(m.oyunId),'Açıklama':m.aciklama,'Tutar':m.tutar}))),'Ek Maliyetler');
+  XLSX.writeFile(wb,`gamerental-rapor-${r.s}_${r.e}.xlsx`);
+  toast('Excel raporu indirildi 📥','success');
+}
+function raporPDF(){
+  const r=raporVerisi();
+  const tl=n=>'₺'+Math.round(n||0).toLocaleString('tr-TR');
+  const sat=(a,b,kalin)=>`<tr${kalin?' class="k"':''}><td>${a}</td><td class="s">${b}</td></tr>`;
+  const html=`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>GameRental Rapor ${r.s} – ${r.e}</title>
+  <style>body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:28px;font-size:12px}h1{font-size:20px;margin:0}h2{font-size:14px;margin:22px 0 6px;border-bottom:2px solid #111;padding-bottom:3px}
+  .alt{color:#555;margin:4px 0 16px}table{width:100%;border-collapse:collapse}td,th{padding:5px 6px;border-bottom:1px solid #ddd;text-align:left}th{background:#f3f3f3;font-size:11px}
+  .s{text-align:right;white-space:nowrap}.k td{font-weight:700;background:#f7f7f7}.ozet{max-width:460px}.not{color:#666;font-size:10px;margin-top:6px}
+  @media print{body{margin:12mm}.yok{display:none}}</style></head><body>
+  <button class="yok" onclick="print()" style="float:right;padding:8px 14px">🖨️ Yazdır / PDF kaydet</button>
+  <h1>🎮 GameRental — Dönem Raporu</h1><div class="alt">${fmtDate(r.s)} — ${fmtDate(r.e)} · Rapor tarihi ${fmtDate(today())}</div>
+  <h2>Özet</h2><table class="ozet">
+  ${sat('Kiralama sayısı',r.kiralar.length)}${sat('Brüt kiralama tutarı',tl(r.brut))}${sat('Verilen indirim','−'+tl(r.indirim))}
+  ${sat('Net kiralama geliri',tl(r.psGelir),1)}${sat('&nbsp;&nbsp;· uzatma geliri',tl(r.uzatma))}${sat('&nbsp;&nbsp;· gecikme ücreti',tl(r.gecikme))}
+  ${sat('Ek gelirler',tl(r.egToplam))}${sat('Toplam gelir',tl(r.psGelir+r.egToplam),1)}
+  ${sat('DLC / ek maliyetler (dönem)','−'+tl(r.emToplam))}${sat('Dönem net',tl(r.net),1)}</table>
+  <div class="not">Toplam oyun yatırımı (tüm zamanlar): ${tl(r.toplamYatirim)}. Oyun alışlarının tarihi tutulmadığı için alış bedelleri döneme dağıtılmaz.</div>
+  <h2>Oyun bazlı</h2><table><tr><th>Oyun</th><th class="s">Kiralama</th><th class="s">Gün</th><th class="s">Gelir</th></tr>
+  ${r.oyunBazli.map(o=>`<tr><td>${esc(o.oyun)}</td><td class="s">${o.sayi}</td><td class="s">${o.gun}</td><td class="s">${tl(o.gelir)}</td></tr>`).join('')}</table>
+  <h2>Kiralamalar (${r.kiralar.length})</h2><table><tr><th>Tarih</th><th>Müşteri</th><th>Oyun</th><th>Tip</th><th class="s">Gün</th><th class="s">Net</th></tr>
+  ${r.kiralar.map(k=>`<tr><td>${fmtDate(k.bas)}</td><td>${esc(r.ad(k.musteriId))}</td><td>${esc(r.oyun(k.oyunId))}</td><td>${k.tip==='primary'?'P':'S'}</td><td class="s">${Math.max(1,daysDiff(k.bas,k.bit)+1)}</td><td class="s">${tl(k.net)}</td></tr>`).join('')}</table>
+  ${r.ekGelir.length?`<h2>Ek gelirler</h2><table><tr><th>Tarih</th><th>Açıklama</th><th class="s">Tutar</th></tr>${r.ekGelir.map(g=>`<tr><td>${fmtDate(g.tarih)}</td><td>${esc(g.aciklama)}</td><td class="s">${tl(g.tutar)}</td></tr>`).join('')}</table>`:''}
+  ${r.ekMal.length?`<h2>Ek maliyetler</h2><table><tr><th>Tarih</th><th>Oyun</th><th>Açıklama</th><th class="s">Tutar</th></tr>${r.ekMal.map(m=>`<tr><td>${fmtDate(m.tarih)}</td><td>${esc(r.oyun(m.oyunId))}</td><td>${esc(m.aciklama)}</td><td class="s">${tl(m.tutar)}</td></tr>`).join('')}</table>`:''}
+  <script>setTimeout(function(){print()},400)<\/script></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){ toast('Açılır pencere engellendi — tarayıcıda bu siteye izin ver','error'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 // ===== TOPLU WHATSAPP =====

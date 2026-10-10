@@ -811,6 +811,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     <div class="section-head"><div class="section-title">💬 WhatsApp Mesaj Şablonları</div></div>
     <div class="section-body">
       <p style="font-size:13px;color:var(--text3);margin-bottom:20px">
+        🤖 Mesajda <strong>🤖</strong> işareti ya da "2 / 3 yazın" seçeneği varsa bot susturulmaz; müşterinin 2/3 cevabını bot karşılar. Bunlar yoksa elle yazdığın mesaj botu o müşteri için 8 saat susturur.<br>
         Kullanabileceğin değişkenler: <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{isim}</code> müşteri adı &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{oyun}</code> oyun adı &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{gun}</code> gecikme günü &nbsp;·&nbsp; <code style="background:var(--surface3);padding:2px 6px;border-radius:4px">{ucret}</code> ekstra ücret
       </p>
 
@@ -1590,12 +1591,14 @@ function normalize(d){
 }
 
 // ---- 3 yönlü birleştirme ----
+// id'si olmayan eski kayıtlar (ör. bottan eklenmiş kara liste) içerikleriyle eşleştirilir
+function kayitAnahtar(x){ return (x&&x.id!==undefined&&x.id!==null)?'id:'+x.id:'x:'+stable(x); }
 function mergeArr(b,l,r){
-  const B=new Map(b.map(function(x){return [x.id,x];}));
-  const Lm=new Map(l.map(function(x){return [x.id,x];}));
-  const R=new Map(r.map(function(x){return [x.id,x];}));
+  const B=new Map(b.map(function(x){return [kayitAnahtar(x),x];}));
+  const Lm=new Map(l.map(function(x){return [kayitAnahtar(x),x];}));
+  const R=new Map(r.map(function(x){return [kayitAnahtar(x),x];}));
   const out=[],seen=new Set(),cakisan=[];
-  r.map(function(x){return x.id;}).concat(l.map(function(x){return x.id;})).forEach(function(id){
+  r.map(kayitAnahtar).concat(l.map(kayitAnahtar)).forEach(function(id){
     if(seen.has(id)) return; seen.add(id);
     const bx=B.get(id),lx=Lm.get(id),rx=R.get(id);
     if(bx===undefined){
@@ -4748,8 +4751,8 @@ function renderHedefBar(ayGelir){
 // AYARLAR & WA ŞABLONLARI
 // ══════════════════════════════════════════
 const SABLO_DEFAULTS = {
-  gecikme: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz {gun} gün önce doldu.\nEkstra ücret: ₺{ucret}\nOyunu iade etmenizi rica ederiz. Teşekkürler! 🙏',
-  yaklasan: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz yarın dolacak.\nUzatmak ister misiniz? 🎮',
+  gecikme: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz {gun} gün önce doldu.\nEkstra ücret: ₺{ucret}\nOyunu iade etmenizi rica ederiz. Teşekkürler! 🙏\n\n📦 İade için *3* · 🔄 Uzatmak için *2* yazın 🤖',
+  yaklasan: 'Merhaba {isim}! 👋\n{oyun} kiralama süreniz yarın dolacak.\nUzatmak ister misiniz? 🎮\n\n📦 İade için *3* · 🔄 Uzatmak için *2* yazın 🤖',
   genel: 'Merhaba {isim}! 👋\nPlayStation oyun kiralama hakkında görüşmek istiyoruz.'
 };
 

@@ -1043,6 +1043,20 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
   </div>
 
+  <!-- TEMİNAT -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">🛡️ Geç İade Teminatı</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Geç iade riski yüksek müşteriler (şu an gecikmiş kiralaması olan, son 10 iadesinde 2+ kez geç kalan ya da bir kerede 3+ gün geciken) bottan kiralarken kira + teminat öder. Zamanında iade ederse teminat <strong>bakiyesine geçer</strong>; geç kalırsa gecikme ücreti teminattan düşülür, kalanı bakiyeye geçer. Sitede bu müşteriyi seçince uyarı çıkar.</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400;margin:0;font-size:13px"><input type="checkbox" id="teminat-aktif" style="width:auto"> Bot teminat istesin</label>
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400;margin:0;font-size:13px">Teminat = <input type="number" id="teminat-gun" min="1" max="7" style="width:60px"> günlük ücret</label>
+        <button class="btn btn-primary btn-sm" onclick="saveTeminatAyar()">💾 Kaydet</button>
+      </div>
+      <div id="teminat-liste"></div>
+    </div>
+  </div>
+
   <!-- HESAP KAPANIŞ LİSTESİ -->
   <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">🔒 İade Sonrası Hesap Kontrol Listesi</div></div>
@@ -1238,6 +1252,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
           <div id="kira-musteri-secili" style="font-size:12px;color:var(--accent);margin-top:4px;min-height:16px"></div>
           <div id="kira-tier-bilgi" style="display:none;font-size:11px;margin-top:4px;padding:4px 8px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);border-radius:6px;color:var(--success)"></div>
         </div>
+        <div id="kira-risk-uyari" style="display:none;grid-column:1/-1;border:1px solid;border-radius:10px;padding:10px 14px;font-size:13px"></div>
         <div class="form-group"><label>Oyun *</label><select id="kira-oyun" onchange="onKiraOyunChange()"></select></div>
         <div class="form-group" id="kopya-secim-grup" style="display:none"><label>📀 Hesap Seçimi</label><select id="kira-kopya-idx" onchange="calcKira()"><option value="0">🎮 Ana Hesap</option></select></div>
         <div class="form-group"><label>Kiralama Tipi *</label><select id="kira-tip" onchange="calcKira()"><option value="primary">🔵 Primary</option><option value="secondary">🟣 Secondary</option></select></div>
@@ -1287,6 +1302,7 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-kiralama')">İptal</button>
+      <button class="btn" id="kira-bot-btn" onclick="botIleKiralaFormdan()" title="Bot müşteriye WhatsApp'tan yazar; müşteri öder, dekontu gönderir, sen #onayla dersin" style="background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.35)">🤖 Bot ile müşteriye gönder</button>
       <button class="btn btn-success" id="kira-save-btn" onclick="saveKiralama()">✅ Kiralama Başlat</button>
     </div>
   </div>
@@ -2733,6 +2749,7 @@ function showMusteriDetay(id){
       <button class="btn btn-primary btn-sm" onclick="closeModal('modal-musteri-detay');openKiralamaModal();setTimeout(()=>{document.getElementById('kira-musteri').value=${id};const m=D.musteriler.find(x=>x.id===${id});if(m){document.getElementById('kira-musteri-ara').value=(m.ad+' '+(m.soyad||'')).trim();document.getElementById('kira-musteri-secili').innerHTML='<span style=\\'color:var(--success)\\'>✓ '+(m.ad+' '+(m.soyad||'')).trim()+'</span>';}calcKira();},150)">🎮 Kirala</button>
       <button class="btn btn-outline btn-sm" onclick="closeModal('modal-musteri-detay');editMusteri(${id})">✏️ Düzenle</button>
       <button class="btn btn-sm" onclick="durumLinkiAc(${id})" style="background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.35)">🔗 Durum Linki</button>
+      ${!karaListede?`<button class="btn btn-sm" onclick="if(confirm('🤖 Bot bu müşteriye WhatsApp üzerinden oyun listesini gönderip kiralamayı başlatsın mı?'))botIleKirala(${id})" style="background:rgba(0,198,255,.15);color:var(--accent);border:1px solid rgba(0,198,255,.35)">🤖 Bot ile kiralat</button>`:''}
       ${!karaListede?`<button class="btn btn-danger btn-sm" onclick="closeModal('modal-musteri-detay');openKaraListeEkle(${id})">⛔ Kara Listeye Al</button>`:''}
     </div>
 
@@ -2854,6 +2871,7 @@ function openKiralamaModal(){
   document.getElementById('kira-kopya-idx').value='0';
   document.getElementById('kira-modal-title').textContent='📋 Kiralama Oluştur';
   document.getElementById('kira-save-btn').textContent='✅ Kiralama Başlat';
+  { const bb=document.getElementById('kira-bot-btn'); if(bb) bb.style.display=''; const ru=document.getElementById('kira-risk-uyari'); if(ru){ ru.style.display='none'; ru.innerHTML=''; } }
   document.getElementById('kira-musteri').value='';
   document.getElementById('kira-musteri-ara').value='';
   document.getElementById('kira-musteri-ara').disabled=false;
@@ -2937,6 +2955,7 @@ function updateHediyeOptions(){
 
 function calcKira(){
   kiraRezervGuncelle();
+  try{ kiraRiskGuncelle(); }catch(e){ console.warn('risk',e); }
   const oyunId=parseInt(document.getElementById('kira-oyun').value);
   const oyun=D.oyunlar.find(o=>o.id===oyunId);
   let bas=document.getElementById('kira-bas').value;
@@ -3235,6 +3254,11 @@ function _kiralamaOlustur(oyunId,musteriId,bas,bit,tip,ucret,indirim,net,onOdeme
       const uygulanan=ucret>0?Math.round(indirim/ucret*100):0;
       // Planlı kampanyalar: hangi kampanyadan geldiği istatistik için saklanır
       const yk0=D.kiralamalar[D.kiralamalar.length-1];
+      // Teminat alındıysa (gelire yazılmaz, iadede bakiyeye geçer)
+      if(document.getElementById('kira-teminat-al')?.checked){
+        const tt=Math.max(0,parseFloat(document.getElementById('kira-teminat-tutar')?.value)||0);
+        if(tt>0){ yk0.teminat=tt; yk0.teminatDurum='tutuluyor'; }
+      }
       const fk=oyunKampanyasi(oyun,bas); if(fk) yk0.fiyatKampanyaId=fk.id;
       const pk=paketUygunMu(musteriId,bas,yk0.id);
       const paketIle=!!pk&&uygulanan>=pk.oran&&(!oz||pk.oran>=oz.oran);
@@ -3282,6 +3306,7 @@ function editKiralama(id){
 
   // Müşteri — arama kutusunu doldur, dropdown gösterme
   document.getElementById('kira-musteri').value=k.musteriId;
+  { const bb=document.getElementById('kira-bot-btn'); if(bb) bb.style.display='none'; }
   document.getElementById('kira-musteri-ara').value=m?((m.ad||'')+' '+(m.soyad||'')).trim()||(m.tel||''):'';
   document.getElementById('kira-musteri-secili').innerHTML=m?`<span style="color:var(--success)">✓ ${((m.ad||'')+' '+(m.soyad||'')).trim()||m.tel}</span>`:'';
   document.getElementById('kira-musteri-ara').disabled=true; // düzenlemede müşteri değiştirilemez
@@ -3383,7 +3408,7 @@ function renderKiralamalar(){
     const gun=daysDiff(k.bas,k.bit)+1-(k.hediyeGun||0); // bas-bit arası, hediye hariç göster
     return `<tr ${isG?'class="overdue"':''}>
       <td style="color:var(--text3);font-size:11px">#${k.id}</td>
-      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span>${(o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):''}</td>
+      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span>${(o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):''}${k.teminat>0?' '+teminatRozet(k):''}</td>
       <td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${k.musteriId})">${m?.ad||''} ${m?.soyad||''}</span><br><span style="font-size:10px;color:var(--text2)">${m?.tel||''}</span></td>
       <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
       <td>${fmtDate(k.bas)}</td>
@@ -3428,11 +3453,12 @@ function teslimAl(id){
   let gecikmeUcreti=0;
   if(gecGun>0){
     const oneri=Math.round(gecikmeGunluk(k,o)*gecGun);
-    const cevap=prompt(`📦 ${oyunAd} — ${mAd}\n\n⏰ ${gecGun} gün gecikmeli iade.\nGecikme ücreti (₺) — tahsil etmeyeceksen 0 yaz:`, String(oneri));
+    const tmn=(k.teminat>0&&k.teminatDurum==='tutuluyor')?`\n🛡️ ${fmt(k.teminat)} teminat var — ücret bundan düşülür, kalanı bakiyeye geçer.`:'';
+    const cevap=prompt(`📦 ${oyunAd} — ${mAd}\n\n⏰ ${gecGun} gün gecikmeli iade.${tmn}\nGecikme ücreti (₺) — tahsil etmeyeceksen 0 yaz:`, String(oneri));
     if(cevap===null) return; // iptal
     gecikmeUcreti=Math.max(0,parseFloat(String(cevap).replace(',','.'))||0);
   } else {
-    if(!confirm(`📦 ${oyunAd} — ${mAd}\n\nİade alınsın mı?`)) return;
+    if(!confirm(`📦 ${oyunAd} — ${mAd}\n\nİade alınsın mı?${(k.teminat>0&&k.teminatDurum==='tutuluyor')?`\n🛡️ ${fmt(k.teminat)} teminat müşterinin bakiyesine geçecek.`:''}`)) return;
   }
 
   // Geri alma için önceki durumu sakla
@@ -3463,12 +3489,13 @@ function teslimAl(id){
     k.net=(k.net||0)+gecikmeUcreti;
   }
   if(o&&!D.kiralamalar.some(x=>x.id!==id&&x.oyunId===k.oyunId&&x.durum==='aktif')) o.durum='mevcut';
+  const tmnSonuc=teminatSerbestBirak(k,m,gecikmeUcreti);
   kapanisBaslat(k); // hesap kapanış kontrol listesi
   save();renderKiralamalar();renderDashboard();updateStats();
   setTimeout(()=>kapanisAc(k.id),150);
 
   // 4) Geri al butonlu bildirim
-  toastAksiyon('İade alındı ✅'+(gecikmeUcreti>0?' · +'+fmt(gecikmeUcreti)+' gecikme ücreti':'')+(erkenOdul>0?' · '+fmt(erkenOdul)+' bakiye ödülü':''),'↩️ Geri al','iadeGeriAl()');
+  toastAksiyon('İade alındı ✅'+(gecikmeUcreti>0?' · +'+fmt(gecikmeUcreti)+' gecikme ücreti':'')+(erkenOdul>0?' · '+fmt(erkenOdul)+' bakiye ödülü':'')+(tmnSonuc?(tmnSonuc.iade>0?' · 🛡️ '+fmt(tmnSonuc.iade)+' teminat bakiyeye':'')+(tmnSonuc.eksik>0?' · ⚠️ '+fmt(tmnSonuc.eksik)+' gecikme ücreti teminatı aştı':''):''),'↩️ Geri al','iadeGeriAl()');
 
   const bekleyenler=D.rezervasyonlar.filter(r=>r.oyunId===k.oyunId&&r.durum==='bekliyor');
   if(bekleyenler.length>0){
@@ -4985,6 +5012,7 @@ function renderAyarlar(){
   renderBotAyarlar();
   renderKapanisAyarlar();
   renderSabahAyar();
+  renderTeminatAyar();
   renderBulutYedekListe();
 }
 
@@ -5440,7 +5468,7 @@ function getMusteriTier(musteriId){
   if(musteri && musteri.bakiyeGecmis) {
     musteri.bakiyeGecmis.forEach(function(b){
       // Sadece gerçek para yüklemeleri sayılır (erken iade ödülü / silinen kiralama iadesi hariç)
-      const odul = b.tip==='odul' || b.tip==='iade' || b.tip==='depozito' || /^Erken iade ödülü|^Silinen kiralama iadesi|^Bekleme/.test(b.aciklama||'');
+      const odul = b.tip==='odul' || b.tip==='iade' || b.tip==='depozito' || b.tip==='teminat' || /^Erken iade ödülü|^Silinen kiralama iadesi|^Bekleme|^Teminat/.test(b.aciklama||'');
       if(b.tutar > 0 && !odul && b.tarih >= d3ayStr) toplam += (b.tutar||0);
     });
   }
@@ -6295,6 +6323,131 @@ function renderSabahAyar(){
 function saveSabahAyar(){
   ayarSet('sabahOzeti',{aktif:document.getElementById('sabah-aktif').checked,saat:Math.min(14,Math.max(6,parseInt(document.getElementById('sabah-saat').value)||10))});
   toast('Sabah özeti ayarı kaydedildi ✅','success');
+}
+
+// ══════════════════════════════════════════
+// ⏰ GEÇ İADE RİSKİ + 🛡️ TEMİNAT
+// Son 10 iadeye bakılır. Yüksek risk: şu an gecikmiş kiralaması var, 2+ geç iade ya da 3+ gün gecikme.
+// Bot aynı kuralla yüksek riskli müşteriden kira + teminat ister; zamanında iadede teminat bakiyeye geçer.
+// ══════════════════════════════════════════
+function gecRiskSite(musteriId){
+  const now=today();
+  const ks=D.kiralamalar.filter(k=>k.musteriId===musteriId);
+  const aktifGec=ks.filter(k=>k.durum==='aktif'&&k.bit<now).length;
+  const son=ks.filter(k=>k.durum==='teslim'&&k.teslimTarih&&k.teslimTarih>=k.bas).sort((a,b)=>b.bas.localeCompare(a.bas)).slice(0,10);
+  const gecler=son.filter(k=>k.teslimTarih>k.bit);
+  const gunler=gecler.map(k=>daysDiff(k.bit,k.teslimTarih));
+  const gecGun=gunler.reduce((s,x)=>s+x,0), maxGun=gunler.length?Math.max(...gunler):0;
+  const seviye=(aktifGec>0||gecler.length>=2||maxGun>=3)?'yuksek':gecler.length===1?'orta':null;
+  const parca=[];
+  if(gecler.length) parca.push(`son ${son.length} iadede ${gecler.length} geç iade (toplam ${gecGun} gün)`);
+  if(aktifGec) parca.push(`şu an ${aktifGec} gecikmiş kiralaması var`);
+  return {seviye,gec:gecler.length,gecGun,maxGun,aktifGec,incelenen:son.length,metin:parca.join(' · ')};
+}
+function teminatAyar(){ const a=ayarGet('teminat',null)||{}; return {aktif:a.aktif!==false, gun:Math.min(7,Math.max(1,parseInt(a.gun)||2))}; }
+function teminatTutari(o,tip){ return o?Math.round(gecikmeGunluk({tip},o)*teminatAyar().gun):0; }
+function teminatGerekli(m){ return !!m&&!m.teminatMuaf&&teminatAyar().aktif&&gecRiskSite(m.id).seviye==='yuksek'; }
+
+// Kiralama formunda uyarı
+function kiraRiskGuncelle(){
+  const el=document.getElementById('kira-risk-uyari'); if(!el) return;
+  const musteriId=parseInt(document.getElementById('kira-musteri').value);
+  const eid=parseInt(document.getElementById('kira-eid')?.value);
+  const m=musteriId?D.musteriler.find(x=>x.id===musteriId):null;
+  const r=m?gecRiskSite(m.id):null;
+  if(!r||!r.seviye||eid){ el.style.display='none'; el.innerHTML=''; return; }
+  const o=D.oyunlar.find(x=>x.id===parseInt(document.getElementById('kira-oyun').value));
+  const tip=document.getElementById('kira-tip').value;
+  const oneri=teminatTutari(o,tip);
+  const onceki=document.getElementById('kira-teminat-al');
+  const secili=onceki?onceki.checked:false;
+  const tutarOnceki=document.getElementById('kira-teminat-tutar')?.value;
+  const yuksek=r.seviye==='yuksek';
+  el.style.display='block';
+  el.style.background=yuksek?'rgba(255,71,87,.08)':'rgba(255,193,7,.08)';
+  el.style.borderColor=yuksek?'rgba(255,71,87,.45)':'rgba(255,193,7,.4)';
+  el.innerHTML=`<div style="font-weight:700;color:${yuksek?'var(--danger)':'var(--warning)'}">⏰ ${yuksek?'Geç iade riski yüksek':'Bir kez geç iade etmiş'}</div>
+    <div style="font-size:12px;color:var(--text2);margin:4px 0 6px">${esc(r.metin)}</div>
+    ${yuksek?`<div style="font-size:12px;color:var(--text2);line-height:1.6">Öneri: süreyi kısa tut, bitişte hatırlatma gitsin, gecikme ücretini baştan söyle${o?` ve <b>${fmt(oneri)}</b> teminat al (${teminatAyar().gun} günlük ücret)`:''}.</div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:8px;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px">
+      <input type="checkbox" id="kira-teminat-al" ${secili?'checked':''} style="width:auto"> 🛡️ Teminat aldım
+      <input type="number" id="kira-teminat-tutar" min="0" value="${tutarOnceki||oneri}" style="width:90px;padding:4px 8px"> ₺
+    </label>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">Teminat gelire yazılmaz. İadede zamanındaysa müşterinin bakiyesine geçer, geç kalırsa gecikme ücreti bundan düşülür.${m.teminatMuaf?' (Bu müşteri teminattan muaf tutuluyor — bot istemez.)':''}</div>`:''}`;
+}
+
+// İadede teminatı serbest bırak: gecikme ücreti düşülür, kalanı bakiyeye
+function teminatSerbestBirak(k,m,gecikmeUcreti){
+  if(!(k.teminat>0)||k.teminatDurum!=='tutuluyor') return null;
+  const kesinti=Math.min(k.teminat,gecikmeUcreti||0);
+  const iade=k.teminat-kesinti;
+  if(iade>0&&m){
+    m.bakiye=(m.bakiye||0)+iade;
+    if(!m.bakiyeGecmis) m.bakiyeGecmis=[];
+    const o=D.oyunlar.find(x=>x.id===k.oyunId);
+    m.bakiyeGecmis.push({tarih:today(),tutar:iade,aciklama:'Teminat iadesi — '+(o?.ad||'Oyun'),tip:'teminat'});
+  }
+  k.teminatDurum=kesinti>0?'kesildi':'iade'; k.teminatIade=iade; k.teminatKesinti=kesinti;
+  return {kesinti,iade,eksik:Math.max(0,(gecikmeUcreti||0)-kesinti)};
+}
+function teminatRozet(k){
+  if(!(k.teminat>0)) return '';
+  const d=k.teminatDurum||'tutuluyor';
+  const metin=d==='tutuluyor'?`🛡️ ${fmt(k.teminat)} teminat`:d==='iade'?`🛡️ teminat bakiyeye geçti`:`🛡️ ${fmt(k.teminatKesinti||0)} gecikmeye kesildi`;
+  return `<span style="font-size:10px;color:#fbbf24;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);padding:1px 6px;border-radius:4px;white-space:nowrap">${metin}</span>`;
+}
+
+// Ayarlar
+function renderTeminatAyar(){
+  const a=teminatAyar();
+  const c=document.getElementById('teminat-aktif'), g=document.getElementById('teminat-gun'), l=document.getElementById('teminat-liste');
+  if(c) c.checked=a.aktif; if(g) g.value=a.gun;
+  if(!l) return;
+  const riskli=D.musteriler.map(m=>({m,r:gecRiskSite(m.id)})).filter(x=>x.r.seviye==='yuksek').sort((a,b)=>b.r.gec-a.r.gec);
+  l.innerHTML=riskli.length?`<div style="font-size:12px;color:var(--text3);margin:10px 0 6px">Şu an yüksek riskli ${riskli.length} müşteri — işaretlediklerinden teminat istenmez:</div>`+
+    riskli.map(x=>`<label style="display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 0;text-transform:none;letter-spacing:0;font-weight:400;margin:0">
+      <input type="checkbox" style="width:auto" ${x.m.teminatMuaf?'checked':''} onchange="teminatMuafDegis(${x.m.id},this.checked)">
+      <b>${esc(((x.m.ad||'')+' '+(x.m.soyad||'')).trim()||x.m.tel||'?')}</b> <span style="color:var(--text3)">${esc(x.r.metin)}</span></label>`).join('')
+    :'<div style="font-size:12px;color:var(--text3);margin-top:10px">Şu an yüksek riskli müşteri yok 👍</div>';
+}
+function saveTeminatAyar(){
+  ayarSet('teminat',{aktif:document.getElementById('teminat-aktif').checked,gun:Math.min(7,Math.max(1,parseInt(document.getElementById('teminat-gun').value)||2))});
+  toast('Teminat ayarı kaydedildi ✅','success');
+}
+function teminatMuafDegis(id,muaf){
+  const m=D.musteriler.find(x=>x.id===id); if(!m) return;
+  if(muaf) m.teminatMuaf=true; else delete m.teminatMuaf;
+  save(); toast(muaf?'Bu müşteriden teminat istenmeyecek':'Teminat kuralı bu müşteriye uygulanacak','info');
+}
+
+// ══════════════════════════════════════════
+// 🤖 KİRALAMAYI BOTLA BAŞLAT
+// Bot müşteriye WhatsApp'tan yazar; müşteri tip/gün seçer, öder, dekontu atar — sen #onayla dersin.
+// ══════════════════════════════════════════
+async function botIleKirala(musteriId,oyunId,tip,gun){
+  const m=D.musteriler.find(x=>x.id===musteriId);
+  if(!m){ toast('Önce müşteri seç','error'); return false; }
+  if(!m.tel&&!m.whatsappLid){ toast('Bu müşterinin telefonu yok','error'); return false; }
+  if((D.karaListe||[]).some(k=>k.musteriId===musteriId)&&!confirm('Bu müşteri kara listede. Yine de gönderilsin mi?')) return false;
+  try{
+    const res=await botIstek('duyuru','/api/kiralama-baslat',{musteriId,oyunId:oyunId||null,tip:tip||null,gun:gun||null});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.hata||('HTTP '+res.status));
+    toast(`🤖 ${(m.ad||'Müşteri')}'e WhatsApp'tan yazıldı — ${data.adim==='ozet'?'ödeme bilgisi gönderildi':data.adim==='gun'?'gün sayısı soruldu':data.adim==='tip'?'tip soruldu':'oyun listesi gönderildi'}. Dekont gelince #onayla ile onaylarsın.`,'success');
+    return true;
+  }catch(e){ toast('Bot hatası: '+e.message,'error'); return false; }
+}
+async function botIleKiralaFormdan(){
+  const musteriId=parseInt(document.getElementById('kira-musteri').value);
+  const oyunId=parseInt(document.getElementById('kira-oyun').value)||null;
+  const tip=document.getElementById('kira-tip').value||null;
+  const gun=parseInt(document.getElementById('kira-gun-sayi').value)||null;
+  if(!musteriId){ toast('Önce müşteri seç','error'); return; }
+  const o=oyunId&&D.oyunlar.find(x=>x.id===oyunId);
+  if(o&&o.cikis&&o.cikis>today()){ toast('Bu oyun henüz çıkmadı — bot ile kiralama başlatılamaz','error'); return; }
+  const ozet=[o?o.ad:'oyunu müşteri seçecek', o&&tip?(tip==='primary'?'Primary':'Secondary'):'', o&&gun?gun+' gün':''].filter(Boolean).join(' · ');
+  if(!confirm(`🤖 Bot müşteriye WhatsApp'tan kiralamayı başlatsın mı?\n\n${ozet}\n\nFiyat, indirim ve hediye gün bot tarafından hesaplanır; müşteri ödeyip dekontu gönderince #onayla ile onaylarsın.`)) return;
+  if(await botIleKirala(musteriId,oyunId,o?tip:null,o?gun:null)) closeModal('modal-kiralama');
 }
 
 // ===== TOPLU WHATSAPP =====

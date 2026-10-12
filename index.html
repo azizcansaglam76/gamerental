@@ -1070,6 +1070,18 @@ tr.overdue td{background:rgba(255,71,87,.05);}
     </div>
   </div>
 
+  <!-- PUAN -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-head"><div class="section-title">⭐ İade Sonrası Puan</div></div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Bot iadeden sonra müşteriye "oyunu 1-5 arası puanlar mısın?" diye sorar. 1-2 puan verenden kısa bir yorum ister ve sana hemen haber verir. Puanlar oyun kartında, oyun detayında ve satın alma önerilerinde görünür; bot öneri yaparken beğenilen türü öne çıkarır.</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-weight:400;margin:0;font-size:13px"><input type="checkbox" id="puan-iste-aktif" style="width:auto"> Siteden iade aldığımda da bot puan sorsun</label>
+        <button class="btn btn-primary btn-sm" onclick="savePuanAyar()">💾 Kaydet</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SABAH ÖZETİ -->
   <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">☀️ Sabah Özeti (WhatsApp)</div></div>
@@ -2296,6 +2308,7 @@ function oyunKartHTML(o){
       ${yaklasanlar.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,193,7,.2);margin-bottom:4px;font-size:12px;color:#ffc107;background:rgba(255,193,7,.08);border-radius:6px;padding:6px 8px">🔔 <strong>${yaklasanlar.length} kiralama</strong> yarın bitiyor!</div>`:""}${bekleyenler.length>0?`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;font-size:12px;color:var(--warning)">⏳ <strong>${bekleyenler.length} kişi</strong> sırada bekliyor</div>`:""}
       <div class="game-stats">
         <div class="game-row"><span class="game-row-lbl">Günlük</span><span class="game-row-val">${(()=>{const kp=oyunKampanyasi(o);return kp?`<s style="color:var(--text3);font-size:11px">${fmt(o.gunlukPri||o.gunluk)}</s> ${fmt(kampanyaliFiyat(o,'primary'))} <span title="${esc(kp.ad)}" style="background:#f97316;color:#fff;border-radius:4px;font-size:10px;padding:1px 5px">🏷️ %${kp.oran}</span>`:fmt(o.gunluk);})()}</span></div>
+        ${puanOzet(o.id)?`<div class="game-row"><span class="game-row-lbl">Müşteri puanı</span><span class="game-row-val">${puanRozet(o.id)}</span></div>`:''}
         <div class="game-row"><span class="game-row-lbl">Toplam Gelir</span><span class="game-row-val profit">${fmt(o.toplamGelir||0)}</span></div>
         <div class="game-row"><span class="game-row-lbl">Net K/Z</span><span class="game-row-val ${netClass}">${net>=0?'▲':'▼'} ${fmt(Math.abs(net))}</span></div>
       </div>
@@ -2470,6 +2483,7 @@ function showOyunDetay(id){
         <div class="info-row"><span class="info-row-lbl">Net K/Z</span><span class="${net>=0?'profit':'loss'}">${net>=0?'▲ +':'▼ '}${fmt(Math.abs(net))}</span></div>
       </div>
     </div>
+    ${puanDetayHTML(id)}
     ${o.alis>0?`<div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700;color:var(--text2)">📈 Yatırım Geri Dönüşü (ROI)</span>
@@ -3411,7 +3425,7 @@ function renderKiralamalar(){
     const gun=daysDiff(k.bas,k.bit)+1-(k.hediyeGun||0); // bas-bit arası, hediye hariç göster
     return `<tr ${isG?'class="overdue"':''}>
       <td style="color:var(--text3);font-size:11px">#${k.id}</td>
-      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span>${(o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):''}${k.teminat>0?' '+teminatRozet(k):''}</td>
+      <td><strong>${o?.ad||'-'}</strong><br><span style="font-size:10px;color:var(--text2)">${o?.platform||''}</span>${(o?.hesap||k.kopyaIdx>0||(o?.kopyalar||[]).length)?' '+hesapEtiketi(k):''}${k.teminat>0?' '+teminatRozet(k):''}${k.puan?` <span title="${esc(k.puanYorum||'Müşteri puanı')}" style="font-size:10px;color:#fbbf24;white-space:nowrap">⭐${k.puan}</span>`:''}</td>
       <td><span style="cursor:pointer;color:var(--accent)" onclick="showMusteriDetay(${k.musteriId})">${m?.ad||''} ${m?.soyad||''}</span><br><span style="font-size:10px;color:var(--text2)">${m?.tel||''}</span></td>
       <td><span class="rt-badge ${k.tip==='primary'?'rt-primary':'rt-secondary'}">${k.tip}</span></td>
       <td>${fmtDate(k.bas)}</td>
@@ -3496,6 +3510,7 @@ function teslimAl(id){
   kapanisBaslat(k); // hesap kapanış kontrol listesi
   save();renderKiralamalar();renderDashboard();updateStats();
   setTimeout(()=>kapanisAc(k.id),150);
+  puanIsteBot(k.id); // bot müşteriye "1-5 puan verir misin?" diye sorar (9 sn sonra; geri alınırsa gönderilmez)
 
   // 4) Geri al butonlu bildirim
   toastAksiyon('İade alındı ✅'+(gecikmeUcreti>0?' · +'+fmt(gecikmeUcreti)+' gecikme ücreti':'')+(erkenOdul>0?' · '+fmt(erkenOdul)+' bakiye ödülü':'')+(tmnSonuc?(tmnSonuc.iade>0?' · 🛡️ '+fmt(tmnSonuc.iade)+' teminat bakiyeye':'')+(tmnSonuc.eksik>0?' · ⚠️ '+fmt(tmnSonuc.eksik)+' gecikme ücreti teminatı aştı':''):''),'↩️ Geri al','iadeGeriAl()');
@@ -3927,13 +3942,13 @@ function botAyar(){
 }
 // Bot isteği: kimlik doğrulama sitenin Firebase girişiyle yapılır (API anahtarı gerekmez).
 // Bot girişi doğrulayamazsa (401) ve kayıtlı anahtar yoksa, ancak o zaman anahtar sorulur.
-async function botIstek(tur, yol, govde){
+async function botIstek(tur, yol, govde, sessiz){
   const b=botAyar();
   const url=(tur==='onay'?b.onayUrl:b.duyuruUrl).replace(/\/+$/,'')+yol;
   let idToken=null; try{ idToken=await currentUser.getIdToken(); }catch(e){}
   const gonder=key=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},govde,{apiKey:key||'',idToken:idToken}))});
   let res=await gonder(b.apiKey);
-  if(res.status===401&&!b.apiKey){
+  if(res.status===401&&!b.apiKey&&!sessiz){
     const key=(prompt('Bot giriş bilgini doğrulayamadı. Railway\'deki WAHA_API_KEY (ya da BOT_API_KEY) değerini gir — bir kez sorulur:')||'').trim();
     if(!key) return res;
     res=await gonder(key);
@@ -5027,6 +5042,7 @@ function renderAyarlar(){
   renderKapanisAyarlar();
   renderSabahAyar();
   renderTeminatAyar();
+  renderPuanAyar();
   renderBulutYedekListe();
 }
 
@@ -5689,7 +5705,7 @@ function renderSatinAlmaOnerileri(){
   const yuzde=x=>'%'+Math.round(x*100);
   const renkD=x=>x>=0.85?'var(--success)':x>=0.6?'var(--warning)':'var(--text3)';
   const satir=a=>`<tr>
-    <td><strong style="cursor:pointer;color:var(--accent)" onclick="showOyunDetay(${a.o.id})">${esc(a.o.ad)}</strong><br><span style="font-size:10px;color:var(--text3)">${esc(a.o.platform||'')} · ${a.sonuc.primary.kapasite}P/${a.sonuc.secondary.kapasite}S slot${a.pencereGun<90?' · son '+a.pencereGun+' gün (yeni)':''}</span></td>
+    <td><strong style="cursor:pointer;color:var(--accent)" onclick="showOyunDetay(${a.o.id})">${esc(a.o.ad)}</strong> ${puanRozet(a.o.id)}<br><span style="font-size:10px;color:var(--text3)">${esc(a.o.platform||'')} · ${a.sonuc.primary.kapasite}P/${a.sonuc.secondary.kapasite}S slot${a.pencereGun<90?' · son '+a.pencereGun+' gün (yeni)':''}</span></td>
     <td style="text-align:center">${a.sonuc.primary.bekleyen?'🔵'+a.sonuc.primary.bekleyen:''} ${a.sonuc.secondary.bekleyen?'🟣'+a.sonuc.secondary.bekleyen:''}${!a.bekleyen?'—':''}</td>
     <td style="text-align:center"><span style="color:${renkD(a.sonuc.primary.doluluk)}">🔵${yuzde(a.sonuc.primary.doluluk)}</span> <span style="color:${renkD(a.sonuc.secondary.doluluk)}">🟣${yuzde(a.sonuc.secondary.doluluk)}</span></td>
     <td style="text-align:right">${fmt(a.kopyaGunlukGelir)}/gün</td>
@@ -6463,6 +6479,48 @@ async function botIleKiralaFormdan(){
   if(!confirm(`🤖 Bot müşteriye WhatsApp'tan kiralamayı başlatsın mı?\n\n${ozet}\n\nFiyat, indirim ve hediye gün bot tarafından hesaplanır; müşteri ödeyip dekontu gönderince #onayla ile onaylarsın.`)) return;
   if(await botIleKirala(musteriId,oyunId,o?tip:null,o?gun:null)) closeModal('modal-kiralama');
 }
+
+// ══════════════════════════════════════════
+// ⭐ İADE SONRASI MÜŞTERİ PUANI
+// Bot iadeden sonra "1-5 puan verir misin?" diye sorar; puan kiralamaya (k.puan, k.puanYorum) yazılır.
+// Siteden iade alınınca da (ayar açıksa) bot müşteriye puan sorusu gönderir.
+// ══════════════════════════════════════════
+function puanOzet(oyunId){
+  const p=D.kiralamalar.filter(k=>k.oyunId===oyunId&&k.puan>=1&&k.puan<=5);
+  if(!p.length) return null;
+  return {ort:p.reduce((s,k)=>s+k.puan,0)/p.length, n:p.length, liste:p};
+}
+function puanRenk(x){ return x>=4?'var(--success)':x>=3?'var(--warning)':'var(--danger)'; }
+function puanRozet(oyunId){
+  const p=puanOzet(oyunId); if(!p) return '';
+  return `<span title="${p.n} müşteri puanı" style="font-size:11px;color:${puanRenk(p.ort)};font-weight:700;white-space:nowrap">⭐ ${p.ort.toFixed(1).replace('.',',')} <span style="font-weight:400;color:var(--text3)">(${p.n})</span></span>`;
+}
+function puanDetayHTML(oyunId){
+  const p=puanOzet(oyunId);
+  if(!p) return `<div style="font-size:12px;color:var(--text3);margin-bottom:14px">⭐ Henüz müşteri puanı yok — iadeden sonra bot soruyor.</div>`;
+  const dag=[5,4,3,2,1].map(x=>({x,n:p.liste.filter(k=>k.puan===x).length}));
+  const son=p.liste.slice().sort((a,b)=>(b.puanTarih||b.teslimTarih||'').localeCompare(a.puanTarih||a.teslimTarih||'')).slice(0,8);
+  return `<div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-size:26px;font-weight:800;color:${puanRenk(p.ort)}">⭐ ${p.ort.toFixed(1).replace('.',',')}</div>
+      <div style="font-size:12px;color:var(--text3)">${p.n} müşteri puanı</div>
+      <div style="flex:1;min-width:160px">${dag.map(d=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)"><span style="width:14px">${d.x}</span><div style="flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="width:${Math.round(d.n/p.n*100)}%;height:100%;background:#fbbf24"></div></div><span style="width:18px;text-align:right">${d.n}</span></div>`).join('')}</div>
+    </div>
+    ${son.some(k=>k.puanYorum)||son.length?`<div style="margin-top:10px;font-size:12px;line-height:1.7">${son.map(k=>{const m=D.musteriler.find(x=>x.id===k.musteriId);return `<div><span style="color:#fbbf24">${'★'.repeat(k.puan)}<span style="color:var(--text3)">${'★'.repeat(5-k.puan)}</span></span> <span style="color:var(--text2)">${esc(m?((m.ad||'')+' '+(m.soyad||'')).trim():'')}</span>${k.puanYorum?` — <i>"${esc(k.puanYorum)}"</i>`:''} <span style="color:var(--text3);font-size:10px">${fmtDate(k.puanTarih||k.teslimTarih)}</span></div>`;}).join('')}</div>`:''}
+  </div>`;
+}
+function puanIsteAktif(){ const a=ayarGet('puanIste',null); return !a||a.aktif!==false; }
+// Siteden iade sonrası: 9 sn bekle (bu arada "Geri al" denirse gönderme), sonra bot puan sorsun
+function puanIsteBot(kiraId){
+  if(!puanIsteAktif()) return;
+  setTimeout(async()=>{
+    const k=D.kiralamalar.find(x=>x.id===kiraId);
+    if(!k||k.durum!=='teslim'||k.puan) return;
+    try{ await botIstek('duyuru','/api/puan-iste',{kiraId},true); }catch(e){ console.warn('Puan isteği gönderilemedi:',e.message); }
+  },9000);
+}
+function renderPuanAyar(){ const c=document.getElementById('puan-iste-aktif'); if(c) c.checked=puanIsteAktif(); }
+function savePuanAyar(){ ayarSet('puanIste',{aktif:document.getElementById('puan-iste-aktif').checked}); toast('Puan ayarı kaydedildi ✅','success'); }
 
 // ===== TOPLU WHATSAPP =====
 function openTopluWaModal(){

@@ -1087,16 +1087,18 @@ tr.overdue td{background:rgba(255,71,87,.05);}
   <div class="section" style="margin-top:16px">
     <div class="section-head"><div class="section-title">🤖 Bot Bağlantısı</div></div>
     <div class="section-body">
-      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">Bot adresleri ve API anahtarı artık sayfanın kaynak kodunda değil, senin hesabında saklanıyor. Bot tarafında anahtarı değiştirdiğinde buraya da yeni anahtarı gir.</p>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">Bot, siteye giriş yaptığın hesapla seni otomatik tanır — <strong>API anahtarı girmen gerekmez</strong>. Anahtar alanı sadece yedek: giriş doğrulanamazsa kullanılır. Adresler botun Railway adresi olmalı.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px">
         <div><label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">📣 Duyuru botu adresi</label>
           <input type="url" id="bot-duyuru-url" style="width:100%;box-sizing:border-box;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-family:inherit"></div>
         <div><label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">✅ Ön kayıt onay botu adresi</label>
           <input type="url" id="bot-onay-url" style="width:100%;box-sizing:border-box;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-family:inherit"></div>
-        <div><label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🔑 API anahtarı</label>
+        <div><label style="font-size:12px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px">🔑 API anahtarı <span style="font-weight:400">(isteğe bağlı — boş bırakabilirsin)</span></label>
           <input type="password" id="bot-api-key" autocomplete="off" style="width:100%;box-sizing:border-box;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text1);font-family:inherit"></div>
       </div>
       <button class="btn btn-success" onclick="saveBotAyarlar()">💾 Kaydet</button>
+      <button class="btn btn-outline" onclick="botBaglantiTest()" style="margin-left:8px">🔌 Bağlantıyı test et</button>
+      <div id="bot-test-sonuc" style="font-size:13px;margin-top:10px"></div>
     </div>
   </div>
 
@@ -3923,19 +3925,30 @@ function duyuruOnizle(){
 function botAyar(){
   return Object.assign({duyuruUrl:'https://webhook-bot-c319.up.railway.app', onayUrl:'https://gamerental-bot-production.up.railway.app', apiKey:''}, ayarGet('bot',{})||{});
 }
+// Bot isteği: kimlik doğrulama sitenin Firebase girişiyle yapılır (API anahtarı gerekmez).
+// Bot girişi doğrulayamazsa (401) ve kayıtlı anahtar yoksa, ancak o zaman anahtar sorulur.
 async function botIstek(tur, yol, govde){
   const b=botAyar();
-  let key=b.apiKey;
-  if(!key){
-    key=prompt('Bot API anahtarını gir (bir kez sorulur, Ayarlar → Bot Bağlantısı bölümünden değiştirebilirsin):');
-    if(!key) throw new Error('Bot API anahtarı girilmedi');
-    ayarSet('bot',Object.assign({},ayarGet('bot',{})||{},{apiKey:key.trim()}));
-    key=key.trim();
-  }
-  // Firebase kimlik token'ı da gönderilir — bot tarafında doğrulanırsa API anahtarına gerek kalmaz
-  let idToken=null; try{ idToken=await currentUser.getIdToken(); }catch(e){}
   const url=(tur==='onay'?b.onayUrl:b.duyuruUrl).replace(/\/+$/,'')+yol;
-  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},govde,{apiKey:key,idToken:idToken}))});
+  let idToken=null; try{ idToken=await currentUser.getIdToken(); }catch(e){}
+  const gonder=key=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},govde,{apiKey:key||'',idToken:idToken}))});
+  let res=await gonder(b.apiKey);
+  if(res.status===401&&!b.apiKey){
+    const key=(prompt('Bot giriş bilgini doğrulayamadı. Railway\'deki WAHA_API_KEY (ya da BOT_API_KEY) değerini gir — bir kez sorulur:')||'').trim();
+    if(!key) return res;
+    res=await gonder(key);
+    if(res.status!==401) ayarSet('bot',Object.assign({},ayarGet('bot',{})||{},{apiKey:key}));
+  }
+  return res;
+}
+// Ayarlar → Bot Bağlantısı: bağlantı testi (olmayan müşteri sorulur — 404 = bağlantı ve yetki tamam, mesaj gönderilmez)
+async function botBaglantiTest(){
+  const el=document.getElementById('bot-test-sonuc'); if(el) el.textContent='⏳ Deneniyor...';
+  try{
+    const res=await botIstek('duyuru','/api/kiralama-baslat',{musteriId:-1});
+    const ok=res.status===404, yetkisiz=res.status===401;
+    if(el){ el.style.color=ok?'var(--success)':'var(--danger)'; el.textContent=ok?'✅ Bot bağlantısı çalışıyor':yetkisiz?'❌ Bot yetki vermedi — API anahtarı yanlış ya da botta USER_UID farklı':'⚠️ Bot cevap verdi ama beklenmedik: HTTP '+res.status+' (bot güncel mi?)'; }
+  }catch(e){ if(el){ el.style.color='var(--danger)'; el.textContent='❌ Bota ulaşılamadı: '+e.message; } }
 }
 function renderBotAyarlar(){
   const b=botAyar();

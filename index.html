@@ -481,6 +481,20 @@ tr.overdue td{background:rgba(255,71,87,.05);}
       <button class="filter-btn" onclick="setFilter('oyun','PS5',this)">PS5</button>
       <button class="filter-btn" onclick="setFilter('oyun','PS4',this)">PS4</button>
     </div>
+    <select id="oyun-sirala" onchange="oyunSiralamaKaydet();renderOyunlar()" title="Sıralama" style="padding:7px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border);font-family:inherit;font-size:13px">
+      <option value="">↕️ Sıralama: Varsayılan</option>
+      <option value="az">🔤 A → Z</option>
+      <option value="za">🔤 Z → A</option>
+      <option value="cikis-yeni">📅 Çıkış: en yeni</option>
+      <option value="cikis-eski">📅 Çıkış: en eski</option>
+      <option value="kiralama">🔥 En çok kiralanan</option>
+      <option value="gelir">💰 En çok gelir</option>
+      <option value="puan">⭐ En yüksek puan</option>
+    </select>
+    <select id="oyun-tur-filtre" onchange="oyunSiralamaKaydet();renderOyunlar()" title="Tür" style="padding:7px 10px;border-radius:8px;background:var(--surface2);color:var(--text1);border:1px solid var(--border);font-family:inherit;font-size:13px">
+      <option value="">🎭 Tüm türler</option>
+      <option>Aksiyon</option><option>Macera</option><option>RPG</option><option>FPS</option><option>Korku</option><option>Spor</option><option>Yarış</option><option>Dövüş</option><option>Strateji</option><option>Aile</option><option>Diğer</option>
+    </select>
     <button class="btn btn-warning btn-sm" onclick="openDeaktifModal()">📡 Uzaktan Deaktif</button>
     <button class="btn btn-sm" onclick="openKampanyaModal()" style="background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none">🏷️ Kampanya</button>
     <button class="btn btn-primary" onclick="openOyunModal()">+ Oyun Ekle</button>
@@ -2170,6 +2184,7 @@ function _cizGelirChart(ayLabels,gelirler,kiraSayilari){
 
 // =================== OYUNLAR ===================
 function renderOyunlar(){
+  if(!window._oyunSiraYuklendi){ window._oyunSiraYuklendi=true; oyunSiralamaYukle(); }
   const q=(document.getElementById('oyun-search')?.value||'').toLowerCase();
   const f=filters.oyun; const now=today();
   const list=D.oyunlar.filter(o=>{
@@ -2186,10 +2201,30 @@ function renderOyunlar(){
     if(f==='PS5') return o.platform.includes('PS5');
     if(f==='PS4') return o.platform.includes('PS4');
     return true;
-  });
+  }).filter(o=>{ const t=document.getElementById('oyun-tur-filtre')?.value; return !t||(o.tur||'Diğer')===t; });
+  // Sıralama
+  const sira=document.getElementById('oyun-sirala')?.value||'';
+  const ad=(a,b)=>(a.ad||'').localeCompare(b.ad||'','tr',{sensitivity:'base',numeric:true});
+  const cikis=(a,b,yon)=>{ if(!a.cikis&&!b.cikis) return ad(a,b); if(!a.cikis) return 1; if(!b.cikis) return -1; return yon*a.cikis.localeCompare(b.cikis)||ad(a,b); };
+  const puanDeger=o=>{ const p=typeof puanOzet==='function'?puanOzet(o.id):null; return p?p.ort:-1; };
+  if(sira==='az') list.sort(ad);
+  else if(sira==='za') list.sort((a,b)=>ad(b,a));
+  else if(sira==='cikis-yeni') list.sort((a,b)=>cikis(a,b,-1));
+  else if(sira==='cikis-eski') list.sort((a,b)=>cikis(a,b,1));
+  else if(sira==='kiralama') list.sort((a,b)=>(b.kiralamaSayisi||0)-(a.kiralamaSayisi||0)||ad(a,b));
+  else if(sira==='gelir') list.sort((a,b)=>(b.toplamGelir||0)-(a.toplamGelir||0)||ad(a,b));
+  else if(sira==='puan') list.sort((a,b)=>puanDeger(b)-puanDeger(a)||ad(a,b));
   const grid=document.getElementById('oyun-grid');
   if(!list.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎮</div><div class="empty-text">Oyun bulunamadı</div></div>';return;}
   grid.innerHTML=list.map(o=>oyunKartHTML(o)).join('');
+}
+
+// Oyunlar sayfası sıralama/tür seçimi bu tarayıcıda hatırlanır
+function oyunSiralamaKaydet(){
+  try{ localStorage.setItem('oyunSiralama',JSON.stringify({s:document.getElementById('oyun-sirala').value,t:document.getElementById('oyun-tur-filtre').value})); }catch(e){}
+}
+function oyunSiralamaYukle(){
+  try{ const v=JSON.parse(localStorage.getItem('oyunSiralama')||'{}'); if(v.s!=null) document.getElementById('oyun-sirala').value=v.s; if(v.t!=null) document.getElementById('oyun-tur-filtre').value=v.t; }catch(e){}
 }
 
 function oyunKartHTML(o){

@@ -6557,6 +6557,49 @@ function puanIsteBot(kiraId){
 function renderPuanAyar(){ const c=document.getElementById('puan-iste-aktif'); if(c) c.checked=puanIsteAktif(); }
 function savePuanAyar(){ ayarSet('puanIste',{aktif:document.getElementById('puan-iste-aktif').checked}); toast('Puan ayarı kaydedildi ✅','success'); }
 
+// ══════════════════════════════════════════
+// 🔍 OYUN SEÇİM KUTULARINDA ARAMA + A→Z SIRALAMA
+// Kiralama, bekleme listesi, ek maliyet ve deaktif pencerelerindeki oyun listesinin üstüne arama kutusu ekler.
+// Yazdıkça liste daralır ve ilk eşleşen oyun seçilir (Türkçe harf / büyük-küçük harf fark etmez).
+// ══════════════════════════════════════════
+function aramaKatla(t){ return String(t||'').replace(/İ/g,'i').replace(/I/g,'ı').toLocaleLowerCase('tr').replace(/ı/g,'i').normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function oyunAramaKur(id){
+  const sel=document.getElementById(id); if(!sel||sel.dataset.aramaVar) return;
+  sel.dataset.aramaVar='1';
+  const inp=document.createElement('input');
+  inp.type='text'; inp.autocomplete='off'; inp.placeholder='🔍 Oyun ara...'; inp.className='oyun-ara-kutu';
+  inp.style.cssText='width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text1);font-size:14px;font-family:inherit';
+  sel.parentNode.insertBefore(inp,sel);
+  let tum=null;      // listenin tamamı (aramadan önceki hali)
+  let benimHtml=null;// kendi yaptığım değişiklik (gözlemci bunu "yeni liste" sanmasın)
+  const sirala=()=>{ // sayfa listeyi her yeniden oluşturduğunda A→Z sırala ("-- Oyun --" en üstte kalır)
+    const secili=sel.value, ops=[...sel.options];
+    const bos=ops.filter(o=>o.value===''), dolu=ops.filter(o=>o.value!=='').sort((a,b)=>a.textContent.localeCompare(b.textContent,'tr',{sensitivity:'base',numeric:true}));
+    sel.append(...bos,...dolu); sel.value=secili; benimHtml=sel.innerHTML;
+  };
+  new MutationObserver(()=>{
+    if(sel.innerHTML===benimHtml) return;
+    tum=null; inp.value=''; sirala();
+  }).observe(sel,{childList:true});
+  sirala();
+  inp.addEventListener('input',()=>{
+    if(!tum) tum=[...sel.options].map(o=>({v:o.value,h:o.outerHTML.replace(/\sselected(="[^"]*")?/,''),t:aramaKatla(o.textContent)}));
+    const q=aramaKatla(inp.value.trim()), onceki=sel.value;
+    const kelimeler=q.split(/\s+/).filter(Boolean);
+    const eslesen=tum.filter(x=>x.v===''||kelimeler.every(k=>x.t.includes(k)));
+    const gercek=eslesen.filter(x=>x.v!=='');
+    sel.innerHTML=eslesen.map(x=>x.h).join('')+(q&&!gercek.length?'<option value="" disabled>— Eşleşen oyun yok —</option>':'');
+    if(gercek.some(x=>x.v===onceki)) sel.value=onceki;
+    else if(q&&gercek.length){ sel.value=gercek[0].v; }
+    else sel.value='';
+    benimHtml=sel.innerHTML;
+    if(sel.value!==onceki) sel.dispatchEvent(new Event('change'));
+  });
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sel.focus(); } if(e.key==='Escape'){ inp.value=''; inp.dispatchEvent(new Event('input')); } });
+}
+(function(){ const kur=()=>['kira-oyun','rezerv-oyun','maliyet-oyun','deaktif-oyun'].forEach(oyunAramaKur);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',kur); else kur(); })();
+
 // ===== TOPLU WHATSAPP =====
 function openTopluWaModal(){
   renderTopluWaMusteri();

@@ -584,8 +584,18 @@ tr.overdue td{background:rgba(255,71,87,.05);}
       <div class="form-grid">
         <div class="form-group"><label>Uzatma Süresi (gün) *</label><input type="number" id="uzatma-gun" min="1" max="365" placeholder="Kaç gün?" oninput="calcUzatma()"></div>
         <div class="form-group"><label>Yeni Bitiş Tarihi</label><div id="uzatma-yeni-bit" style="padding:8px 12px;background:var(--surface3);border-radius:8px;font-weight:600;color:var(--success);font-size:14px">—</div></div>
-        <div class="form-group"><label>Uzatma Ücreti (₺)</label><input type="number" id="uzatma-ucret" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Uzatma Ücreti (₺)</label><input type="number" id="uzatma-ucret" min="0" placeholder="0">
+          <div id="uzatma-indirim-bilgi" style="display:none;font-size:11px;margin-top:4px;padding:4px 8px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);border-radius:6px;color:var(--success)"></div></div>
         <div class="form-group"><label>Not (opsiyonel)</label><input type="text" id="uzatma-not" placeholder="Uzatma notu..."></div>
+      </div>
+      <div class="hediye-info" id="uzatma-hediye" style="display:none;margin-top:12px">
+        <div style="font-weight:700;margin-bottom:8px">🎁 Hediye Gün <span id="uzatma-hediye-neden" style="font-size:10px;background:rgba(0,229,160,.2);border:1px solid rgba(0,229,160,.4);border-radius:4px;padding:2px 6px;margin-left:4px"></span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid rgba(0,229,160,.3);background:rgba(0,229,160,.07);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;margin:0"><input type="radio" name="uzatma-hediye" value="0" onchange="calcUzatma()" style="width:auto"> Hediye verme</label>
+          <label id="uh5-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid rgba(0,229,160,.3);background:rgba(0,229,160,.07);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;margin:0"><input type="radio" name="uzatma-hediye" value="5" id="uh5" onchange="calcUzatma()" style="width:auto"> 10+ gün → <span style="color:var(--success)">+5 gün</span></label>
+          <label id="uh10-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid rgba(0,229,160,.3);background:rgba(0,229,160,.07);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;margin:0"><input type="radio" name="uzatma-hediye" value="10" id="uh10" onchange="calcUzatma()" style="width:auto"> 20+ gün → <span style="color:var(--success)">+10 gün</span></label>
+        </div>
+        <div id="uzatma-hediye-bilgi" style="margin-top:6px;font-size:11px;color:var(--text3)"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -4856,6 +4866,8 @@ function openUzatmaModal(kiraId){
   document.getElementById('uzatma-not').value='';
   document.getElementById('uzatma-yeni-bit').textContent='—';
   document.getElementById('uzatma-yeni-bit').style.color='var(--success)';
+  { const ib=document.getElementById('uzatma-indirim-bilgi'); if(ib){ ib.style.display='none'; ib.innerHTML=''; } }
+  { const uh=document.getElementById('uzatma-hediye'); uh.style.display='none'; delete uh.dataset.acildi; document.querySelectorAll('input[name="uzatma-hediye"]').forEach(r=>r.checked=false); }
 
   // Bilgi kartı
   const uzSayisi=(k.uzatmalar||[]).length;
@@ -4895,6 +4907,36 @@ function openUzatmaModal(kiraId){
   openModal('modal-uzatma');
 }
 
+// Uzatma penceresindeki hediye gün seçenekleri; seçili hediye gün sayısını döndürür
+function uzatmaHediyeUygun(k,o){
+  if(!o) return null;
+  const birAyOnce=new Date(); birAyOnce.setMonth(birAyOnce.getMonth()-1);
+  const ilk=D.kiralamalar.filter(x=>x.oyunId===o.id).map(x=>x.bas).sort()[0];
+  const ref=o.cikis&&o.cikis<=today()?o.cikis:ilk;
+  if(ref&&new Date(ref)<birAyOnce) return '🕹️ Eski oyun';
+  const t=getMusteriTier(k.musteriId);
+  if(t.seviye==='platinplus') return '💎 Elmas ayrıcalığı';
+  if(t.seviye==='platin') return '🏆 Platin ayrıcalığı';
+  return null;
+}
+function uzatmaHediyeGuncelle(k,o,gun){
+  const panel=document.getElementById('uzatma-hediye'); if(!panel) return 0;
+  const neden=uzatmaHediyeUygun(k,o);
+  const bilgi=document.getElementById('uzatma-hediye-bilgi');
+  if(!neden){ panel.style.display='none'; return 0; }
+  panel.style.display='block';
+  document.getElementById('uzatma-hediye-neden').textContent=neden;
+  const ac=(id,on)=>{ const l=document.getElementById(id); l.style.opacity=on?'1':'0.4'; l.style.pointerEvents=on?'auto':'none'; };
+  ac('uh5-label',gun>=10); ac('uh10-label',gun>=20);
+  const r0=document.querySelector('input[name="uzatma-hediye"][value="0"]'), r5=document.getElementById('uh5'), r10=document.getElementById('uh10');
+  if(gun<10){ r0.checked=true; panel.dataset.acildi=''; bilgi.textContent='ℹ️ 10+ gün uzatmada 5 gün, 20+ günde 10 gün hediye verilebilir'; return 0; }
+  // 10 güne ilk ulaşıldığında +5 otomatik seçilir; sonra senin seçimine dokunulmaz
+  if(!panel.dataset.acildi){ r5.checked=true; panel.dataset.acildi='1'; }
+  if(r10.checked&&gun<20) r5.checked=true;
+  bilgi.textContent=gun<20?'ℹ️ +10 gün hediye için en az 20 gün uzatma gerekli':'';
+  return parseInt(document.querySelector('input[name="uzatma-hediye"]:checked')?.value||'0');
+}
+
 function calcUzatma(){
   const kiraId=parseInt(document.getElementById('uzatma-kira-id').value);
   const gun=parseInt(document.getElementById('uzatma-gun').value)||0;
@@ -4904,18 +4946,31 @@ function calcUzatma(){
   if(!k) return;
   const o=D.oyunlar.find(x=>x.id===k.oyunId);
 
+  // Hediye gün — yeni kiralamadaki kuralla aynı: çıkalı 1 ayı geçmiş oyun ya da Platin/Elmas üye, 10+ gün
+  const hediye=uzatmaHediyeGuncelle(k,o,gun);
   // Yeni bitiş tarihi
   const mevcutBit=new Date(k.bit+'T12:00:00');
-  mevcutBit.setDate(mevcutBit.getDate()+gun);
+  mevcutBit.setDate(mevcutBit.getDate()+gun+hediye);
   const yeniBit=ymd(mevcutBit);
-  document.getElementById('uzatma-yeni-bit').textContent=fmtDate(yeniBit);
+  document.getElementById('uzatma-yeni-bit').textContent=fmtDate(yeniBit)+(hediye?` (+${hediye} gün hediye 🎁)`:'');
 
   // Ücret hesapla
   if(o){
     const gunluk0=k.tip==='primary'?(o.gunlukPri||o.gunluk||0):(o.gunlukSec||Math.round((o.gunlukPri||o.gunluk||0)*0.7));
     const kp=oyunKampanyasi(o,today()); // aktif fiyat kampanyası uzatmaya da uygulanır
     const gunluk=kp?Math.max(1,Math.round(gunluk0*(1-kp.oran/100))):gunluk0;
-    document.getElementById('uzatma-ucret').value=gunluk*gun;
+    // Üyelik indirimi — bottaki uzatmayla aynı: (kampanyalı) günlük × gün, üstüne üyelik indirimi
+    const ham=gunluk*gun;
+    const t=getMusteriTier(k.musteriId);
+    const ind=t.indirim>0?Math.round(ham*t.indirim/100):0;
+    document.getElementById('uzatma-ucret').value=ham-ind;
+    const bilgi=document.getElementById('uzatma-indirim-bilgi');
+    if(bilgi){
+      const satir=[];
+      if(kp) satir.push(`🏷️ ${esc(kp.ad)} — günlük fiyata %${kp.oran} kampanya indirimi`);
+      if(ind>0) satir.push(`${t.label} üye — %${t.indirim} indirim: ${fmt(ham)} → <strong>${fmt(ham-ind)}</strong>`);
+      bilgi.innerHTML=satir.join('<br>'); bilgi.style.display=satir.length?'block':'none';
+    }
   }
 }
 
@@ -4931,14 +4986,17 @@ function saveUzatma(){
   if(!k) return;
   const o=D.oyunlar.find(x=>x.id===k.oyunId);
 
+  // Hediye gün (uygunsa ve seçildiyse)
+  const hediye=document.getElementById('uzatma-hediye').style.display!=='none'?parseInt(document.querySelector('input[name="uzatma-hediye"]:checked')?.value||'0'):0;
   // Yeni bitiş tarihi
   const mevcutBit=new Date(k.bit+'T12:00:00');
-  mevcutBit.setDate(mevcutBit.getDate()+gun);
+  mevcutBit.setDate(mevcutBit.getDate()+gun+hediye);
   k.bit=ymd(mevcutBit);
+  if(hediye) k.hediyeGun=(k.hediyeGun||0)+hediye;
 
   // Uzatma kaydı
   if(!k.uzatmalar) k.uzatmalar=[];
-  k.uzatmalar.push({gun,ucret,tarih:today(),not});
+  k.uzatmalar.push(Object.assign({gun,ucret,tarih:today(),not},hediye?{hediye}:{}));
 
   // Gelir güncelle
   k.ucret=(k.ucret||0)+ucret;
@@ -4951,7 +5009,7 @@ function saveUzatma(){
   renderDashboard();
   updateStats();
   setTimeout(autoCheckNotif, 2000);
-  toast('Kiralama '+gun+' gün uzatıldı! +'+fmt(ucret),'success');
+  toast('Kiralama '+gun+' gün uzatıldı'+(hediye?' + '+hediye+' gün hediye 🎁':'')+'! +'+fmt(ucret),'success');
 }
 
 
